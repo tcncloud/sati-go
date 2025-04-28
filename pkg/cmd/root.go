@@ -10,7 +10,7 @@ import (
 var OutputFormat string
 var rootCmd = &cobra.Command{
 	Use:   "sati-client",
-	Short: "Sati Client - single binary app",
+	Short: "Sati Client - CLI for exile gateway that exposes the API",
 }
 
 func Execute() {
