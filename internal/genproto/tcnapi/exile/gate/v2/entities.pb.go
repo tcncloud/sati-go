@@ -7,7 +7,7 @@
 package gatev2
 
 import (
-	_ "git.tcncloud.net/experiments/sati-client/internal/genproto/tcnapi/exile/core/v2"
+	_ "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/core/v2"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
@@ -1855,7 +1855,7 @@ const file_tcnapi_exile_gate_v2_entities_proto_rawDesc = "" +
 	".AGENT_STATE_CALLER_TRANSFER_LOST_MERGED_CALLER\x10%\x12.\n" +
 	"*AGENT_STATE_COLD_OUTBOUND_TRANSFER_STARTED\x10&\x12+\n" +
 	"'AGENT_STATE_COLD_AGENT_TRANSFER_STARTED\x10'B\xf4\x01\n" +
-	"\x18com.tcnapi.exile.gate.v2B\rEntitiesProtoP\x01ZVgit.tcncloud.net/experiments/sati-client/internal/genproto/tcnapi/exile/gate/v2;gatev2\xa2\x02\x03TEG\xaa\x02\x14Tcnapi.Exile.Gate.V2\xca\x02\x14Tcnapi\\Exile\\Gate\\V2\xe2\x02 Tcnapi\\Exile\\Gate\\V2\\GPBMetadata\xea\x02\x17Tcnapi::Exile::Gate::V2b\x06proto3"
+	"\x18com.tcnapi.exile.gate.v2B\rEntitiesProtoP\x01ZVgithub.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2;gatev2\xa2\x02\x03TEG\xaa\x02\x14Tcnapi.Exile.Gate.V2\xca\x02\x14Tcnapi\\Exile\\Gate\\V2\xe2\x02 Tcnapi\\Exile\\Gate\\V2\\GPBMetadata\xea\x02\x17Tcnapi::Exile::Gate::V2b\x06proto3"
 
 var (
 	file_tcnapi_exile_gate_v2_entities_proto_rawDescOnce sync.Once

@@ -10,7 +10,7 @@ managed:
   override:
     - file_option: go_package_prefix
       # module: buf.build/tcn/tcnapi # added later
-      value: git.tcncloud.net/experiments/sati-client/internal/genproto
+      value: github.com/tcncloud/sati-go/internal/genproto
     - file_option: go_package_prefix
       module: buf.build/tcn/api
       value: github.com/tcncloud/api-go

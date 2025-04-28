@@ -1,4 +1,4 @@
-module git.tcncloud.net/experiments/sati-client
+module github.com/tcncloud/sati-go
 
 go 1.24.2
 

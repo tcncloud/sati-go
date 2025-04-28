@@ -16,7 +16,7 @@
 package gatev2
 
 import (
-	v2 "git.tcncloud.net/experiments/sati-client/internal/genproto/tcnapi/exile/core/v2"
+	v2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/core/v2"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -5114,7 +5114,7 @@ const file_tcnapi_exile_gate_v2_public_proto_rawDesc = "" +
 	"\x14UpdateScrubListEntry\x121.tcnapi.exile.gate.v2.UpdateScrubListEntryRequest\x1a2.tcnapi.exile.gate.v2.UpdateScrubListEntryResponse\x12\x83\x01\n" +
 	"\x16RemoveScrubListEntries\x123.tcnapi.exile.gate.v2.RemoveScrubListEntriesRequest\x1a4.tcnapi.exile.gate.v2.RemoveScrubListEntriesResponse\x12J\n" +
 	"\x03Log\x12 .tcnapi.exile.gate.v2.LogRequest\x1a!.tcnapi.exile.gate.v2.LogResponseB\xf2\x01\n" +
-	"\x18com.tcnapi.exile.gate.v2B\vPublicProtoP\x01ZVgit.tcncloud.net/experiments/sati-client/internal/genproto/tcnapi/exile/gate/v2;gatev2\xa2\x02\x03TEG\xaa\x02\x14Tcnapi.Exile.Gate.V2\xca\x02\x14Tcnapi\\Exile\\Gate\\V2\xe2\x02 Tcnapi\\Exile\\Gate\\V2\\GPBMetadata\xea\x02\x17Tcnapi::Exile::Gate::V2b\x06proto3"
+	"\x18com.tcnapi.exile.gate.v2B\vPublicProtoP\x01ZVgithub.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2;gatev2\xa2\x02\x03TEG\xaa\x02\x14Tcnapi.Exile.Gate.V2\xca\x02\x14Tcnapi\\Exile\\Gate\\V2\xe2\x02 Tcnapi\\Exile\\Gate\\V2\\GPBMetadata\xea\x02\x17Tcnapi::Exile::Gate::V2b\x06proto3"
 
 var (
 	file_tcnapi_exile_gate_v2_public_proto_rawDescOnce sync.Once

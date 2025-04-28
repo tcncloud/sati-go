@@ -405,7 +405,7 @@ const file_tcnapi_exile_core_v2_entities_proto_rawDesc = "" +
 	"\boperator\x18\x03 \x01(\x0e2%.tcnapi.exile.core.v2.Filter.OperatorR\boperator\"\x15\n" +
 	"\bOperator\x12\t\n" +
 	"\x05EQUAL\x10\x00B\xf4\x01\n" +
-	"\x18com.tcnapi.exile.core.v2B\rEntitiesProtoP\x01ZVgit.tcncloud.net/experiments/sati-client/internal/genproto/tcnapi/exile/core/v2;corev2\xa2\x02\x03TEC\xaa\x02\x14Tcnapi.Exile.Core.V2\xca\x02\x14Tcnapi\\Exile\\Core\\V2\xe2\x02 Tcnapi\\Exile\\Core\\V2\\GPBMetadata\xea\x02\x17Tcnapi::Exile::Core::V2b\x06proto3"
+	"\x18com.tcnapi.exile.core.v2B\rEntitiesProtoP\x01ZVgithub.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/core/v2;corev2\xa2\x02\x03TEC\xaa\x02\x14Tcnapi.Exile.Core.V2\xca\x02\x14Tcnapi\\Exile\\Core\\V2\xe2\x02 Tcnapi\\Exile\\Core\\V2\\GPBMetadata\xea\x02\x17Tcnapi::Exile::Core::V2b\x06proto3"
 
 var (
 	file_tcnapi_exile_core_v2_entities_proto_rawDescOnce sync.Once

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	gatev2 "git.tcncloud.net/experiments/sati-client/internal/genproto/tcnapi/exile/gate/v2"
-	"git.tcncloud.net/experiments/sati-client/pkg/sati"
 	"github.com/spf13/cobra"
+	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
+	"github.com/tcncloud/sati-go/pkg/sati"
 )
 
 func GetRecordingStatusCmd(configPath *string) *cobra.Command {
