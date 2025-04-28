@@ -1,0 +1,121 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Install Buf
+      uses: bufbuild/buf-setup-action@v1
+      with:
+        version: '1.28.1'
+
+    - name: Generate Proto Files
+      run: buf generate
+
+    - name: Build Binaries
+      run: |
+        # Build for Linux
+        GOOS=linux GOARCH=amd64 go build -o sati-client-linux-amd64 ./cmd/sati-client
+        GOOS=linux GOARCH=arm64 go build -o sati-client-linux-arm64 ./cmd/sati-client
+        # Build for macOS
+        GOOS=darwin GOARCH=amd64 go build -o sati-client-darwin-amd64 ./cmd/sati-client
+        GOOS=darwin GOARCH=arm64 go build -o sati-client-darwin-arm64 ./cmd/sati-client
+        # Build for Windows
+        GOOS=windows GOARCH=amd64 go build -o sati-client-windows-amd64.exe ./cmd/sati-client
+        GOOS=windows GOARCH=arm64 go build -o sati-client-windows-arm64.exe ./cmd/sati-client
+        # Create tar.gz for Unix-like systems and zip for Windows
+        tar -czvf sati-client-linux-amd64.tar.gz sati-client-linux-amd64
+        tar -czvf sati-client-linux-arm64.tar.gz sati-client-linux-arm64
+        tar -czvf sati-client-darwin-amd64.tar.gz sati-client-darwin-amd64
+        tar -czvf sati-client-darwin-arm64.tar.gz sati-client-darwin-arm64
+        zip sati-client-windows-amd64.zip sati-client-windows-amd64.exe
+        zip sati-client-windows-arm64.zip sati-client-windows-arm64.exe
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./sati-client-linux-amd64.tar.gz
+        asset_name: sati-client-linux-amd64.tar.gz
+        asset_content_type: application/gzip
+      continue-on-error: true
+
+    - name: Upload Release Asset - Linux ARM64
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./sati-client-linux-arm64.tar.gz
+        asset_name: sati-client-linux-arm64.tar.gz
+        asset_content_type: application/gzip
+      continue-on-error: true
+
+    - name: Upload Release Asset - macOS AMD64
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./sati-client-darwin-amd64.tar.gz
+        asset_name: sati-client-darwin-amd64.tar.gz
+        asset_content_type: application/gzip
+      continue-on-error: true
+
+    - name: Upload Release Asset - macOS ARM64
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./sati-client-darwin-arm64.tar.gz
+        asset_name: sati-client-darwin-arm64.tar.gz
+        asset_content_type: application/gzip
+      continue-on-error: true
+
+    - name: Upload Release Asset - Windows AMD64
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./sati-client-windows-amd64.zip
+        asset_name: sati-client-windows-amd64.zip
+        asset_content_type: application/zip
+      continue-on-error: true
+
+    - name: Upload Release Asset - Windows ARM64
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./sati-client-windows-arm64.zip
+        asset_name: sati-client-windows-arm64.zip
+        asset_content_type: application/zip
+      continue-on-error: true 
