@@ -1,0 +1,14 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Sati Client Project Structure Guide
+
+The main entry point for the CLI is the binary built from [cmd/sati-client](mdc:cmd/sati-client), which loads configuration from a file such as `com.tcn.exiles.sati.config.cfg` (see [README.md](mdc:README.md)).
+
+Key command implementations are located in [pkg/cmd/](mdc:pkg/cmd/), with each file corresponding to a specific CLI command (e.g., [dial.go](mdc:pkg/cmd/dial.go), [add_scrub_list_entries.go](mdc:pkg/cmd/add_scrub_list_entries.go), [remove_scrub_list_entries.go](mdc:pkg/cmd/remove_scrub_list_entries.go), [submit_job_results.go](mdc:pkg/cmd/submit_job_results.go)).
+
+Generated gRPC and proto code is found under [internal/genproto/tcnapi/exile/gate/v2/](mdc:internal/genproto/tcnapi/exile/gate/v2/).
+
+For configuration details, usage, and command examples, see [README.md](mdc:README.md).
