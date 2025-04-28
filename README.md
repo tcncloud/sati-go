@@ -19,55 +19,49 @@ Clone the repository and build the binary:
 
 ```sh
 git clone <repo-url>
-cd sati-client
-go build -o sati-client ./cmd/sati-client
+cd sati-go
+go build -o sati-go ./cmd/sati-go
 ```
 
 ## Configuration
-Create a configuration file (e.g., `com.tcn.exiles.sati.config.cfg`) with your API endpoint and credentials. Example:
+Generate and copy the configuration certificate from operator.tcn.com and save it into a local file.
 
-```toml
-api_endpoint = "your-grpc-server:port"
-cert_file = "path/to/cert.pem"
-key_file = "path/to/key.pem"
-ca_file = "path/to/ca.pem"
-```
 
 ## Usage
 Run the client with a command and specify the config file:
 
 ```sh
-./sati-client <command> --config com.tcn.exiles.sati.config.cfg [flags]
+./sati-go <command> --config com.tcn.exiles.sati.config.cfg [flags]
 ```
 
 ## Available Commands (examples)
 - `dial` — Initiate a call:
   ```sh
-  ./sati-client dial --partner-agent-id AGENT_ID --phone-number 1234567890 --config com.tcn.exiles.sati.config.cfg
+  ./sati-go dial --partner-agent-id AGENT_ID --phone-number 1234567890 --config com.tcn.exiles.sati.config.cfg
   ```
 - `put-call-on-simple-hold` — Put a call on hold:
   ```sh
-  ./sati-client put-call-on-simple-hold --partner-agent-id AGENT_ID --config com.tcn.exiles.sati.config.cfg
+  ./sati-go put-call-on-simple-hold --partner-agent-id AGENT_ID --config com.tcn.exiles.sati.config.cfg
   ```
 - `add-scrub-list-entries` — Add entries to a scrub list:
   ```sh
-  ./sati-client add-scrub-list-entries --scrub-list-id LIST_ID --entries '[{"content":"1234567890","notes":"spam"}]' --config com.tcn.exiles.sati.config.cfg
+  ./sati-go add-scrub-list-entries --scrub-list-id LIST_ID --entries '[{"content":"1234567890","notes":"spam"}]' --config com.tcn.exiles.sati.config.cfg
   ```
 - `remove-scrub-list-entries` — Remove entries from a scrub list:
   ```sh
-  ./sati-client remove-scrub-list-entries --scrub-list-id LIST_ID --entries "1234567890,0987654321" --config com.tcn.exiles.sati.config.cfg
+  ./sati-go remove-scrub-list-entries --scrub-list-id LIST_ID --entries "1234567890,0987654321" --config com.tcn.exiles.sati.config.cfg
   ```
 - `submit-job-results` — Submit job results:
   ```sh
-  ./sati-client submit-job-results --job-id JOB_ID --result '{"error_result":{"message":"fail"}}' --config com.tcn.exiles.sati.config.cfg
+  ./sati-go submit-job-results --job-id JOB_ID --result '{"error_result":{"message":"fail"}}' --config com.tcn.exiles.sati.config.cfg
   ```
 
 ## Help
 For a full list of commands and flags, run:
 
 ```sh
-./sati-client --help
-./sati-client <command> --help
+./sati-go --help
+./sati-go <command> --help
 ```
 
 ## License
