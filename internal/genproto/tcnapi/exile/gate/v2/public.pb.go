@@ -1,3 +1,17 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Copyright 2024 TCN Inc
+
 //*
 // tcnapi/exile/gate/v2/public.proto
 //
@@ -5113,8 +5127,8 @@ const file_tcnapi_exile_gate_v2_public_proto_rawDesc = "" +
 	"\x13AddScrubListEntries\x120.tcnapi.exile.gate.v2.AddScrubListEntriesRequest\x1a1.tcnapi.exile.gate.v2.AddScrubListEntriesResponse\x12}\n" +
 	"\x14UpdateScrubListEntry\x121.tcnapi.exile.gate.v2.UpdateScrubListEntryRequest\x1a2.tcnapi.exile.gate.v2.UpdateScrubListEntryResponse\x12\x83\x01\n" +
 	"\x16RemoveScrubListEntries\x123.tcnapi.exile.gate.v2.RemoveScrubListEntriesRequest\x1a4.tcnapi.exile.gate.v2.RemoveScrubListEntriesResponse\x12J\n" +
-	"\x03Log\x12 .tcnapi.exile.gate.v2.LogRequest\x1a!.tcnapi.exile.gate.v2.LogResponseB\xf2\x01\n" +
-	"\x18com.tcnapi.exile.gate.v2B\vPublicProtoP\x01ZVgithub.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2;gatev2\xa2\x02\x03TEG\xaa\x02\x14Tcnapi.Exile.Gate.V2\xca\x02\x14Tcnapi\\Exile\\Gate\\V2\xe2\x02 Tcnapi\\Exile\\Gate\\V2\\GPBMetadata\xea\x02\x17Tcnapi::Exile::Gate::V2b\x06proto3"
+	"\x03Log\x12 .tcnapi.exile.gate.v2.LogRequest\x1a!.tcnapi.exile.gate.v2.LogResponseB\xe5\x01\n" +
+	"\x18com.tcnapi.exile.gate.v2B\vPublicProtoP\x01ZIgithub.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2;gatev2\xa2\x02\x03TEG\xaa\x02\x14Tcnapi.Exile.Gate.V2\xca\x02\x14Tcnapi\\Exile\\Gate\\V2\xe2\x02 Tcnapi\\Exile\\Gate\\V2\\GPBMetadata\xea\x02\x17Tcnapi::Exile::Gate::V2b\x06proto3"
 
 var (
 	file_tcnapi_exile_gate_v2_public_proto_rawDescOnce sync.Once
