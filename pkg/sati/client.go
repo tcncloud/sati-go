@@ -45,7 +45,8 @@ func SetupClient(cfg *Config) (*grpc.ClientConn, error) {
 
 	endpoint := ParseAPIEndpoint(cfg.APIEndpoint)
 
-	conn, err := grpc.Dial(endpoint, grpc.WithTransportCredentials(creds))
+	// conn, err := grpc.Dial(endpoint, grpc.WithTransportCredentials(creds))
+	conn, err := grpc.NewClient(endpoint, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to API: %w", err)
 	}
