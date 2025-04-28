@@ -38,7 +38,6 @@ func SetupClient(cfg *Config) (*grpc.ClientConn, error) {
 		return nil, fmt.Errorf("failed to append CA cert")
 	}
 	creds := credentials.NewTLS(&tls.Config{
-		ServerName:   "exile-proxy", // TODO: remove this once we have a proper TLS certificate
 		Certificates: []tls.Certificate{cert},
 		RootCAs:      caCertPool,
 	})
