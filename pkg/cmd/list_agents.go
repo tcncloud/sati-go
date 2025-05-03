@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/cobra"
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	"github.com/tcncloud/sati-go/pkg/sati"
+	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 )
 
 func ListAgentsCmd(configPath *string) *cobra.Command {
@@ -35,15 +36,22 @@ func ListAgentsCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			conn, err := sati.SetupClient(cfg)
+
+			// Use the new client constructor
+			client, err := saticlient.NewClient(cfg)
 			if err != nil {
 				return err
 			}
-			defer conn.Close()
-			client := gatev2.NewGateServiceClient(conn)
+			defer client.Close() // Ensure connection is closed
+
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
-			stream, err := client.ListAgents(ctx, &gatev2.ListAgentsRequest{})
+
+			// Build the request struct
+			request := &gatev2.ListAgentsRequest{}
+
+			// Call the client stream method
+			stream, err := client.ListAgents(ctx, request)
 			if err != nil {
 				return err
 			}

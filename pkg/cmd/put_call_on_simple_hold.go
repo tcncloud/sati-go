@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	"github.com/tcncloud/sati-go/pkg/sati"
+	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 )
 
 func PutCallOnSimpleHoldCmd(configPath *string) *cobra.Command {
@@ -20,14 +21,16 @@ func PutCallOnSimpleHoldCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			conn, err := sati.SetupClient(cfg)
+
+			client, err := saticlient.NewClient(cfg)
 			if err != nil {
 				return err
 			}
-			defer conn.Close()
-			client := gatev2.NewGateServiceClient(conn)
+			defer client.Close()
+
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
+
 			request := &gatev2.PutCallOnSimpleHoldRequest{
 				PartnerAgentId: partnerAgentId,
 			}

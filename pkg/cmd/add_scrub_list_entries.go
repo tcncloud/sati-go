@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	"github.com/tcncloud/sati-go/pkg/sati"
+	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -22,14 +23,16 @@ func AddScrubListEntriesCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			conn, err := sati.SetupClient(cfg)
+
+			client, err := saticlient.NewClient(cfg)
 			if err != nil {
 				return err
 			}
-			defer conn.Close()
-			client := gatev2.NewGateServiceClient(conn)
+			defer client.Close()
+
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
+
 			var entriesInput []struct {
 				Content string `json:"content"`
 				Notes   string `json:"notes,omitempty"`

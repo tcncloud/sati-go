@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/cobra"
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	"github.com/tcncloud/sati-go/pkg/sati"
+	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 )
 
 func UpdateAgentStatusCmd(configPath *string) *cobra.Command {
@@ -43,19 +44,26 @@ func UpdateAgentStatusCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			conn, err := sati.SetupClient(cfg)
+
+			// Use the new client constructor
+			client, err := saticlient.NewClient(cfg)
 			if err != nil {
 				return err
 			}
-			defer conn.Close()
-			client := gatev2.NewGateServiceClient(conn)
+			defer client.Close() // Ensure connection is closed
+
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
-			resp, err := client.UpdateAgentStatus(ctx, &gatev2.UpdateAgentStatusRequest{
+
+			// Build the request struct
+			request := &gatev2.UpdateAgentStatusRequest{
 				PartnerAgentId: partnerAgentId,
 				NewState:       gatev2.AgentState(newStateEnum),
 				Reason:         reason,
-			})
+			}
+
+			// Call the client method
+			resp, err := client.UpdateAgentStatus(ctx, request)
 			if err != nil {
 				return err
 			}

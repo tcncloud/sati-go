@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	"github.com/tcncloud/sati-go/pkg/sati"
+	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 )
 
 func GetClientConfigCmd(configPath *string) *cobra.Command {
@@ -20,15 +21,22 @@ func GetClientConfigCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			conn, err := sati.SetupClient(cfg)
+
+			// Use the new client constructor
+			client, err := saticlient.NewClient(cfg)
 			if err != nil {
 				return err
 			}
-			defer conn.Close()
-			client := gatev2.NewGateServiceClient(conn)
+			defer client.Close() // Ensure connection is closed
+
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
-			resp, err := client.GetClientConfiguration(ctx, &gatev2.GetClientConfigurationRequest{})
+
+			// Build the request struct
+			request := &gatev2.GetClientConfigurationRequest{}
+
+			// Call the client method
+			resp, err := client.GetClientConfiguration(ctx, request)
 			if err != nil {
 				return err
 			}

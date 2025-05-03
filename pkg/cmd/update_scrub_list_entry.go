@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	"github.com/tcncloud/sati-go/pkg/sati"
+	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
@@ -22,14 +23,18 @@ func UpdateScrubListEntryCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			conn, err := sati.SetupClient(cfg)
+
+			// Use the new client constructor
+			client, err := saticlient.NewClient(cfg)
 			if err != nil {
 				return err
 			}
-			defer conn.Close()
-			client := gatev2.NewGateServiceClient(conn)
+			defer client.Close() // Ensure connection is closed
+
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
+
+			// Build the request struct
 			request := &gatev2.UpdateScrubListEntryRequest{
 				ScrubListId: scrubListId,
 				Content:     content,
@@ -47,6 +52,8 @@ func UpdateScrubListEntryCmd(configPath *string) *cobra.Command {
 				}
 				request.Expiration = timestamppb.New(t)
 			}
+
+			// Call the client method
 			resp, err := client.UpdateScrubListEntry(ctx, request)
 			if err != nil {
 				return err
