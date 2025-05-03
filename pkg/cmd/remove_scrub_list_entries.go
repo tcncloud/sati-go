@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
+	gatev2 "buf.build/gen/go/tcn/exileapi/protocolbuffers/go/tcnapi/exile/gate/v2"
 	"github.com/spf13/cobra"
-	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
-	"github.com/tcncloud/sati-go/pkg/sati"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
+	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
 
 func RemoveScrubListEntriesCmd(configPath *string) *cobra.Command {
@@ -18,7 +18,7 @@ func RemoveScrubListEntriesCmd(configPath *string) *cobra.Command {
 		Use:   "remove-scrub-list-entries",
 		Short: "Call GateService.RemoveScrubListEntries",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := sati.LoadConfig(*configPath)
+			cfg, err := saticonfig.LoadConfig(*configPath)
 			if err != nil {
 				return err
 			}

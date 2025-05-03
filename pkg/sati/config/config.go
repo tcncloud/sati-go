@@ -13,12 +13,12 @@
 //
 // Copyright 2024 TCN Inc
 
-package sati
+package config // <--- Changed from 'sati'
 
 import (
 	"encoding/base64"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 )
 
 type Config struct {
@@ -33,7 +33,7 @@ type Config struct {
 }
 
 func LoadConfig(path string) (*Config, error) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +42,25 @@ func LoadConfig(path string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	// DEBUG: Print decoded bytes before unmarshal
+	// fmt.Printf("LoadConfig decoded bytes: %s\n", string(decoded[:n]))
 	var config Config
 	if err := json.Unmarshal(decoded[:n], &config); err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
+// NewConfigFromString creates a Config object from a base64 encoded JSON string.
+func NewConfigFromString(configString string) (*Config, error) {
+	decoded, err := base64.StdEncoding.DecodeString(configString)
+	if err != nil {
+		return nil, err
+	}
+	// DEBUG: Print decoded bytes before unmarshal
+	// fmt.Printf("NewConfigFromString decoded bytes: %s\n", string(decoded))
+	var config Config
+	if err := json.Unmarshal(decoded, &config); err != nil {
 		return nil, err
 	}
 	return &config, nil

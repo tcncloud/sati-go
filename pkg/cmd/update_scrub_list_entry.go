@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	gatev2 "buf.build/gen/go/tcn/exileapi/protocolbuffers/go/tcnapi/exile/gate/v2"
 	"github.com/spf13/cobra"
-	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
-	"github.com/tcncloud/sati-go/pkg/sati"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
+	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
@@ -19,7 +19,7 @@ func UpdateScrubListEntryCmd(configPath *string) *cobra.Command {
 		Use:   "update-scrub-list-entry",
 		Short: "Call GateService.UpdateScrubListEntry",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := sati.LoadConfig(*configPath)
+			cfg, err := saticonfig.LoadConfig(*configPath)
 			if err != nil {
 				return err
 			}
