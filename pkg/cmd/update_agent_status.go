@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -55,27 +54,22 @@ func UpdateAgentStatusCmd(configPath *string) *cobra.Command {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 
-			// Build the request struct
-			request := &gatev2.UpdateAgentStatusRequest{
-				PartnerAgentId: partnerAgentId,
+			// Build the custom Params struct
+			params := saticlient.UpdateAgentStatusParams{
+				PartnerAgentID: partnerAgentId,
 				NewState:       gatev2.AgentState(newStateEnum),
-				Reason:         reason,
+			}
+			if reason != "" {
+				params.Reason = &reason
 			}
 
-			// Call the client method
-			resp, err := client.UpdateAgentStatus(ctx, request)
+			// Call the client method with custom Params
+			_, err = client.UpdateAgentStatus(ctx, params)
 			if err != nil {
 				return err
 			}
-			if OutputFormat == "json" {
-				data, err := json.MarshalIndent(resp, "", "  ")
-				if err != nil {
-					return err
-				}
-				fmt.Println(string(data))
-			} else {
-				fmt.Printf("%+v\n", resp)
-			}
+			// Response is now an empty struct on success
+			fmt.Println("Successfully updated agent status.")
 			return nil
 		},
 	}

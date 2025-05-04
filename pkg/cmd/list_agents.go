@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"time"
 
-	gatev2 "buf.build/gen/go/tcn/exileapi/protocolbuffers/go/tcnapi/exile/gate/v2"
 	"github.com/spf13/cobra"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
@@ -47,27 +46,25 @@ func ListAgentsCmd(configPath *string) *cobra.Command {
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
 
-			// Build the request struct
-			request := &gatev2.ListAgentsRequest{}
+			// Build the custom Params struct (empty)
+			params := saticlient.ListAgentsParams{}
 
-			// Call the client stream method
-			stream, err := client.ListAgents(ctx, request)
-			if err != nil {
-				return err
-			}
+			// Call the client stream method - returns a channel
+			resultsChan := client.ListAgents(ctx, params)
 
-			var agents []*gatev2.Agent
-			for {
-				resp, err := stream.Recv()
-				if err != nil {
-					if saticlient.IsStreamEnd(err) {
-						break
-					}
-					return err
+			var agents []*saticlient.Agent // Store results from channel
+			for result := range resultsChan {
+				if result.Error != nil {
+					// Handle potential errors during streaming
+					// Depending on desired behavior, could log, return, or collect errors
+					return fmt.Errorf("error streaming agents: %w", result.Error)
 				}
-				agents = append(agents, resp.Agent)
+				if result.Agent != nil {
+					agents = append(agents, result.Agent)
+				}
 			}
 
+			// Process collected agents
 			if OutputFormat == "json" {
 				data, err := json.MarshalIndent(agents, "", "  ")
 				if err != nil {
@@ -77,7 +74,7 @@ func ListAgentsCmd(configPath *string) *cobra.Command {
 			} else {
 				for _, agent := range agents {
 					fmt.Printf("UserID: %s, OrgID: %s, FirstName: %s, LastName: %s, Username: %s, PartnerAgentID: %s\n",
-						agent.UserId, agent.OrgId, agent.FirstName, agent.LastName, agent.Username, agent.PartnerAgentId)
+						agent.UserID, agent.OrgID, agent.FirstName, agent.LastName, agent.Username, agent.PartnerAgentID)
 				}
 			}
 			return nil

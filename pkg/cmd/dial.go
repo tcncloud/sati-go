@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	gatev2 "buf.build/gen/go/tcn/exileapi/protocolbuffers/go/tcnapi/exile/gate/v2"
 	"github.com/spf13/cobra"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func DialCmd(configPath *string) *cobra.Command {
@@ -36,27 +34,28 @@ func DialCmd(configPath *string) *cobra.Command {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 
-			// Build the request struct
-			request := &gatev2.DialRequest{
-				PartnerAgentId: partnerAgentId,
+			// Build the custom Params struct
+			params := saticlient.DialParams{
+				PartnerAgentID: partnerAgentId,
 				PhoneNumber:    phoneNumber,
 			}
 			if callerId != "" {
-				request.CallerId = &wrapperspb.StringValue{Value: callerId}
+				params.CallerID = &callerId
 			}
 			if poolId != "" {
-				request.PoolId = &wrapperspb.StringValue{Value: poolId}
+				params.PoolID = &poolId
 			}
 			if recordId != "" {
-				request.RecordId = &wrapperspb.StringValue{Value: recordId}
+				params.RecordID = &recordId
 			}
 
-			// Call the client method
-			resp, err := client.Dial(ctx, request)
+			// Call the client method with custom Params
+			resp, err := client.Dial(ctx, params)
 			if err != nil {
 				return err
 			}
-			fmt.Printf("%+v\n", resp)
+			// Use the custom Result struct field
+			fmt.Printf("Call SID: %s\n", resp.CallSid)
 			return nil
 		},
 	}
