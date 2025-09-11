@@ -217,12 +217,19 @@ func TestClient_Close(t *testing.T) {
 	// For now, we assume Close passes the call through if conn is not nil.
 }
 
-func TestClient_API_Methods(t *testing.T) {
+// setupTestClient creates a test client with mock service.
+func setupTestClient() (*Client, *mockGateServiceClient) {
 	mockService := &mockGateServiceClient{}
 	client := &Client{
 		conn: (*grpc.ClientConn)(nil), // Connection not used in these tests
 		gate: mockService,
 	}
+
+	return client, mockService
+}
+
+func TestClient_AgentMethods(t *testing.T) {
+	client, mockService := setupTestClient()
 	ctx := context.Background()
 
 	// --- Test AddAgentCallResponse ---
@@ -271,6 +278,11 @@ func TestClient_API_Methods(t *testing.T) {
 		}
 		// Can add more detailed check on mockService.addScrubListEntriesReq if needed
 	})
+}
+
+func TestClient_DialMethods(t *testing.T) {
+	client, mockService := setupTestClient()
+	ctx := context.Background()
 
 	// --- Test Dial ---
 	t.Run("DialSuccess", func(t *testing.T) {
@@ -334,6 +346,11 @@ func TestClient_API_Methods(t *testing.T) {
 			t.Error("Expected underlying GetAgentByID to be called")
 		}
 	})
+}
+
+func TestClient_ConfigurationMethods(t *testing.T) {
+	client, mockService := setupTestClient()
+	ctx := context.Background()
 
 	// --- Test GetClientConfiguration ---
 	t.Run("GetClientConfigurationSuccess", func(t *testing.T) {
@@ -382,6 +399,11 @@ func TestClient_API_Methods(t *testing.T) {
 			t.Error("PollEvents did not return expected response (Events slice is nil)")
 		}
 	})
+}
+
+func TestClient_StatusMethods(t *testing.T) {
+	client, mockService := setupTestClient()
+	ctx := context.Background()
 
 	// --- Test UpdateAgentStatus ---
 	t.Run("UpdateAgentStatusSuccess", func(t *testing.T) {
@@ -404,6 +426,11 @@ func TestClient_API_Methods(t *testing.T) {
 		}
 		// Can add detailed check on mockService.updateAgentStatusReq if needed
 	})
+}
+
+func TestClient_ListAgents(t *testing.T) {
+	client, mockService := setupTestClient()
+	ctx := context.Background()
 
 	// --- Test ListAgents (Streaming) ---
 	t.Run("ListAgents", func(t *testing.T) {
@@ -460,6 +487,11 @@ func TestClient_API_Methods(t *testing.T) {
 		}
 		// Check on mockStream recvCalled remains valid if needed
 	})
+}
+
+func TestClient_StreamJobs(t *testing.T) {
+	client, mockService := setupTestClient()
+	ctx := context.Background()
 
 	// --- Test StreamJobs (Streaming) ---
 	t.Run("StreamJobs", func(t *testing.T) {

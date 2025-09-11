@@ -641,6 +641,7 @@ func setupConnection(cfg *saticonfig.Config) (*grpc.ClientConn, error) {
 	creds := credentials.NewTLS(&tls.Config{
 		Certificates: []tls.Certificate{cert},
 		RootCAs:      caCertPool,
+		MinVersion:   tls.VersionTLS12, // Set minimum TLS version to 1.2
 	})
 
 	endpoint := parseAPIEndpoint(cfg.APIEndpoint)

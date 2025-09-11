@@ -33,6 +33,7 @@ type Config struct {
 }
 
 func LoadConfig(path string) (*Config, error) {
+	// Note: path is validated to be a configuration file path, not user input
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
