@@ -15,14 +15,10 @@
 package cmd
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
-	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
 
 func ListSearchableRecordingFieldsCmd(configPath *string) *cobra.Command {
@@ -30,45 +26,33 @@ func ListSearchableRecordingFieldsCmd(configPath *string) *cobra.Command {
 		Use:   "list-searchable-recording-fields",
 		Short: "Call GateService.ListSearchableRecordingFields",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := saticonfig.LoadConfig(*configPath)
+			client, err := createClient(configPath)
 			if err != nil {
 				return err
 			}
+			defer handleClientClose(client)
 
-			// Use the new client constructor
-			client, err := saticlient.NewClient(cfg)
-			if err != nil {
-				return err
-			}
-			defer client.Close() // Ensure connection is closed
-
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			// Build the custom Params struct
 			params := saticlient.ListSearchableRecordingFieldsParams{}
-
-			// Call the client method with custom Params
 			resp, err := client.ListSearchableRecordingFields(ctx, params)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to list searchable recording fields: %w", err)
 			}
 
-			// Use the custom Result struct
-			if OutputFormat == "json" {
-				data, err := json.MarshalIndent(resp.Fields, "", "  ")
-				if err != nil {
-					return err
-				}
-				fmt.Println(string(data))
-			} else {
-				for _, field := range resp.Fields {
-					fmt.Printf("Name: %s, DisplayName: %s, Type: %s\n",
-						field.Name, field.DisplayName, field.Type)
-				}
+			if OutputFormat == OutputFormatJSON {
+				return outputJSON(resp.Fields)
 			}
+
+			for _, field := range resp.Fields {
+				fmt.Printf("Name: %s, DisplayName: %s, Type: %s\n",
+					field.Name, field.DisplayName, field.Type)
+			}
+
 			return nil
 		},
 	}
+
 	return cmd
 }

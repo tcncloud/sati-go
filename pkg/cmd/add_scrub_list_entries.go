@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
@@ -12,7 +10,8 @@ import (
 )
 
 func AddScrubListEntriesCmd(configPath *string) *cobra.Command {
-	var scrubListId, entriesJSON, countryCode string
+	var scrubListID, entriesJSON, countryCode string
+
 	cmd := &cobra.Command{
 		Use:   "add-scrub-list-entries",
 		Short: "Call GateService.AddScrubListEntries",
@@ -26,9 +25,9 @@ func AddScrubListEntriesCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer handleClientClose(client)
 
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
 			var entriesInput []struct {
@@ -50,7 +49,7 @@ func AddScrubListEntriesCmd(configPath *string) *cobra.Command {
 			}
 
 			params := saticlient.AddScrubListEntriesParams{
-				ScrubListID: scrubListId,
+				ScrubListID: scrubListID,
 				Entries:     customEntries,
 			}
 			if countryCode != "" {
@@ -64,13 +63,15 @@ func AddScrubListEntriesCmd(configPath *string) *cobra.Command {
 			}
 			// Response is now an empty struct on success
 			fmt.Println("Successfully added scrub list entries.") // Provide feedback
+
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&scrubListId, "scrub-list-id", "", "Scrub List ID (required)")
+	cmd.Flags().StringVar(&scrubListID, "scrub-list-id", "", "Scrub List ID (required)")
 	cmd.Flags().StringVar(&entriesJSON, "entries", "", "Entries as JSON array (required)")
 	cmd.Flags().StringVar(&countryCode, "country-code", "", "Country code (optional)")
-	cmd.MarkFlagRequired("scrub-list-id")
-	cmd.MarkFlagRequired("entries")
+	markFlagRequired(cmd, "scrub-list-id")
+	markFlagRequired(cmd, "entries")
+
 	return cmd
 }

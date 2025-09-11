@@ -16,10 +16,8 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
@@ -41,11 +39,12 @@ func GetOrgInfoCmd(configPath *string) *cobra.Command {
 			client, err := saticlient.NewClient(cfg)
 			if err != nil {
 				fmt.Printf("Error setting up client: %v\n", err)
+
 				return err
 			}
-			defer client.Close() // Ensure connection is closed
+			defer handleClientClose(client) // Ensure connection is closed
 
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
 			// Build the request struct
@@ -55,9 +54,10 @@ func GetOrgInfoCmd(configPath *string) *cobra.Command {
 			resp, err := client.GetOrganizationInfo(ctx, request)
 			if err != nil {
 				fmt.Printf("Error getting organization info: %v\n", err)
+
 				return err
 			}
-			if OutputFormat == "json" {
+			if OutputFormat == OutputFormatJSON {
 				data, err := json.MarshalIndent(resp, "", "  ")
 				if err != nil {
 					return err
@@ -66,6 +66,7 @@ func GetOrgInfoCmd(configPath *string) *cobra.Command {
 			} else {
 				fmt.Printf("OrgID: %s\nOrgName: %s\n", resp.GetOrgId(), resp.GetOrgName())
 			}
+
 			return nil
 		},
 	}

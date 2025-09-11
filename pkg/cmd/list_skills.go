@@ -15,14 +15,10 @@
 package cmd
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
-	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
 
 func ListSkillsCmd(configPath *string) *cobra.Command {
@@ -30,45 +26,33 @@ func ListSkillsCmd(configPath *string) *cobra.Command {
 		Use:   "list-skills",
 		Short: "Call GateService.ListSkills",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := saticonfig.LoadConfig(*configPath)
+			client, err := createClient(configPath)
 			if err != nil {
 				return err
 			}
+			defer handleClientClose(client)
 
-			// Use the new client constructor
-			client, err := saticlient.NewClient(cfg)
-			if err != nil {
-				return err
-			}
-			defer client.Close() // Ensure connection is closed
-
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			// Build the custom Params struct
 			params := saticlient.ListSkillsParams{}
-
-			// Call the client method with custom Params
 			resp, err := client.ListSkills(ctx, params)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to list skills: %w", err)
 			}
 
-			// Use the custom Result struct
-			if OutputFormat == "json" {
-				data, err := json.MarshalIndent(resp.Skills, "", "  ")
-				if err != nil {
-					return err
-				}
-				fmt.Println(string(data))
-			} else {
-				for _, skill := range resp.Skills {
-					fmt.Printf("ID: %s, Name: %s, Description: %s\n",
-						skill.ID, skill.Name, skill.Description)
-				}
+			if OutputFormat == OutputFormatJSON {
+				return outputJSON(resp.Skills)
 			}
+
+			for _, skill := range resp.Skills {
+				fmt.Printf("ID: %s, Name: %s, Description: %s\n",
+					skill.ID, skill.Name, skill.Description)
+			}
+
 			return nil
 		},
 	}
+
 	return cmd
 }

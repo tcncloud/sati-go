@@ -16,10 +16,8 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
@@ -42,9 +40,9 @@ func StreamJobsCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close() // Ensure connection is closed
+			defer handleClientClose(client) // Ensure connection is closed
 
-			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			ctx, cancel := createContext(LongTimeout)
 			defer cancel()
 
 			// Build the request struct
@@ -70,6 +68,7 @@ func StreamJobsCmd(configPath *string) *cobra.Command {
 					fmt.Printf("%+v\n", msg)
 				}
 			}
+
 			return nil
 		},
 	}

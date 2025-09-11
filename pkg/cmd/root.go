@@ -23,7 +23,7 @@ func Execute() {
 func init() {
 	var configPath string
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "Path to base64-encoded JSON config file")
-	rootCmd.MarkPersistentFlagRequired("config")
+	markFlagRequired(rootCmd, "config")
 	rootCmd.PersistentFlags().StringVarP(&OutputFormat, "output", "o", "text", "Output format: json or text")
 
 	rootCmd.AddCommand(
@@ -37,8 +37,8 @@ func init() {
 		UpdateAgentStatusCmd(&configPath),
 		ListAgentsCmd(&configPath),
 		UpsertAgentCmd(&configPath),
-		GetAgentByIdCmd(&configPath),
-		GetAgentByPartnerIdCmd(&configPath),
+		GetAgentByIDCmd(&configPath),
+		GetAgentByPartnerIDCmd(&configPath),
 		AddAgentCallResponseCmd(&configPath),
 		ListHuntGroupPauseCodesCmd(&configPath),
 		PutCallOnSimpleHoldCmd(&configPath),

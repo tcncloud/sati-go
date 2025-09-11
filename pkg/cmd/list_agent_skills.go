@@ -15,10 +15,8 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
@@ -27,12 +25,13 @@ import (
 
 func ListAgentSkillsCmd(configPath *string) *cobra.Command {
 	var partnerAgentID string
+
 	cmd := &cobra.Command{
 		Use:   "list-agent-skills",
 		Short: "Call GateService.ListAgentSkills",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if partnerAgentID == "" {
-				return fmt.Errorf("--partner-agent-id is required")
+				return ErrPartnerAgentIDRequired
 			}
 			cfg, err := saticonfig.LoadConfig(*configPath)
 			if err != nil {
@@ -44,9 +43,9 @@ func ListAgentSkillsCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close() // Ensure connection is closed
+			defer handleClientClose(client) // Ensure connection is closed
 
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
 			// Build the custom Params struct
@@ -71,10 +70,12 @@ func ListAgentSkillsCmd(configPath *string) *cobra.Command {
 						skill.ID, skill.Name, skill.Description)
 				}
 			}
+
 			return nil
 		},
 	}
 	cmd.Flags().StringVar(&partnerAgentID, "partner-agent-id", "", "Partner Agent ID (required)")
-	cmd.MarkFlagRequired("partner-agent-id")
+	markFlagRequired(cmd, "partner-agent-id")
+
 	return cmd
 }

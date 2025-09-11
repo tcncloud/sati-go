@@ -16,24 +16,23 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
 
-func GetAgentByIdCmd(configPath *string) *cobra.Command {
-	var userId string
+func GetAgentByIDCmd(configPath *string) *cobra.Command {
+	var userID string
+
 	cmd := &cobra.Command{
 		Use:   "get-agent-by-id",
 		Short: "Call GateService.GetAgentById",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if userId == "" {
-				return fmt.Errorf("--user-id is required")
+			if userID == "" {
+				return ErrUserIDRequired
 			}
 			cfg, err := saticonfig.LoadConfig(*configPath)
 			if err != nil {
@@ -45,21 +44,21 @@ func GetAgentByIdCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close() // Ensure connection is closed
+			defer handleClientClose(client) // Ensure connection is closed
 
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
 			// Build the custom Params struct
-			params := saticlient.GetAgentByIdParams{UserID: userId}
+			params := saticlient.GetAgentByIDParams{UserID: userID}
 
 			// Call the client method with custom Params
-			resp, err := client.GetAgentById(ctx, params)
+			resp, err := client.GetAgentByID(ctx, params)
 			if err != nil {
 				return err
 			}
 			// Use the custom Result struct
-			if OutputFormat == "json" {
+			if OutputFormat == OutputFormatJSON {
 				data, err := json.MarshalIndent(resp.Agent, "", "  ") // Marshal the Agent struct directly
 				if err != nil {
 					return err
@@ -73,10 +72,12 @@ func GetAgentByIdCmd(configPath *string) *cobra.Command {
 					fmt.Println("Agent not found.")
 				}
 			}
+
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&userId, "user-id", "", "User ID (required)")
-	cmd.MarkFlagRequired("user-id")
+	cmd.Flags().StringVar(&userID, "user-id", "", "User ID (required)")
+	markFlagRequired(cmd, "user-id")
+
 	return cmd
 }

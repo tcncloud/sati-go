@@ -12,7 +12,8 @@ import (
 )
 
 func TakeCallOffSimpleHoldCmd(configPath *string) *cobra.Command {
-	var partnerAgentId string
+	var partnerAgentID string
+
 	cmd := &cobra.Command{
 		Use:   "take-call-off-simple-hold",
 		Short: "Call GateService.TakeCallOffSimpleHold",
@@ -32,17 +33,19 @@ func TakeCallOffSimpleHoldCmd(configPath *string) *cobra.Command {
 			defer cancel()
 
 			request := &gatev2.TakeCallOffSimpleHoldRequest{
-				PartnerAgentId: partnerAgentId,
+				PartnerAgentId: partnerAgentID,
 			}
 			resp, err := client.TakeCallOffSimpleHold(ctx, request)
 			if err != nil {
 				return err
 			}
 			fmt.Printf("%+v\n", resp)
+
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&partnerAgentId, "partner-agent-id", "", "Partner Agent ID (required)")
-	cmd.MarkFlagRequired("partner-agent-id")
+	cmd.Flags().StringVar(&partnerAgentID, "partner-agent-id", "", "Partner Agent ID (required)")
+	markFlagRequired(cmd, "partner-agent-id")
+
 	return cmd
 }

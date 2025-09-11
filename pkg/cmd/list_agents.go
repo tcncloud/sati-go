@@ -16,10 +16,8 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
@@ -41,9 +39,9 @@ func ListAgentsCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close() // Ensure connection is closed
+			defer handleClientClose(client) // Ensure connection is closed
 
-			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			ctx, cancel := createContext(LongTimeout)
 			defer cancel()
 
 			// Build the custom Params struct (empty)
@@ -77,8 +75,10 @@ func ListAgentsCmd(configPath *string) *cobra.Command {
 						agent.UserID, agent.OrgID, agent.FirstName, agent.LastName, agent.Username, agent.PartnerAgentID)
 				}
 			}
+
 			return nil
 		},
 	}
+
 	return cmd
 }

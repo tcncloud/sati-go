@@ -27,17 +27,18 @@ import (
 )
 
 func UpdateAgentStatusCmd(configPath *string) *cobra.Command {
-	var partnerAgentId, newStateStr, reason string
+	var partnerAgentID, newStateStr, reason string
+
 	cmd := &cobra.Command{
 		Use:   "update-agent-status",
 		Short: "Call GateService.UpdateAgentStatus",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if partnerAgentId == "" || newStateStr == "" {
-				return fmt.Errorf("--partner-agent-id and --new-state are required")
+			if partnerAgentID == "" || newStateStr == "" {
+				return ErrRequiredFieldsMissing
 			}
 			newStateEnum, ok := gatev2.AgentState_value[newStateStr]
 			if !ok {
-				return fmt.Errorf("invalid --new-state: %s", newStateStr)
+				return fmt.Errorf("%w: %s", ErrInvalidNewState, newStateStr)
 			}
 			cfg, err := saticonfig.LoadConfig(*configPath)
 			if err != nil {
@@ -56,7 +57,7 @@ func UpdateAgentStatusCmd(configPath *string) *cobra.Command {
 
 			// Build the custom Params struct
 			params := saticlient.UpdateAgentStatusParams{
-				PartnerAgentID: partnerAgentId,
+				PartnerAgentID: partnerAgentID,
 				NewState:       gatev2.AgentState(newStateEnum),
 			}
 			if reason != "" {
@@ -70,13 +71,15 @@ func UpdateAgentStatusCmd(configPath *string) *cobra.Command {
 			}
 			// Response is now an empty struct on success
 			fmt.Println("Successfully updated agent status.")
+
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&partnerAgentId, "partner-agent-id", "", "Partner Agent ID (required)")
+	cmd.Flags().StringVar(&partnerAgentID, "partner-agent-id", "", "Partner Agent ID (required)")
 	cmd.Flags().StringVar(&newStateStr, "new-state", "", "New State (required, e.g. AGENT_STATE_READY)")
 	cmd.Flags().StringVar(&reason, "reason", "", "Reason (optional)")
-	cmd.MarkFlagRequired("partner-agent-id")
-	cmd.MarkFlagRequired("new-state")
+	markFlagRequired(cmd, "partner-agent-id")
+	markFlagRequired(cmd, "new-state")
+
 	return cmd
 }

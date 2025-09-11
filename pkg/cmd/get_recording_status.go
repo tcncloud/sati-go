@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
@@ -12,7 +10,8 @@ import (
 )
 
 func GetRecordingStatusCmd(configPath *string) *cobra.Command {
-	var partnerAgentId string
+	var partnerAgentID string
+
 	cmd := &cobra.Command{
 		Use:   "get-recording-status",
 		Short: "Call GateService.GetRecordingStatus",
@@ -27,14 +26,14 @@ func GetRecordingStatusCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close() // Ensure connection is closed
+			defer handleClientClose(client) // Ensure connection is closed
 
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
 			// Build the request struct
 			request := &gatev2.GetRecordingStatusRequest{
-				PartnerAgentId: partnerAgentId,
+				PartnerAgentId: partnerAgentID,
 			}
 
 			// Call the client method
@@ -43,10 +42,12 @@ func GetRecordingStatusCmd(configPath *string) *cobra.Command {
 				return err
 			}
 			fmt.Printf("%+v\n", resp)
+
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&partnerAgentId, "partner-agent-id", "", "Partner Agent ID (required)")
-	cmd.MarkFlagRequired("partner-agent-id")
+	cmd.Flags().StringVar(&partnerAgentID, "partner-agent-id", "", "Partner Agent ID (required)")
+	markFlagRequired(cmd, "partner-agent-id")
+
 	return cmd
 }

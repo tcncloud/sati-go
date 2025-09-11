@@ -13,7 +13,8 @@ import (
 )
 
 func RemoveScrubListEntriesCmd(configPath *string) *cobra.Command {
-	var scrubListId, entries string
+	var scrubListID, entries string
+
 	cmd := &cobra.Command{
 		Use:   "remove-scrub-list-entries",
 		Short: "Call GateService.RemoveScrubListEntries",
@@ -28,7 +29,7 @@ func RemoveScrubListEntriesCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close() // Ensure connection is closed
+			defer handleClientClose(client) // Ensure connection is closed
 
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
@@ -43,7 +44,7 @@ func RemoveScrubListEntriesCmd(configPath *string) *cobra.Command {
 				}
 			}
 			request := &gatev2.RemoveScrubListEntriesRequest{
-				ScrubListId: scrubListId,
+				ScrubListId: scrubListID,
 				Entries:     entriesList,
 			}
 
@@ -53,12 +54,14 @@ func RemoveScrubListEntriesCmd(configPath *string) *cobra.Command {
 				return err
 			}
 			fmt.Printf("%+v\n", resp)
+
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&scrubListId, "scrub-list-id", "", "Scrub List ID (required)")
+	cmd.Flags().StringVar(&scrubListID, "scrub-list-id", "", "Scrub List ID (required)")
 	cmd.Flags().StringVar(&entries, "entries", "", "Comma-separated list of entries to remove (required)")
-	cmd.MarkFlagRequired("scrub-list-id")
-	cmd.MarkFlagRequired("entries")
+	markFlagRequired(cmd, "scrub-list-id")
+	markFlagRequired(cmd, "entries")
+
 	return cmd
 }

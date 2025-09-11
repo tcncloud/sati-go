@@ -37,7 +37,9 @@ func LoadConfig(path string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
+
 	n, err := base64.StdEncoding.Decode(decoded, data)
 	if err != nil {
 		return nil, err
@@ -48,6 +50,7 @@ func LoadConfig(path string) (*Config, error) {
 	if err := json.Unmarshal(decoded[:n], &config); err != nil {
 		return nil, err
 	}
+
 	return &config, nil
 }
 
@@ -63,5 +66,6 @@ func NewConfigFromString(configString string) (*Config, error) {
 	if err := json.Unmarshal(decoded, &config); err != nil {
 		return nil, err
 	}
+
 	return &config, nil
 }

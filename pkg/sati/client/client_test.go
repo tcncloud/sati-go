@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -13,9 +14,10 @@ import (
 
 // --- Mocks ---
 
-// Mock GateServiceClient
+// Mock GateServiceClient.
 type mockGateServiceClient struct {
 	gatev2.GateServiceClient // Embed the interface
+
 	// Store calls for verification
 	addAgentCallResponseCalled   bool
 	addAgentCallResponseReq      *gatev2.AddAgentCallResponseRequest
@@ -25,8 +27,8 @@ type mockGateServiceClient struct {
 	listAgentsReq                *gatev2.ListAgentsRequest
 	dialCalled                   bool
 	dialReq                      *gatev2.DialRequest
-	getAgentByIdCalled           bool
-	getAgentByIdReq              *gatev2.GetAgentByIdRequest
+	getAgentByIDCalled           bool
+	getAgentByIDReq              *gatev2.GetAgentByIdRequest
 	getClientConfigurationCalled bool
 	getClientConfigurationReq    *gatev2.GetClientConfigurationRequest
 	pollEventsCalled             bool
@@ -46,8 +48,8 @@ type mockGateServiceClient struct {
 	listAgentsErr              error
 	dialResp                   *gatev2.DialResponse
 	dialErr                    error
-	getAgentByIdResp           *gatev2.GetAgentByIdResponse
-	getAgentByIdErr            error
+	getAgentByIDResp           *gatev2.GetAgentByIdResponse
+	getAgentByIDErr            error
 	getClientConfigurationResp *gatev2.GetClientConfigurationResponse
 	getClientConfigurationErr  error
 	pollEventsResp             *gatev2.PollEventsResponse
@@ -61,63 +63,73 @@ type mockGateServiceClient struct {
 func (m *mockGateServiceClient) AddAgentCallResponse(ctx context.Context, in *gatev2.AddAgentCallResponseRequest, opts ...grpc.CallOption) (*gatev2.AddAgentCallResponseResponse, error) {
 	m.addAgentCallResponseCalled = true
 	m.addAgentCallResponseReq = in
+
 	return m.addAgentCallResponseResp, m.addAgentCallResponseErr
 }
 
 func (m *mockGateServiceClient) AddScrubListEntries(ctx context.Context, in *gatev2.AddScrubListEntriesRequest, opts ...grpc.CallOption) (*gatev2.AddScrubListEntriesResponse, error) {
 	m.addScrubListEntriesCalled = true
 	m.addScrubListEntriesReq = in
+
 	return m.addScrubListEntriesResp, m.addScrubListEntriesErr
 }
 
 func (m *mockGateServiceClient) ListAgents(ctx context.Context, in *gatev2.ListAgentsRequest, opts ...grpc.CallOption) (gatev2.GateService_ListAgentsClient, error) {
 	m.listAgentsCalled = true
 	m.listAgentsReq = in
+
 	return m.listAgentsStream, m.listAgentsErr
 }
 
 func (m *mockGateServiceClient) Dial(ctx context.Context, in *gatev2.DialRequest, opts ...grpc.CallOption) (*gatev2.DialResponse, error) {
 	m.dialCalled = true
 	m.dialReq = in
+
 	return m.dialResp, m.dialErr
 }
 
-func (m *mockGateServiceClient) GetAgentById(ctx context.Context, in *gatev2.GetAgentByIdRequest, opts ...grpc.CallOption) (*gatev2.GetAgentByIdResponse, error) {
-	m.getAgentByIdCalled = true
-	m.getAgentByIdReq = in
-	return m.getAgentByIdResp, m.getAgentByIdErr
+func (m *mockGateServiceClient) GetAgentByID(ctx context.Context, in *gatev2.GetAgentByIdRequest, opts ...grpc.CallOption) (*gatev2.GetAgentByIdResponse, error) {
+	m.getAgentByIDCalled = true
+	m.getAgentByIDReq = in
+
+	return m.getAgentByIDResp, m.getAgentByIDErr
 }
 
 func (m *mockGateServiceClient) GetClientConfiguration(ctx context.Context, in *gatev2.GetClientConfigurationRequest, opts ...grpc.CallOption) (*gatev2.GetClientConfigurationResponse, error) {
 	m.getClientConfigurationCalled = true
 	m.getClientConfigurationReq = in
+
 	return m.getClientConfigurationResp, m.getClientConfigurationErr
 }
 
 func (m *mockGateServiceClient) PollEvents(ctx context.Context, in *gatev2.PollEventsRequest, opts ...grpc.CallOption) (*gatev2.PollEventsResponse, error) {
 	m.pollEventsCalled = true
 	m.pollEventsReq = in
+
 	return m.pollEventsResp, m.pollEventsErr
 }
 
 func (m *mockGateServiceClient) UpdateAgentStatus(ctx context.Context, in *gatev2.UpdateAgentStatusRequest, opts ...grpc.CallOption) (*gatev2.UpdateAgentStatusResponse, error) {
 	m.updateAgentStatusCalled = true
 	m.updateAgentStatusReq = in
+
 	return m.updateAgentStatusResp, m.updateAgentStatusErr
 }
 
 func (m *mockGateServiceClient) StreamJobs(ctx context.Context, in *gatev2.StreamJobsRequest, opts ...grpc.CallOption) (gatev2.GateService_StreamJobsClient, error) {
 	m.streamJobsCalled = true
 	m.streamJobsReq = in
+
 	return m.streamJobsStream, m.streamJobsErr
 }
 
-// Mock GateService_ListAgentsClient (for streaming)
+// Mock GateService_ListAgentsClient (for streaming).
 type mockListAgentsClient struct {
 	grpc.ClientStream // Embed interface
-	respQueue         []*gatev2.ListAgentsResponse
-	err               error
-	recvCalled        int
+
+	respQueue  []*gatev2.ListAgentsResponse
+	err        error
+	recvCalled int
 }
 
 func (m *mockListAgentsClient) Recv() (*gatev2.ListAgentsResponse, error) {
@@ -125,18 +137,20 @@ func (m *mockListAgentsClient) Recv() (*gatev2.ListAgentsResponse, error) {
 	if len(m.respQueue) > 0 {
 		resp := m.respQueue[0]
 		m.respQueue = m.respQueue[1:]
+
 		return resp, nil
 	}
+
 	return nil, m.err // Return error when queue is empty (simulate stream end or error)
 }
 
-// Implement other methods of grpc.ClientStream if needed (Header, Trailer, CloseSend, Context)
+// Implement other methods of grpc.ClientStream if needed (Header, Trailer, CloseSend, Context).
 func (m *mockListAgentsClient) Header() (metadata.MD, error) { return nil, nil }
 func (m *mockListAgentsClient) Trailer() metadata.MD         { return nil }
 func (m *mockListAgentsClient) CloseSend() error             { return nil }
 func (m *mockListAgentsClient) Context() context.Context     { return context.Background() }
 
-// Mock grpc.ClientConn for Close()
+// Mock grpc.ClientConn for Close().
 type mockClientConn struct {
 	closeCalled bool
 	closeErr    error
@@ -144,15 +158,17 @@ type mockClientConn struct {
 
 func (m *mockClientConn) Close() error {
 	m.closeCalled = true
+
 	return m.closeErr
 }
 
-// Mock GateService_StreamJobsClient (for streaming)
+// Mock GateService_StreamJobsClient (for streaming).
 type mockStreamJobsClient struct {
 	grpc.ClientStream // Embed interface
-	respQueue         []*gatev2.StreamJobsResponse
-	err               error
-	recvCalled        int
+
+	respQueue  []*gatev2.StreamJobsResponse
+	err        error
+	recvCalled int
 }
 
 func (m *mockStreamJobsClient) Recv() (*gatev2.StreamJobsResponse, error) {
@@ -160,12 +176,14 @@ func (m *mockStreamJobsClient) Recv() (*gatev2.StreamJobsResponse, error) {
 	if len(m.respQueue) > 0 {
 		resp := m.respQueue[0]
 		m.respQueue = m.respQueue[1:]
+
 		return resp, nil
 	}
+
 	return nil, m.err // Return error when queue is empty (simulate stream end or error)
 }
 
-// Implement other methods of grpc.ClientStream if needed
+// Implement other methods of grpc.ClientStream if needed.
 func (m *mockStreamJobsClient) Header() (metadata.MD, error) { return nil, nil }
 func (m *mockStreamJobsClient) Trailer() metadata.MD         { return nil }
 func (m *mockStreamJobsClient) CloseSend() error             { return nil }
@@ -188,6 +206,7 @@ func TestClient_Close(t *testing.T) {
 	if err != nil {
 		t.Errorf("Close() returned error for nil connection: %v", err)
 	}
+
 	if mockConn.closeCalled { // Should not be called if conn is nil
 		t.Error("Close() called Close() on nil connection")
 	}
@@ -214,16 +233,18 @@ func TestClient_API_Methods(t *testing.T) {
 		req := &gatev2.AddAgentCallResponseRequest{PartnerAgentId: "agent1"}
 
 		resp, err := client.AddAgentCallResponse(ctx, req)
-
 		if err != nil {
 			t.Errorf("AddAgentCallResponse returned error: %v", err)
 		}
+
 		if !mockService.addAgentCallResponseCalled {
 			t.Error("Expected underlying AddAgentCallResponse to be called")
 		}
+
 		if mockService.addAgentCallResponseReq != req {
 			t.Error("Underlying AddAgentCallResponse called with wrong request")
 		}
+
 		if resp == nil {
 			t.Error("AddAgentCallResponse did not return expected non-nil response")
 		}
@@ -233,7 +254,7 @@ func TestClient_API_Methods(t *testing.T) {
 	t.Run("AddScrubListEntriesError", func(t *testing.T) {
 		mockService.addScrubListEntriesCalled = false // Reset
 		mockService.addScrubListEntriesResp = nil
-		mockService.addScrubListEntriesErr = fmt.Errorf("mock add scrub error")
+		mockService.addScrubListEntriesErr = errors.New("mock add scrub error")
 		// Use the custom Params struct
 		params := AddScrubListEntriesParams{
 			ScrubListID: "list1",
@@ -241,10 +262,10 @@ func TestClient_API_Methods(t *testing.T) {
 		}
 
 		_, err := client.AddScrubListEntries(ctx, params)
-
 		if err == nil {
 			t.Error("AddScrubListEntries did not return expected error")
 		}
+
 		if !mockService.addScrubListEntriesCalled {
 			t.Error("Expected underlying AddScrubListEntries to be called")
 		}
@@ -260,10 +281,10 @@ func TestClient_API_Methods(t *testing.T) {
 		params := DialParams{PartnerAgentID: "ag1", PhoneNumber: "555-1212"}
 
 		resp, err := client.Dial(ctx, params)
-
 		if err != nil {
 			t.Errorf("Dial returned error: %v", err)
 		}
+
 		if !mockService.dialCalled {
 			t.Error("Expected underlying Dial to be called")
 		}
@@ -276,20 +297,20 @@ func TestClient_API_Methods(t *testing.T) {
 
 	// --- Test GetAgentById ---
 	t.Run("GetAgentByIdSuccess", func(t *testing.T) {
-		mockService.getAgentByIdCalled = false // Reset
+		mockService.getAgentByIDCalled = false // Reset
 		// TODO: Fix corev2 import path and uncomment Agent checks when resolved.
-		mockService.getAgentByIdResp = &gatev2.GetAgentByIdResponse{Agent: &gatev2.Agent{UserId: "agent-xyz", FirstName: "Test"}}
-		mockService.getAgentByIdErr = nil
+		mockService.getAgentByIDResp = &gatev2.GetAgentByIdResponse{Agent: &gatev2.Agent{UserId: "agent-xyz", FirstName: "Test"}}
+		mockService.getAgentByIDErr = nil
 		// Use the custom Params struct
-		params := GetAgentByIdParams{UserID: "agent-xyz"}
+		params := GetAgentByIDParams{UserID: "agent-xyz"}
 
-		resp, err := client.GetAgentById(ctx, params)
-
+		resp, err := client.GetAgentByID(ctx, params)
 		if err != nil {
 			t.Errorf("GetAgentById returned error: %v", err)
 		}
-		if !mockService.getAgentByIdCalled {
-			t.Error("Expected underlying GetAgentById to be called")
+
+		if !mockService.getAgentByIDCalled {
+			t.Error("Expected underlying GetAgentByID to be called")
 		}
 		// Check the custom Result struct field
 		if resp.Agent == nil || resp.Agent.UserID != "agent-xyz" { // Use correct field name: UserID
@@ -298,19 +319,19 @@ func TestClient_API_Methods(t *testing.T) {
 	})
 
 	t.Run("GetAgentByIdError", func(t *testing.T) {
-		mockService.getAgentByIdCalled = false // Reset
-		mockService.getAgentByIdResp = nil
-		mockService.getAgentByIdErr = fmt.Errorf("agent not found")
+		mockService.getAgentByIDCalled = false // Reset
+		mockService.getAgentByIDResp = nil
+		mockService.getAgentByIDErr = errors.New("agent not found")
 		// Use the custom Params struct
-		params := GetAgentByIdParams{UserID: "unknown"}
+		params := GetAgentByIDParams{UserID: "unknown"}
 
-		_, err := client.GetAgentById(ctx, params)
-
+		_, err := client.GetAgentByID(ctx, params)
 		if err == nil {
 			t.Error("GetAgentById did not return expected error")
 		}
-		if !mockService.getAgentByIdCalled {
-			t.Error("Expected underlying GetAgentById to be called")
+
+		if !mockService.getAgentByIDCalled {
+			t.Error("Expected underlying GetAgentByID to be called")
 		}
 	})
 
@@ -323,10 +344,10 @@ func TestClient_API_Methods(t *testing.T) {
 		params := GetClientConfigurationParams{}
 
 		resp, err := client.GetClientConfiguration(ctx, params)
-
 		if err != nil {
 			t.Errorf("GetClientConfiguration returned error: %v", err)
 		}
+
 		if !mockService.getClientConfigurationCalled {
 			t.Error("Expected underlying GetClientConfiguration to be called")
 		}
@@ -345,13 +366,14 @@ func TestClient_API_Methods(t *testing.T) {
 		req := &gatev2.PollEventsRequest{}
 
 		resp, err := client.PollEvents(ctx, req)
-
 		if err != nil {
 			t.Errorf("PollEvents returned error: %v", err)
 		}
+
 		if !mockService.pollEventsCalled {
 			t.Error("Expected underlying PollEvents to be called")
 		}
+
 		if mockService.pollEventsReq != req {
 			t.Error("Underlying PollEvents called with wrong request")
 		}
@@ -373,10 +395,10 @@ func TestClient_API_Methods(t *testing.T) {
 		}
 
 		_, err := client.UpdateAgentStatus(ctx, params) // Check error only for empty response
-
 		if err != nil {
 			t.Errorf("UpdateAgentStatus returned error: %v", err)
 		}
+
 		if !mockService.updateAgentStatusCalled {
 			t.Error("Expected underlying UpdateAgentStatus to be called")
 		}
@@ -408,14 +430,18 @@ func TestClient_API_Methods(t *testing.T) {
 		// }
 
 		count := 0
+
 		for result := range resultsChan { // Iterate over channel
 			if result.Error != nil {
 				t.Fatalf("Received error from ListAgents channel: %v", result.Error)
 			}
+
 			if result.Agent == nil {
 				t.Error("Received nil agent from ListAgents channel")
+
 				continue
 			}
+
 			count++
 			// Basic check on received data
 			expectedID := fmt.Sprintf("u%d", count)
@@ -454,37 +480,45 @@ func TestClient_API_Methods(t *testing.T) {
 		if err != nil {
 			t.Fatalf("StreamJobs returned error: %v", err)
 		}
+
 		if !mockService.streamJobsCalled {
 			t.Error("Expected underlying StreamJobs to be called")
 		}
+
 		if mockService.streamJobsReq != req {
 			t.Error("Underlying StreamJobs called with wrong request")
 		}
 
 		count := 0
+
 		for {
 			resp, err := stream.Recv()
 			if err != nil {
 				if IsStreamEnd(err) {
 					break
 				}
+
 				t.Fatalf("stream.Recv() returned unexpected error: %v", err)
 			}
+
 			if resp == nil {
 				t.Error("stream.Recv() returned nil response")
+
 				continue
 			}
+
 			count++
 			// Basic check on received data
 			expectedID := fmt.Sprintf("job%d", count)
-			if resp.JobId != expectedID {
-				t.Errorf("Expected job ID %s, got %s", expectedID, resp.JobId)
+			if resp.GetJobId() != expectedID {
+				t.Errorf("Expected job ID %s, got %s", expectedID, resp.GetJobId())
 			}
 		}
 
 		if count != 2 {
 			t.Errorf("Expected to receive 2 responses, got %d", count)
 		}
+
 		if mockStream.recvCalled != 3 { // 2 successful, 1 EOF
 			t.Errorf("Expected mock Recv() to be called 3 times, called %d times", mockStream.recvCalled)
 		}
@@ -500,7 +534,7 @@ func TestIsStreamEnd(t *testing.T) {
 		want bool
 	}{
 		{"EOF error", io.EOF, true},
-		{"Other error", fmt.Errorf("some other error"), false},
+		{"Other error", errors.New("some other error"), false},
 		{"Nil error", nil, false},
 	}
 	for _, tt := range tests {
@@ -512,7 +546,7 @@ func TestIsStreamEnd(t *testing.T) {
 	}
 }
 
-// Note: Testing parseAPIEndpoint directly
+// Note: Testing parseAPIEndpoint directly.
 func TestParseAPIEndpoint(t *testing.T) {
 	tests := []struct {
 		name string

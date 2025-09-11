@@ -17,59 +17,28 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
-	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
 
 func AssignAgentSkillCmd(configPath *string) *cobra.Command {
 	var partnerAgentID, skillID string
-	cmd := &cobra.Command{
-		Use:   "assign-agent-skill",
-		Short: "Call GateService.AssignAgentSkill",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if partnerAgentID == "" {
-				return fmt.Errorf("--partner-agent-id is required")
-			}
-			if skillID == "" {
-				return fmt.Errorf("--skill-id is required")
-			}
-			cfg, err := saticonfig.LoadConfig(*configPath)
+
+	return createSkillCommand(
+		"assign-agent-skill",
+		"Call GateService.AssignAgentSkill",
+		configPath,
+		&partnerAgentID,
+		&skillID,
+		func(client *saticlient.Client, ctx context.Context, params saticlient.AssignAgentSkillParams) error {
+			_, err := client.AssignAgentSkill(ctx, params)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to assign skill: %w", err)
 			}
 
-			// Use the new client constructor
-			client, err := saticlient.NewClient(cfg)
-			if err != nil {
-				return err
-			}
-			defer client.Close() // Ensure connection is closed
-
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-
-			// Build the custom Params struct
-			params := saticlient.AssignAgentSkillParams{
-				PartnerAgentID: partnerAgentID,
-				SkillID:        skillID,
-			}
-
-			// Call the client method with custom Params
-			_, err = client.AssignAgentSkill(ctx, params)
-			if err != nil {
-				return err
-			}
-
-			fmt.Println("Skill assigned successfully")
 			return nil
 		},
-	}
-	cmd.Flags().StringVar(&partnerAgentID, "partner-agent-id", "", "Partner Agent ID (required)")
-	cmd.Flags().StringVar(&skillID, "skill-id", "", "Skill ID (required)")
-	cmd.MarkFlagRequired("partner-agent-id")
-	cmd.MarkFlagRequired("skill-id")
-	return cmd
+		"Skill assigned successfully",
+	)
 }

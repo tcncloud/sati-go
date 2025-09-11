@@ -16,10 +16,8 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
@@ -42,9 +40,9 @@ func GetAgentStatusCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close() // Ensure connection is closed
+			defer handleClientClose(client) // Ensure connection is closed
 
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
 			// TODO: Add flags for GetAgentStatusRequest fields
@@ -65,6 +63,7 @@ func GetAgentStatusCmd(configPath *string) *cobra.Command {
 			} else {
 				fmt.Printf("%+v\n", resp)
 			}
+
 			return nil
 		},
 	}

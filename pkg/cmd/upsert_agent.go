@@ -28,13 +28,14 @@ import (
 )
 
 func UpsertAgentCmd(configPath *string) *cobra.Command {
-	var username, partnerAgentId, firstName, lastName, password string
+	var username, partnerAgentID, firstName, lastName, password string
+
 	cmd := &cobra.Command{
 		Use:   "upsert-agent",
 		Short: "Call GateService.UpsertAgent",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if username == "" || partnerAgentId == "" || firstName == "" || lastName == "" || password == "" {
-				return fmt.Errorf("--username, --partner-agent-id, --first-name, --last-name, and --password are required")
+			if username == "" || partnerAgentID == "" || firstName == "" || lastName == "" || password == "" {
+				return ErrRequiredFieldsMissing
 			}
 			cfg, err := saticonfig.LoadConfig(*configPath)
 			if err != nil {
@@ -54,7 +55,7 @@ func UpsertAgentCmd(configPath *string) *cobra.Command {
 			// Build the request struct
 			request := &gatev2.UpsertAgentRequest{
 				Username:       username,
-				PartnerAgentId: partnerAgentId,
+				PartnerAgentId: partnerAgentID,
 				FirstName:      firstName,
 				LastName:       lastName,
 				Password:       password,
@@ -65,7 +66,7 @@ func UpsertAgentCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if OutputFormat == "json" {
+			if OutputFormat == OutputFormatJSON {
 				data, err := json.MarshalIndent(resp, "", "  ")
 				if err != nil {
 					return err
@@ -74,18 +75,20 @@ func UpsertAgentCmd(configPath *string) *cobra.Command {
 			} else {
 				fmt.Printf("%+v\n", resp)
 			}
+
 			return nil
 		},
 	}
 	cmd.Flags().StringVar(&username, "username", "", "Username (required)")
-	cmd.Flags().StringVar(&partnerAgentId, "partner-agent-id", "", "Partner Agent ID (required)")
+	cmd.Flags().StringVar(&partnerAgentID, "partner-agent-id", "", "Partner Agent ID (required)")
 	cmd.Flags().StringVar(&firstName, "first-name", "", "First Name (required)")
 	cmd.Flags().StringVar(&lastName, "last-name", "", "Last Name (required)")
 	cmd.Flags().StringVar(&password, "password", "", "Password (required)")
-	cmd.MarkFlagRequired("username")
-	cmd.MarkFlagRequired("partner-agent-id")
-	cmd.MarkFlagRequired("first-name")
-	cmd.MarkFlagRequired("last-name")
-	cmd.MarkFlagRequired("password")
+	markFlagRequired(cmd, "username")
+	markFlagRequired(cmd, "partner-agent-id")
+	markFlagRequired(cmd, "first-name")
+	markFlagRequired(cmd, "last-name")
+	markFlagRequired(cmd, "password")
+
 	return cmd
 }

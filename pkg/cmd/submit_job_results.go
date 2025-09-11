@@ -28,8 +28,11 @@ import (
 )
 
 func SubmitJobResultsCmd(configPath *string) *cobra.Command {
-	var jobId, resultJSON string
-	var endOfTransmission bool
+	var (
+		jobID, resultJSON string
+		endOfTransmission bool
+	)
+
 	cmd := &cobra.Command{
 		Use:   "submit-job-results",
 		Short: "Call GateService.SubmitJobResults",
@@ -51,7 +54,7 @@ func SubmitJobResultsCmd(configPath *string) *cobra.Command {
 
 			// Build the request struct
 			request := &gatev2.SubmitJobResultsRequest{
-				JobId:             jobId,
+				JobId:             jobID,
 				EndOfTransmission: endOfTransmission,
 			}
 			if resultJSON != "" {
@@ -86,12 +89,14 @@ func SubmitJobResultsCmd(configPath *string) *cobra.Command {
 			} else {
 				fmt.Printf("%+v\n", resp)
 			}
+
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&jobId, "job-id", "", "Job ID (required)")
+	cmd.Flags().StringVar(&jobID, "job-id", "", "Job ID (required)")
 	cmd.Flags().BoolVar(&endOfTransmission, "end-of-transmission", false, "End of transmission (optional)")
 	cmd.Flags().StringVar(&resultJSON, "result", "", "Result as JSON (optional, e.g. '{\"error_result\":{\"message\":\"fail\"}}')")
-	cmd.MarkFlagRequired("job-id")
+	markFlagRequired(cmd, "job-id")
+
 	return cmd
 }

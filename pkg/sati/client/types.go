@@ -71,16 +71,16 @@ type UpdateAgentStatusParams struct {
 // UpdateAgentStatusResult represents the (currently empty) response.
 type UpdateAgentStatusResult struct{}
 
-// --- GetAgentById ---
-type GetAgentByIdParams struct {
+// --- GetAgentByID ---.
+type GetAgentByIDParams struct {
 	UserID string // Required
 }
 
-type GetAgentByIdResult struct {
+type GetAgentByIDResult struct {
 	Agent *Agent
 }
 
-// --- GetClientConfiguration ---
+// --- GetClientConfiguration ---.
 type GetClientConfigurationParams struct{}
 
 type GetClientConfigurationResult struct {
@@ -90,14 +90,14 @@ type GetClientConfigurationResult struct {
 	ConfigPayload string
 }
 
-// --- ListNCLRulesetNames ---
+// --- ListNCLRulesetNames ---.
 type ListNCLRulesetNamesParams struct{}
 
 type ListNCLRulesetNamesResult struct {
 	RulesetNames []string
 }
 
-// --- ListSkills ---
+// --- ListSkills ---.
 type ListSkillsParams struct{}
 
 type ListSkillsResult struct {
@@ -110,7 +110,7 @@ type Skill struct {
 	Description string
 }
 
-// --- ListAgentSkills ---
+// --- ListAgentSkills ---.
 type ListAgentSkillsParams struct {
 	PartnerAgentID string // Required
 }
@@ -119,7 +119,7 @@ type ListAgentSkillsResult struct {
 	Skills []Skill
 }
 
-// --- AssignAgentSkill ---
+// --- AssignAgentSkill ---.
 type AssignAgentSkillParams struct {
 	PartnerAgentID string // Required
 	SkillID        string // Required
@@ -127,7 +127,7 @@ type AssignAgentSkillParams struct {
 
 type AssignAgentSkillResult struct{}
 
-// --- UnassignAgentSkill ---
+// --- UnassignAgentSkill ---.
 type UnassignAgentSkillParams struct {
 	PartnerAgentID string // Required
 	SkillID        string // Required
@@ -135,7 +135,7 @@ type UnassignAgentSkillParams struct {
 
 type UnassignAgentSkillResult struct{}
 
-// --- SearchVoiceRecordings ---
+// --- SearchVoiceRecordings ---.
 type SearchVoiceRecordingsParams struct {
 	StartDate    *string
 	EndDate      *string
@@ -165,7 +165,7 @@ type VoiceRecording struct {
 	Status       string
 }
 
-// --- GetVoiceRecordingDownloadLink ---
+// --- GetVoiceRecordingDownloadLink ---.
 type GetVoiceRecordingDownloadLinkParams struct {
 	RecordingSid string // Required
 }
@@ -175,7 +175,7 @@ type GetVoiceRecordingDownloadLinkResult struct {
 	ExpiresAt   string
 }
 
-// --- ListSearchableRecordingFields ---
+// --- ListSearchableRecordingFields ---.
 type ListSearchableRecordingFieldsParams struct{}
 
 type ListSearchableRecordingFieldsResult struct {
@@ -188,7 +188,7 @@ type SearchableField struct {
 	Type        string
 }
 
-// --- Transfer ---
+// --- Transfer ---.
 type TransferParams struct {
 	CallSid                 string // Required
 	ReceivingPartnerAgentID *string

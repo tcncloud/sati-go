@@ -17,59 +17,31 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
-	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
 
 func UnassignAgentSkillCmd(configPath *string) *cobra.Command {
 	var partnerAgentID, skillID string
-	cmd := &cobra.Command{
-		Use:   "unassign-agent-skill",
-		Short: "Call GateService.UnassignAgentSkill",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if partnerAgentID == "" {
-				return fmt.Errorf("--partner-agent-id is required")
-			}
-			if skillID == "" {
-				return fmt.Errorf("--skill-id is required")
-			}
-			cfg, err := saticonfig.LoadConfig(*configPath)
+
+	return createSkillCommand(
+		"unassign-agent-skill",
+		"Call GateService.UnassignAgentSkill",
+		configPath,
+		&partnerAgentID,
+		&skillID,
+		func(client *saticlient.Client, ctx context.Context, params saticlient.AssignAgentSkillParams) error {
+			// Convert to UnassignAgentSkillParams
+			unassignParams := saticlient.UnassignAgentSkillParams(params)
+
+			_, err := client.UnassignAgentSkill(ctx, unassignParams)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to unassign skill: %w", err)
 			}
 
-			// Use the new client constructor
-			client, err := saticlient.NewClient(cfg)
-			if err != nil {
-				return err
-			}
-			defer client.Close() // Ensure connection is closed
-
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-
-			// Build the custom Params struct
-			params := saticlient.UnassignAgentSkillParams{
-				PartnerAgentID: partnerAgentID,
-				SkillID:        skillID,
-			}
-
-			// Call the client method with custom Params
-			_, err = client.UnassignAgentSkill(ctx, params)
-			if err != nil {
-				return err
-			}
-
-			fmt.Println("Skill unassigned successfully")
 			return nil
 		},
-	}
-	cmd.Flags().StringVar(&partnerAgentID, "partner-agent-id", "", "Partner Agent ID (required)")
-	cmd.Flags().StringVar(&skillID, "skill-id", "", "Skill ID (required)")
-	cmd.MarkFlagRequired("partner-agent-id")
-	cmd.MarkFlagRequired("skill-id")
-	return cmd
+		"Skill unassigned successfully",
+	)
 }

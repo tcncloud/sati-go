@@ -1,0 +1,115 @@
+version: "2"
+linters:
+  enable: 
+    - govet
+    - staticcheck
+    - canonicalheader
+    - copyloopvar
+    - dupword
+    - err113
+    - errorlint
+    - exptostd
+    - fatcontext
+    - ginkgolinter
+    - gocritic
+    - godot
+    - goheader
+    - iface
+    - importas
+    - intrange
+    - mirror
+    - misspell
+    - nakedret
+    - nlreturn
+    - nolintlint
+    - perfsprint
+    - protogetter
+    - revive
+    - sloglint
+    - tagalign
+    - testifylint
+    - usestdlibvars
+    - usetesting
+    - whitespace
+    - wsl_v5
+    - ineffassign 
+    - govet
+    - dupl
+    # - gochecknoglobals
+    # - ireturn
+    - sqlclosecheck 
+    - zerologlint
+    - bidichk  
+    - containedctx 
+    - forcetypeassert
+    # - funlen  	
+    - tagliatelle
+    - gocheckcompilerdirectives
+    - gocognit  	
+    - goconst  
+    # - gocyclo  
+    - godox
+    - gosec
+    - mnd
+    - nilerr 
+    - nestif 
+    - prealloc  
+    - promlinter 
+    - reassign
+    - unconvert
+    - unparam 
+    - errcheck
+    - staticcheck 
+    - unused
+    - funcorder
+    - noctx
+    - embeddedstructfieldcheck
+  settings:
+    dupl:
+      # Was getting false positives at 150, so increased to 170
+      threshold: 170
+    funlen:
+      # Checks the number of lines in a function.
+      # If lower than 0, disable the check.
+      # Default: 60
+      lines: 60
+      # Checks the number of statements in a function.
+      # If lower than 0, disable the check.
+      # Default: 40
+      statements: 40
+      # Ignore comments when counting lines.
+      # Default: true
+      ignore-comments: true
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 3
+    funcorder:
+      alphabetical: false      # do NOT enforce alphabetical order  
+    nlreturn:
+      # Disable nlreturn for blocks with only one statements
+      block-size: 1
+    # TODO: This should be removed when we want to break existing package names and do a major version bump
+    revive:
+      rules:
+        - name: var-naming
+          arguments:
+            - []
+            - []
+            - - skip-package-name-checks: true 
+
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - gosec
+          - mnd
+          - funcorder
+          - err113
+          - noctx
+
+run:
+  tests: true
+  modules-download-mode: readonly
+  allow-parallel-runners: true
+  go: "1.24"

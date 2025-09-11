@@ -12,7 +12,8 @@ import (
 )
 
 func PutCallOnSimpleHoldCmd(configPath *string) *cobra.Command {
-	var partnerAgentId string
+	var partnerAgentID string
+
 	cmd := &cobra.Command{
 		Use:   "put-call-on-simple-hold",
 		Short: "Call GateService.PutCallOnSimpleHold",
@@ -26,23 +27,25 @@ func PutCallOnSimpleHoldCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer handleClientClose(client)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 
 			request := &gatev2.PutCallOnSimpleHoldRequest{
-				PartnerAgentId: partnerAgentId,
+				PartnerAgentId: partnerAgentID,
 			}
 			resp, err := client.PutCallOnSimpleHold(ctx, request)
 			if err != nil {
 				return err
 			}
 			fmt.Printf("%+v\n", resp)
+
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&partnerAgentId, "partner-agent-id", "", "Partner Agent ID (required)")
-	cmd.MarkFlagRequired("partner-agent-id")
+	cmd.Flags().StringVar(&partnerAgentID, "partner-agent-id", "", "Partner Agent ID (required)")
+	markFlagRequired(cmd, "partner-agent-id")
+
 	return cmd
 }

@@ -14,6 +14,7 @@ import (
 
 func RotateCertificateCmd(configPath *string) *cobra.Command {
 	var certificateHash string
+
 	cmd := &cobra.Command{
 		Use:   "rotate-certificate",
 		Short: "Call GateService.RotateCertificate",
@@ -27,7 +28,7 @@ func RotateCertificateCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer handleClientClose(client)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
@@ -48,10 +49,12 @@ func RotateCertificateCmd(configPath *string) *cobra.Command {
 			} else {
 				fmt.Printf("%+v\n", resp)
 			}
+
 			return nil
 		},
 	}
 	cmd.Flags().StringVar(&certificateHash, "certificate-hash", "", "Certificate hash (required)")
-	cmd.MarkFlagRequired("certificate-hash")
+	markFlagRequired(cmd, "certificate-hash")
+
 	return cmd
 }

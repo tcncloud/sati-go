@@ -34,17 +34,18 @@ func TransferCmd(configPath *string) *cobra.Command {
 		outboundRecordID        string
 		queueID                 string
 	)
+
 	cmd := &cobra.Command{
 		Use:   "transfer",
 		Short: "Call GateService.Transfer",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if callSid == "" {
-				return fmt.Errorf("--call-sid is required")
+				return ErrCallSidRequired
 			}
 
 			// Validate that at least one destination is provided
 			if receivingPartnerAgentID == "" && outboundPhoneNumber == "" && queueID == "" {
-				return fmt.Errorf("at least one destination must be provided: --receiving-partner-agent-id, --outbound-phone-number, or --queue-id")
+				return ErrAtLeastOneDestination
 			}
 
 			cfg, err := saticonfig.LoadConfig(*configPath)
@@ -100,6 +101,7 @@ func TransferCmd(configPath *string) *cobra.Command {
 			}
 
 			fmt.Println("Transfer initiated successfully")
+
 			return nil
 		},
 	}
@@ -110,6 +112,7 @@ func TransferCmd(configPath *string) *cobra.Command {
 	cmd.Flags().StringVar(&outboundPoolID, "outbound-pool-id", "", "Outbound pool ID")
 	cmd.Flags().StringVar(&outboundRecordID, "outbound-record-id", "", "Outbound record ID")
 	cmd.Flags().StringVar(&queueID, "queue-id", "", "Queue ID")
-	cmd.MarkFlagRequired("call-sid")
+	markFlagRequired(cmd, "call-sid")
+
 	return cmd
 }

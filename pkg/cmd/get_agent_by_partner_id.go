@@ -16,10 +16,8 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
@@ -27,14 +25,15 @@ import (
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
 
-func GetAgentByPartnerIdCmd(configPath *string) *cobra.Command {
-	var partnerAgentId string
+func GetAgentByPartnerIDCmd(configPath *string) *cobra.Command {
+	var partnerAgentID string
+
 	cmd := &cobra.Command{
 		Use:   "get-agent-by-partner-id",
 		Short: "Call GateService.GetAgentByPartnerId",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if partnerAgentId == "" {
-				return fmt.Errorf("--partner-agent-id is required")
+			if partnerAgentID == "" {
+				return ErrPartnerAgentIDRequired
 			}
 			cfg, err := saticonfig.LoadConfig(*configPath)
 			if err != nil {
@@ -46,16 +45,16 @@ func GetAgentByPartnerIdCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close() // Ensure connection is closed
+			defer handleClientClose(client) // Ensure connection is closed
 
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
 			// Build the request struct
-			request := &gatev2.GetAgentByPartnerIdRequest{PartnerAgentId: partnerAgentId}
+			request := &gatev2.GetAgentByPartnerIdRequest{PartnerAgentId: partnerAgentID}
 
 			// Call the client method
-			resp, err := client.GetAgentByPartnerId(ctx, request)
+			resp, err := client.GetAgentByPartnerID(ctx, request)
 			if err != nil {
 				return err
 			}
@@ -68,10 +67,12 @@ func GetAgentByPartnerIdCmd(configPath *string) *cobra.Command {
 			} else {
 				fmt.Printf("%+v\n", resp)
 			}
+
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&partnerAgentId, "partner-agent-id", "", "Partner Agent ID (required)")
-	cmd.MarkFlagRequired("partner-agent-id")
+	cmd.Flags().StringVar(&partnerAgentID, "partner-agent-id", "", "Partner Agent ID (required)")
+	markFlagRequired(cmd, "partner-agent-id")
+
 	return cmd
 }

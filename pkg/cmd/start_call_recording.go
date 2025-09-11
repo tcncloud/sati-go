@@ -26,7 +26,7 @@ func StartCallRecordingCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close() // Ensure connection is closed
+			defer handleClientClose(client) // Ensure connection is closed
 
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
@@ -41,6 +41,7 @@ func StartCallRecordingCmd(configPath *string) *cobra.Command {
 				return err
 			}
 			fmt.Printf("%+v\n", resp)
+
 			return nil
 		},
 	}

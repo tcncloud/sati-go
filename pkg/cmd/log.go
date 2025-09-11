@@ -13,6 +13,7 @@ import (
 
 func LogCmd(configPath *string) *cobra.Command {
 	var payload string
+
 	cmd := &cobra.Command{
 		Use:   "log",
 		Short: "Call GateService.Log",
@@ -26,7 +27,7 @@ func LogCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer handleClientClose(client)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
@@ -39,10 +40,12 @@ func LogCmd(configPath *string) *cobra.Command {
 				return err
 			}
 			fmt.Printf("%+v\n", resp)
+
 			return nil
 		},
 	}
 	cmd.Flags().StringVar(&payload, "payload", "", "Log payload (required)")
-	cmd.MarkFlagRequired("payload")
+	markFlagRequired(cmd, "payload")
+
 	return cmd
 }

@@ -14,7 +14,8 @@ import (
 )
 
 func UpdateScrubListEntryCmd(configPath *string) *cobra.Command {
-	var scrubListId, notes, content, expiration, countryCode string
+	var scrubListID, notes, content, expiration, countryCode string
+
 	cmd := &cobra.Command{
 		Use:   "update-scrub-list-entry",
 		Short: "Call GateService.UpdateScrubListEntry",
@@ -36,7 +37,7 @@ func UpdateScrubListEntryCmd(configPath *string) *cobra.Command {
 
 			// Build the request struct
 			request := &gatev2.UpdateScrubListEntryRequest{
-				ScrubListId: scrubListId,
+				ScrubListId: scrubListID,
 				Content:     content,
 			}
 			if notes != "" {
@@ -59,15 +60,17 @@ func UpdateScrubListEntryCmd(configPath *string) *cobra.Command {
 				return err
 			}
 			fmt.Printf("%+v\n", resp)
+
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&scrubListId, "scrub-list-id", "", "Scrub List ID (required)")
+	cmd.Flags().StringVar(&scrubListID, "scrub-list-id", "", "Scrub List ID (required)")
 	cmd.Flags().StringVar(&notes, "notes", "", "Notes (optional)")
 	cmd.Flags().StringVar(&content, "content", "", "Content to block (required)")
 	cmd.Flags().StringVar(&expiration, "expiration", "", "Expiration timestamp (RFC3339, optional)")
 	cmd.Flags().StringVar(&countryCode, "country-code", "", "Country code (optional)")
-	cmd.MarkFlagRequired("scrub-list-id")
-	cmd.MarkFlagRequired("content")
+	markFlagRequired(cmd, "scrub-list-id")
+	markFlagRequired(cmd, "content")
+
 	return cmd
 }

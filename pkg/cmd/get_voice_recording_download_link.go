@@ -15,10 +15,8 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
@@ -27,12 +25,13 @@ import (
 
 func GetVoiceRecordingDownloadLinkCmd(configPath *string) *cobra.Command {
 	var recordingSid string
+
 	cmd := &cobra.Command{
 		Use:   "get-voice-recording-download-link",
 		Short: "Call GateService.GetVoiceRecordingDownloadLink",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if recordingSid == "" {
-				return fmt.Errorf("--recording-sid is required")
+				return ErrRecordingSidRequired
 			}
 			cfg, err := saticonfig.LoadConfig(*configPath)
 			if err != nil {
@@ -44,9 +43,9 @@ func GetVoiceRecordingDownloadLinkCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close() // Ensure connection is closed
+			defer handleClientClose(client) // Ensure connection is closed
 
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
 			// Build the custom Params struct
@@ -59,7 +58,7 @@ func GetVoiceRecordingDownloadLinkCmd(configPath *string) *cobra.Command {
 			}
 
 			// Use the custom Result struct
-			if OutputFormat == "json" {
+			if OutputFormat == OutputFormatJSON {
 				data, err := json.MarshalIndent(resp, "", "  ")
 				if err != nil {
 					return err
@@ -68,10 +67,12 @@ func GetVoiceRecordingDownloadLinkCmd(configPath *string) *cobra.Command {
 			} else {
 				fmt.Printf("Download URL: %s\nExpires At: %s\n", resp.DownloadURL, resp.ExpiresAt)
 			}
+
 			return nil
 		},
 	}
 	cmd.Flags().StringVar(&recordingSid, "recording-sid", "", "Recording SID (required)")
-	cmd.MarkFlagRequired("recording-sid")
+	markFlagRequired(cmd, "recording-sid")
+
 	return cmd
 }
