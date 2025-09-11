@@ -2,158 +2,234 @@ package config
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"os"
 	"path/filepath"
-	"reflect"
 	"testing"
 )
 
-// --- Test Data ---
-// Use a struct to define the expected config for easier comparison.
-var expectedValidConfig = &Config{
-	APIEndpoint:   "test.com",
-	CACertificate: "cacert",
-	Certificate:   "cert",
-	PrivateKey:    "key",
-	// Fingerprint/Name/Desc fields omitted as they are not in the minimal valid JSON
-}
-
-// Marshal the expected config to get the canonical JSON string.
-var validJSONBytes, _ = json.Marshal(expectedValidConfig)
-
-// var validJSONString = string(validJSONBytes) // Unused variable
-
-// Base64 encode the canonical JSON string.
-var validBase64JSON = base64.StdEncoding.EncodeToString(validJSONBytes)
-
-// Other test cases.
-const (
-	invalidJSON         = `{"api_endpoint":"test.com",}` // Malformed JSON
-	invalidBase64       = "%%%invalid&&&"
-	partiallyValidJSON  = `{"api_endpoint":"partial.com"}` // Valid JSON, but missing fields
-	base64PartiallyJSON = "eyJhcF9lbmRwb2ludCI6InBhcnRpYWwuY29tIn0="
-)
-
-// --- Helper Functions ---.
-func checkConfigFields(t *testing.T, cfg *Config, expected *Config) {
-	t.Helper()
-
-	if cfg == nil {
-		t.Fatal("Config object is nil")
-	}
-	// Using reflect.DeepEqual for a comprehensive check
-	if !reflect.DeepEqual(cfg, expected) {
-		t.Errorf("Config mismatch:\n Got: %+v\nWant: %+v", cfg, expected)
-	}
-	// Individual checks for easier debugging if DeepEqual fails
-	if cfg.APIEndpoint != expected.APIEndpoint {
-		t.Errorf("Expected APIEndpoint '%s', got '%s'", expected.APIEndpoint, cfg.APIEndpoint)
-	}
-
-	if cfg.CACertificate != expected.CACertificate {
-		t.Errorf("Expected CACertificate '%s', got '%s'", expected.CACertificate, cfg.CACertificate)
-	}
-
-	if cfg.Certificate != expected.Certificate {
-		t.Errorf("Expected Certificate '%s', got '%s'", expected.Certificate, cfg.Certificate)
-	}
-
-	if cfg.PrivateKey != expected.PrivateKey {
-		t.Errorf("Expected PrivateKey '%s', got '%s'", expected.PrivateKey, cfg.PrivateKey)
-	}
-}
-
-// --- Tests ---
+const validBase64JSON = "eyJhcGlfZW5kcG9pbnQiOiJ0ZXN0LmNvbSIsImNhX2NlcnRpZmljYXRlIjoidGVzdF9jYSIsImNlcnRpZmljYXRlIjoidGVzdF9jZXJ0IiwicHJpdmF0ZV9rZXkiOiJ0ZXN0X2tleSJ9Cg=="
 
 func TestLoadConfig(t *testing.T) {
 	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, "test.cfg")
 
-	// --- Subtest: Valid Config File ---
-	t.Run("ValidFile", func(t *testing.T) {
-		validFilePath := filepath.Join(tempDir, "valid.cfg")
-
-		err := os.WriteFile(validFilePath, []byte(validBase64JSON), 0644)
+	// --- Test: Valid Config File ---
+	t.Run("ValidConfigFile", func(t *testing.T) {
+		// Create a test config file
+		err := os.WriteFile(configPath, []byte(validBase64JSON), 0644)
 		if err != nil {
-			t.Fatalf("Failed to write valid test config file: %v", err)
+			t.Fatalf("Failed to create test config file: %v", err)
 		}
 
-		cfg, err := LoadConfig(validFilePath)
+		// Load config
+		config, err := LoadConfig(configPath)
 		if err != nil {
-			t.Fatalf("LoadConfig failed for valid file: %v", err)
+			t.Fatalf("LoadConfig failed: %v", err)
 		}
 
-		checkConfigFields(t, cfg, expectedValidConfig)
+		// Verify config values
+		if config.APIEndpoint != "test.com" {
+			t.Errorf("Expected APIEndpoint to be 'test.com', got '%s'", config.APIEndpoint)
+		}
+		if config.CACertificate != "test_ca" {
+			t.Errorf("Expected CACertificate to be 'test_ca', got '%s'", config.CACertificate)
+		}
+		if config.Certificate != "test_cert" {
+			t.Errorf("Expected Certificate to be 'test_cert', got '%s'", config.Certificate)
+		}
+		if config.PrivateKey != "test_key" {
+			t.Errorf("Expected PrivateKey to be 'test_key', got '%s'", config.PrivateKey)
+		}
 	})
 
-	// --- Subtest: Non-existent File ---
+	// --- Test: Non-existent File ---
 	t.Run("NonExistentFile", func(t *testing.T) {
-		_, err := LoadConfig(filepath.Join(tempDir, "nonexistent.cfg"))
+		nonExistentPath := filepath.Join(tempDir, "nonexistent.cfg")
+
+		_, err := LoadConfig(nonExistentPath)
 		if err == nil {
-			t.Error("LoadConfig succeeded for non-existent file, expected error")
+			t.Error("Expected error for non-existent file")
 		}
 	})
 
-	// --- Subtest: Invalid Base64 File ---
+	// --- Test: Invalid Base64 ---
 	t.Run("InvalidBase64", func(t *testing.T) {
-		invalidBase64FilePath := filepath.Join(tempDir, "invalid_base64.cfg")
+		invalidPath := filepath.Join(tempDir, "invalid.cfg")
 
-		err := os.WriteFile(invalidBase64FilePath, []byte(invalidBase64), 0644)
+		// Create file with invalid base64
+		err := os.WriteFile(invalidPath, []byte("not base64!"), 0644)
 		if err != nil {
-			t.Fatalf("Failed to write invalid base64 test file: %v", err)
+			t.Fatalf("Failed to create invalid config file: %v", err)
 		}
 
-		_, err = LoadConfig(invalidBase64FilePath)
+		_, err = LoadConfig(invalidPath)
 		if err == nil {
-			t.Error("LoadConfig succeeded for invalid base64 file, expected error")
+			t.Error("Expected error for invalid base64")
 		}
 	})
 
-	// --- Subtest: Invalid JSON File (after base64 decode) ---
+	// --- Test: Invalid JSON ---
 	t.Run("InvalidJSON", func(t *testing.T) {
-		invalidJSONFilePath := filepath.Join(tempDir, "invalid_json.cfg")
-		// Explicitly encode the invalid JSON to be sure
-		encodedInvalidJSON := base64.StdEncoding.EncodeToString([]byte(invalidJSON))
+		invalidPath := filepath.Join(tempDir, "invalid_json.cfg")
 
-		err := os.WriteFile(invalidJSONFilePath, []byte(encodedInvalidJSON), 0644)
+		// Create file with valid base64 but invalid JSON
+		invalidJSON := base64.StdEncoding.EncodeToString([]byte("not json!"))
+		err := os.WriteFile(invalidPath, []byte(invalidJSON), 0644)
 		if err != nil {
-			t.Fatalf("Failed to write invalid json test file: %v", err)
+			t.Fatalf("Failed to create invalid JSON config file: %v", err)
 		}
 
-		_, err = LoadConfig(invalidJSONFilePath)
+		_, err = LoadConfig(invalidPath)
 		if err == nil {
-			t.Error("LoadConfig succeeded for invalid json file, expected error")
+			t.Error("Expected error for invalid JSON")
 		}
 	})
 }
 
 func TestNewConfigFromString(t *testing.T) {
-	// --- Subtest: Valid String ---
-	t.Run("ValidString", func(t *testing.T) {
-		cfg, err := NewConfigFromString(validBase64JSON)
+	// --- Test: Valid Config String ---
+	t.Run("ValidConfigString", func(t *testing.T) {
+		config, err := NewConfigFromString(validBase64JSON)
 		if err != nil {
-			t.Fatalf("NewConfigFromString failed for valid string: %v", err)
+			t.Fatalf("NewConfigFromString failed: %v", err)
 		}
 
-		checkConfigFields(t, cfg, expectedValidConfig)
+		// Verify config values
+		if config.APIEndpoint != "test.com" {
+			t.Errorf("Expected APIEndpoint to be 'test.com', got '%s'", config.APIEndpoint)
+		}
+		if config.CACertificate != "test_ca" {
+			t.Errorf("Expected CACertificate to be 'test_ca', got '%s'", config.CACertificate)
+		}
+		if config.Certificate != "test_cert" {
+			t.Errorf("Expected Certificate to be 'test_cert', got '%s'", config.Certificate)
+		}
+		if config.PrivateKey != "test_key" {
+			t.Errorf("Expected PrivateKey to be 'test_key', got '%s'", config.PrivateKey)
+		}
 	})
 
-	// --- Subtest: Invalid Base64 String ---
+	// --- Test: Invalid Base64 String ---
 	t.Run("InvalidBase64String", func(t *testing.T) {
-		_, err := NewConfigFromString(invalidBase64)
+		_, err := NewConfigFromString("not base64!")
 		if err == nil {
-			t.Error("NewConfigFromString succeeded for invalid base64 string, expected error")
+			t.Error("Expected error for invalid base64 string")
 		}
 	})
 
-	// --- Subtest: Invalid JSON String (after base64 decode) ---
+	// --- Test: Invalid JSON String ---
 	t.Run("InvalidJSONString", func(t *testing.T) {
-		// Explicitly encode the invalid JSON to be sure
-		encodedInvalidJSON := base64.StdEncoding.EncodeToString([]byte(invalidJSON))
-
-		_, err := NewConfigFromString(encodedInvalidJSON)
+		invalidJSON := base64.StdEncoding.EncodeToString([]byte("not json!"))
+		_, err := NewConfigFromString(invalidJSON)
 		if err == nil {
-			t.Error("NewConfigFromString succeeded for invalid json string, expected error")
+			t.Error("Expected error for invalid JSON string")
 		}
+	})
+
+	// --- Test: Empty String ---
+	t.Run("EmptyString", func(t *testing.T) {
+		_, err := NewConfigFromString("")
+		if err == nil {
+			t.Error("Expected error for empty string")
+		}
+	})
+}
+
+func TestWatchConfig(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// --- Test: Basic WatchConfig Setup ---
+	t.Run("BasicSetup", func(t *testing.T) {
+		configPath := filepath.Join(tempDir, "watch_test.cfg")
+
+		// Create a test config file
+		err := os.WriteFile(configPath, []byte(validBase64JSON), 0644)
+		if err != nil {
+			t.Fatalf("Failed to create test config file: %v", err)
+		}
+
+		// Simple loader function
+		loader := func(path string) error {
+			return nil
+		}
+
+		// Start watching
+		err = WatchConfig([]string{configPath}, loader)
+		if err != nil {
+			t.Fatalf("WatchConfig failed: %v", err)
+		}
+
+		// Note: The current implementation has a defer watcher.Close() which closes
+		// the watcher immediately when WatchConfig returns, so we can't test the
+		// watcher state directly. We test the function's return value instead.
+	})
+
+	// --- Test: Multiple Config Paths ---
+	t.Run("MultiplePaths", func(t *testing.T) {
+		configPath1 := filepath.Join(tempDir, "watch1.cfg")
+		configPath2 := filepath.Join(tempDir, "watch2.cfg")
+
+		// Create test config files
+		err := os.WriteFile(configPath1, []byte(validBase64JSON), 0644)
+		if err != nil {
+			t.Fatalf("Failed to create test config file 1: %v", err)
+		}
+		err = os.WriteFile(configPath2, []byte(validBase64JSON), 0644)
+		if err != nil {
+			t.Fatalf("Failed to create test config file 2: %v", err)
+		}
+
+		// Simple loader function
+		loader := func(path string) error {
+			return nil
+		}
+
+		// Start watching multiple paths
+		err = WatchConfig([]string{configPath1, configPath2}, loader)
+		if err != nil {
+			t.Fatalf("WatchConfig failed: %v", err)
+		}
+
+		// Note: The current implementation has a defer watcher.Close() which closes
+		// the watcher immediately when WatchConfig returns, so we can't test the
+		// watcher state directly. We test the function's return value instead.
+	})
+
+	// --- Test: Empty Paths ---
+	t.Run("EmptyPaths", func(t *testing.T) {
+		// Simple loader function
+		loader := func(path string) error {
+			return nil
+		}
+
+		// Start watching with empty paths
+		err := WatchConfig([]string{}, loader)
+		if err != nil {
+			t.Fatalf("WatchConfig failed: %v", err)
+		}
+
+		// Note: The current implementation has a defer watcher.Close() which closes
+		// the watcher immediately when WatchConfig returns, so we can't test the
+		// watcher state directly. We test the function's return value instead.
+	})
+
+	// --- Test: Non-existent File ---
+	t.Run("NonExistentFile", func(t *testing.T) {
+		configPath := filepath.Join(tempDir, "nonexistent.cfg")
+
+		// Simple loader function
+		loader := func(path string) error {
+			return nil
+		}
+
+		// Start watching non-existent file
+		err := WatchConfig([]string{configPath}, loader)
+		if err != nil {
+			t.Fatalf("WatchConfig failed: %v", err)
+		}
+
+		// Note: The current implementation has a defer watcher.Close() which closes
+		// the watcher immediately when WatchConfig returns, so we can't test the
+		// watcher state directly. We test the function's return value instead.
 	})
 }

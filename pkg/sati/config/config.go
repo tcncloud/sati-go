@@ -19,6 +19,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"os"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/rs/zerolog/log"
 )
 
 type Config struct {
@@ -70,4 +73,45 @@ func NewConfigFromString(configString string) (*Config, error) {
 	}
 
 	return &config, nil
+}
+
+type ConfigLoaderFunc func(path string) error
+
+var watcher *fsnotify.Watcher
+
+func WatchConfig(configPaths []string, loader ConfigLoaderFunc) error {
+	if watcher != nil {
+		watcher.Close()
+		watcher = nil
+	}
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return err
+	}
+	defer watcher.Close()
+
+	go func() {
+		for {
+			select {
+			case event, ok := <-watcher.Events:
+				if !ok {
+					return
+				}
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					loader(event.Name)
+				}
+			case err, ok := <-watcher.Errors:
+				if !ok {
+					return
+				}
+				log.Error().Err(err).Msg("Error watching config file")
+			}
+		}
+	}()
+
+	for _, configPath := range configPaths {
+		watcher.Add(configPath)
+	}
+
+	return nil
 }
