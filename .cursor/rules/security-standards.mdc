@@ -1,0 +1,72 @@
+---
+alwaysApply: true
+description: Security standards and best practices for the sati-go project
+---
+
+# Security Standards and Best Practices
+
+## TLS Configuration
+- **Always set minimum TLS version**: `MinVersion: tls.VersionTLS12`
+- Use mTLS (mutual TLS) for gRPC connections
+- Validate certificate chains properly
+- Use secure cipher suites
+
+## File Operations
+- Use `//nolint:gosec` with clear explanations for controlled file operations
+- Validate file paths before reading
+- Never use user input directly in file paths
+- Configuration files should be in controlled locations
+
+## Input Validation
+- Validate all command-line parameters
+- Check required fields before API calls
+- Use proper type validation for all inputs
+- Sanitize user input before processing
+
+## Error Handling
+- Never expose internal error details to users
+- Log security-relevant errors appropriately
+- Use static error messages to avoid information leakage
+- Handle authentication and authorization errors gracefully
+
+## gRPC Security
+- Use secure transport credentials
+- Validate server certificates
+- Implement proper timeout handling
+- Use context cancellation for long-running operations
+
+## Configuration Security
+- Store sensitive configuration in secure locations
+- Use base64 encoding for configuration files
+- Validate configuration before use
+- Never log sensitive configuration data
+
+## Code Security Practices
+- Use `gosec` linter to identify security issues
+- Review all file operations for path traversal vulnerabilities
+- Validate all network operations
+- Use secure random number generation when needed
+
+## Example Secure Configuration
+```go
+creds := credentials.NewTLS(&tls.Config{
+    Certificates: []tls.Certificate{cert},
+    RootCAs:      caCertPool,
+    MinVersion:   tls.VersionTLS12, // Minimum TLS 1.2
+})
+```
+
+## Example Secure File Operation
+```go
+//nolint:gosec // Configuration file path is controlled, not user input
+data, err := os.ReadFile(path)
+```
+
+## Security Checklist
+- [ ] TLS minimum version set to 1.2 or higher
+- [ ] All file operations use controlled paths
+- [ ] Input validation on all user inputs
+- [ ] Error messages don't leak sensitive information
+- [ ] Proper authentication and authorization
+- [ ] Secure configuration management
+- [ ] No hardcoded secrets or credentials

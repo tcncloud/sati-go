@@ -1,0 +1,117 @@
+---
+globs: *_test.go
+description: Testing guidelines and patterns for the sati-go project
+---
+
+# Testing Guidelines and Patterns
+
+## Test Organization
+- Break large test functions into focused, single-purpose test functions
+- Use descriptive test function names: `TestClient_AgentMethods`, `TestClient_StreamingMethods`
+- Group related tests logically (agent methods, dial methods, configuration methods, etc.)
+
+## Test Setup
+- Use `setupTestClient()` helper for consistent test client creation
+- Always reset mock state between tests
+- Use proper test isolation - each test should be independent
+
+## Mock Implementation
+- Mock method names must **exactly** match interface method names
+- Use `//nolint:revive` when interface naming conflicts with Go conventions
+- Implement all required interface methods
+- Store call verification flags and request objects
+
+## Test Patterns
+
+### Standard Test Structure
+```go
+func TestClient_MethodName(t *testing.T) {
+    client, mockService := setupTestClient()
+    ctx := context.Background()
+    
+    t.Run("SuccessCase", func(t *testing.T) {
+        // Setup mock
+        mockService.methodCalled = false
+        mockService.methodResp = &ExpectedResponse{}
+        mockService.methodErr = nil
+        
+        // Execute
+        result, err := client.Method(ctx, params)
+        
+        // Verify
+        if err != nil {
+            t.Errorf("Method returned error: %v", err)
+        }
+        if !mockService.methodCalled {
+            t.Error("Expected underlying method to be called")
+        }
+        // Additional assertions...
+    })
+}
+```
+
+### Error Case Testing
+```go
+t.Run("ErrorCase", func(t *testing.T) {
+    mockService.methodCalled = false
+    mockService.methodResp = nil
+    mockService.methodErr = errors.New("expected error")
+    
+    _, err := client.Method(ctx, params)
+    if err == nil {
+        t.Error("Expected error but got none")
+    }
+    if !mockService.methodCalled {
+        t.Error("Expected underlying method to be called")
+    }
+})
+```
+
+### Streaming Test Patterns
+```go
+t.Run("StreamingMethod", func(t *testing.T) {
+    mockStream := &mockStreamClient{
+        respQueue: []*ExpectedResponse{
+            {Field: "value1"},
+            {Field: "value2"},
+        },
+        err: io.EOF,
+    }
+    mockService.streamMethodCalled = false
+    mockService.streamMethodStream = mockStream
+    
+    resultsChan := client.StreamingMethod(ctx, params)
+    
+    count := 0
+    for result := range resultsChan {
+        if result.Error != nil {
+            t.Fatalf("Streaming error: %v", result.Error)
+        }
+        count++
+    }
+    
+    if count != 2 {
+        t.Errorf("Expected 2 results, got %d", count)
+    }
+})
+```
+
+## Test Quality Standards
+- Each test should verify both success and error cases
+- Use descriptive assertion messages
+- Test edge cases and boundary conditions
+- Verify mock interactions (calls made, parameters passed)
+- Use `t.Fatalf()` for setup failures, `t.Errorf()` for assertion failures
+
+## Mock Service Requirements
+- Implement all interface methods used in tests
+- Store call verification flags for each method
+- Store request objects for parameter verification
+- Provide configurable responses and errors
+- Reset state between tests
+
+## Test File Organization
+- One test file per package
+- Group related test functions together
+- Use table-driven tests for multiple similar test cases
+- Keep test functions focused and readable

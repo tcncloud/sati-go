@@ -1,0 +1,74 @@
+---
+alwaysApply: true
+description: Linting standards and code quality requirements
+---
+
+# Linting Standards and Code Quality
+
+## Zero Tolerance Policy
+- **Maintain zero linting issues at all times**
+- All code must pass `golangci-lint run` with no warnings or errors
+- Use `//nolint` directives only when absolutely necessary with clear explanations
+
+## Linting Rules Compliance
+
+### Error Handling (errcheck)
+- Never ignore error returns
+- Use `handleClientClose(client)` instead of `defer client.Close()`
+- Check all error returns explicitly
+
+### Code Duplication (dupl)
+- Extract common logic into helper functions in [common.go](mdc:pkg/cmd/common.go)
+- Use `createSkillCommand()` for skill-related commands
+- Avoid repeated code patterns
+
+### String Constants (goconst)
+- Use `OutputFormatJSON` constant instead of `"json"`
+- Define constants for repeated string literals
+- Use `DefaultTimeout` and `LongTimeout` for time values
+
+### Magic Numbers (mnd)
+- Use `DefaultTimeout` (10 seconds) for standard operations
+- Use `LongTimeout` (30 seconds) for streaming operations
+- Define constants for all numeric literals
+
+### Cognitive Complexity (gocognit)
+- Keep function complexity under 30
+- Break down complex functions into smaller, focused functions
+- Extract helper functions for complex logic
+
+### Naming Conventions (revive)
+- Use proper Go naming conventions
+- Use `//nolint:revive` only when interface requirements conflict
+- Provide clear explanations for naming exceptions
+
+### Security (gosec)
+- Set minimum TLS version: `MinVersion: tls.VersionTLS12`
+- Use `//nolint:gosec` with explanations for controlled operations
+- Validate all input parameters
+
+### Code Style
+- Use `nlreturn` - blank line before return statements
+- Follow `wsl_v5` - proper whitespace around statements
+- Use `godot` - proper sentence ending in comments
+- Follow `gocritic` recommendations for code improvements
+
+## Pre-commit Checks
+```bash
+# Run before committing
+golangci-lint run
+go test ./...
+go build ./...
+```
+
+## Linter Directives
+Use sparingly and only when necessary:
+```go
+//nolint:revive // Method name must match interface exactly
+//nolint:gosec // Configuration file path is controlled, not user input
+```
+
+## Performance Considerations
+- Pre-allocate slices: `make([]Type, 0, len(input))`
+- Use appropriate timeouts for different operations
+- Avoid unnecessary allocations in hot paths

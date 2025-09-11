@@ -1,0 +1,44 @@
+---
+alwaysApply: true
+description: Go best practices and coding standards for the sati-go project
+---
+
+# Go Best Practices and Coding Standards
+
+## Code Quality Standards
+- Always handle errors explicitly - never ignore `err` returns
+- Use `defer handleClientClose(client)` instead of `defer client.Close()` for proper error handling
+- Pre-allocate slices when size is known: `make([]Type, 0, len(input))`
+- Use constants for repeated string literals (e.g., `OutputFormatJSON` instead of `"json"`)
+- Use named constants for magic numbers (e.g., `DefaultTimeout`, `LongTimeout`)
+
+## Error Handling
+- Define static error constants in [common.go](mdc:pkg/cmd/common.go) and [client.go](mdc:pkg/sati/client/client.go)
+- Use `errors.New()` for static error creation, not dynamic strings
+- Always check and handle `client.Close()` errors using the `handleClientClose()` helper
+
+## Naming Conventions
+- Use `GetAgentByID` (capital ID) for Go naming conventions
+- Interface methods may have different naming (e.g., `GetAgentById` with capital B) - use `//nolint:revive` when required
+- Use descriptive variable names and avoid abbreviations
+
+## Code Organization
+- Break down complex functions (>30 cognitive complexity) into smaller, focused functions
+- Use helper functions in [common.go](mdc:pkg/cmd/common.go) to reduce duplication
+- Group related functionality into separate test functions
+
+## Security
+- Set minimum TLS version: `MinVersion: tls.VersionTLS12`
+- Use `//nolint:gosec` with explanation for controlled file operations
+- Validate input parameters before use
+
+## Testing
+- Use `setupTestClient()` helper for consistent test setup
+- Break large test functions into focused test groups
+- Mock method names must exactly match interface method names
+- Use descriptive test names and group related tests
+
+## Linting Compliance
+- Maintain zero linting issues
+- Use appropriate `//nolint` directives with explanations when necessary
+- Follow all golangci-lint rules and recommendations

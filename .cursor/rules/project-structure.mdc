@@ -1,14 +1,52 @@
 ---
-description:
-globs:
-alwaysApply: false
+alwaysApply: true
+description: Project structure and architecture guidelines for sati-go
 ---
-# Sati Client Project Structure Guide
 
-The main entry point for the CLI is the binary built from [cmd/sati-client](mdc:cmd/sati-client), which loads configuration from a file such as `com.tcn.exiles.sati.config.cfg` (see [README.md](mdc:README.md)).
+# Project Structure and Architecture
 
-Key command implementations are located in [pkg/cmd/](mdc:pkg/cmd/), with each file corresponding to a specific CLI command (e.g., [dial.go](mdc:pkg/cmd/dial.go), [add_scrub_list_entries.go](mdc:pkg/cmd/add_scrub_list_entries.go), [remove_scrub_list_entries.go](mdc:pkg/cmd/remove_scrub_list_entries.go), [submit_job_results.go](mdc:pkg/cmd/submit_job_results.go)).
+## Directory Structure
+```
+sati-go/
+├── cmd/sati-client/          # Main CLI application entry point
+├── internal/genproto/        # Generated protobuf code
+├── pkg/
+│   ├── cmd/                  # CLI command implementations
+│   │   ├── common.go         # Shared helper functions and constants
+│   │   └── *.go             # Individual command files
+│   ├── sati/
+│   │   ├── client/           # gRPC client wrapper
+│   │   └── config/           # Configuration management
+└── .cursor/rules/            # Cursor IDE rules
+```
 
-Generated gRPC and proto code is found under [internal/genproto/tcnapi/exile/gate/v2/](mdc:internal/genproto/tcnapi/exile/gate/v2/).
+## Key Files
+- [main.go](mdc:cmd/sati-client/main.go) - CLI application entry point
+- [root.go](mdc:pkg/cmd/root.go) - Cobra root command and subcommand registration
+- [common.go](mdc:pkg/cmd/common.go) - Shared utilities, constants, and helper functions
+- [client.go](mdc:pkg/sati/client/client.go) - Core gRPC client implementation
+- [types.go](mdc:pkg/sati/client/types.go) - Client-side type definitions
 
-For configuration details, usage, and command examples, see [README.md](mdc:README.md).
+## Architecture Patterns
+
+### Command Structure
+- Each command is implemented in its own file (e.g., `get_agent_by_id.go`)
+- Commands use the common helper functions from [common.go](mdc:pkg/cmd/common.go)
+- All commands follow the same pattern: validation → client creation → API call → response handling
+
+### Client Layer
+- [client.go](mdc:pkg/sati/client/client.go) wraps the gRPC client with custom types
+- Custom parameter and result types defined in [types.go](mdc:pkg/sati/client/types.go)
+- Error handling with static error constants
+- Proper connection management with `handleClientClose()`
+
+### Configuration
+- Configuration loaded from base64-encoded JSON files
+- TLS settings with minimum version requirements
+- mTLS authentication for gRPC connections
+
+## Code Organization Principles
+- Single responsibility: each file has one clear purpose
+- DRY principle: shared logic in [common.go](mdc:pkg/cmd/common.go)
+- Consistent patterns across all command implementations
+- Clear separation between CLI layer, client layer, and gRPC layer

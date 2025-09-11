@@ -1,0 +1,107 @@
+---
+globs: pkg/sati/client/*.go,pkg/cmd/*.go
+description: gRPC client patterns and command implementation guidelines
+---
+
+# gRPC Client Patterns and Command Implementation
+
+## Client Implementation Patterns
+
+### Client Creation
+```go
+client, err := createClient(configPath)
+if err != nil {
+    return err
+}
+defer handleClientClose(client)
+```
+
+### Context Management
+```go
+ctx, cancel := createContext(DefaultTimeout) // or LongTimeout for streaming
+defer cancel()
+```
+
+### Error Handling
+- Use static error constants from [client.go](mdc:pkg/sati/client/client.go)
+- Always check errors before proceeding
+- Use `handleClientClose(client)` for proper connection cleanup
+
+## Command Implementation Pattern
+
+### Standard Command Structure
+```go
+func CommandNameCmd(configPath *string) *cobra.Command {
+    var param1, param2 string
+    
+    cmd := &cobra.Command{
+        Use:   "command-name",
+        Short: "Description of what the command does",
+        RunE: func(cmd *cobra.Command, args []string) error {
+            // Validation
+            if param1 == "" {
+                return ErrParamRequired
+            }
+            
+            // Client setup
+            client, err := createClient(configPath)
+            if err != nil {
+                return err
+            }
+            defer handleClientClose(client)
+            
+            // Context setup
+            ctx, cancel := createContext(DefaultTimeout)
+            defer cancel()
+            
+            // API call and response handling
+            // ...
+            
+            return nil
+        },
+    }
+    
+    // Flag definitions
+    cmd.Flags().StringVar(&param1, "param1", "", "Description")
+    markFlagRequired(cmd, "param1")
+    
+    return cmd
+}
+```
+
+## Response Handling
+
+### JSON Output
+```go
+if OutputFormat == OutputFormatJSON {
+    data, err := json.MarshalIndent(response, "", "  ")
+    if err != nil {
+        return err
+    }
+    fmt.Println(string(data))
+} else {
+    // Human-readable output
+}
+```
+
+### Streaming Responses
+```go
+resultsChan := client.StreamingMethod(ctx, params)
+for result := range resultsChan {
+    if result.Error != nil {
+        return fmt.Errorf("streaming error: %w", result.Error)
+    }
+    // Process result
+}
+```
+
+## Type Definitions
+- Custom parameter types in [types.go](mdc:pkg/sati/client/types.go)
+- Use pointers for optional fields
+- Follow Go naming conventions (e.g., `GetAgentByID` not `GetAgentById`)
+
+## Testing Patterns
+- Use `setupTestClient()` for consistent test setup
+- Mock interface methods must match exactly (including capitalization)
+- Group related tests in focused test functions
+- Use descriptive test names and proper assertions
