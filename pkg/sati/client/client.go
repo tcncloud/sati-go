@@ -610,7 +610,6 @@ func (c *Client) Transfer(ctx context.Context, params TransferParams) (TransferR
 // --- Internal Helper Functions ---
 
 // mapProtoAgentToAgent converts a proto Agent to our custom client Agent type.
-// TODO: Fix corev2 import path before using this.
 func mapProtoAgentToAgent(pbAgent *gatev2pb.Agent) *Agent {
 	if pbAgent == nil {
 		return nil

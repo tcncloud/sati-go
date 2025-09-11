@@ -88,7 +88,8 @@ func (m *mockGateServiceClient) Dial(ctx context.Context, in *gatev2.DialRequest
 	return m.dialResp, m.dialErr
 }
 
-func (m *mockGateServiceClient) GetAgentByID(ctx context.Context, in *gatev2.GetAgentByIdRequest, opts ...grpc.CallOption) (*gatev2.GetAgentByIdResponse, error) {
+//nolint:revive // Method name must match interface exactly
+func (m *mockGateServiceClient) GetAgentById(ctx context.Context, in *gatev2.GetAgentByIdRequest, opts ...grpc.CallOption) (*gatev2.GetAgentByIdResponse, error) {
 	m.getAgentByIDCalled = true
 	m.getAgentByIDReq = in
 
@@ -278,39 +279,10 @@ func TestClient_AgentMethods(t *testing.T) {
 		}
 		// Can add more detailed check on mockService.addScrubListEntriesReq if needed
 	})
-}
-
-func TestClient_DialMethods(t *testing.T) {
-	client, mockService := setupTestClient()
-	ctx := context.Background()
-
-	// --- Test Dial ---
-	t.Run("DialSuccess", func(t *testing.T) {
-		mockService.dialCalled = false // Reset
-		mockService.dialResp = &gatev2.DialResponse{CallSid: "CS123"}
-		mockService.dialErr = nil
-		// Use the custom Params struct
-		params := DialParams{PartnerAgentID: "ag1", PhoneNumber: "555-1212"}
-
-		resp, err := client.Dial(ctx, params)
-		if err != nil {
-			t.Errorf("Dial returned error: %v", err)
-		}
-
-		if !mockService.dialCalled {
-			t.Error("Expected underlying Dial to be called")
-		}
-		// Can add more detailed check on mockService.dialReq if needed
-		// Check the custom Result struct field
-		if resp.CallSid != "CS123" {
-			t.Errorf("Dial did not return expected CallSid, got %s", resp.CallSid)
-		}
-	})
 
 	// --- Test GetAgentById ---
 	t.Run("GetAgentByIdSuccess", func(t *testing.T) {
 		mockService.getAgentByIDCalled = false // Reset
-		// TODO: Fix corev2 import path and uncomment Agent checks when resolved.
 		mockService.getAgentByIDResp = &gatev2.GetAgentByIdResponse{Agent: &gatev2.Agent{UserId: "agent-xyz", FirstName: "Test"}}
 		mockService.getAgentByIDErr = nil
 		// Use the custom Params struct
@@ -344,6 +316,34 @@ func TestClient_DialMethods(t *testing.T) {
 
 		if !mockService.getAgentByIDCalled {
 			t.Error("Expected underlying GetAgentByID to be called")
+		}
+	})
+}
+
+func TestClient_DialMethods(t *testing.T) {
+	client, mockService := setupTestClient()
+	ctx := context.Background()
+
+	// --- Test Dial ---
+	t.Run("DialSuccess", func(t *testing.T) {
+		mockService.dialCalled = false // Reset
+		mockService.dialResp = &gatev2.DialResponse{CallSid: "CS123"}
+		mockService.dialErr = nil
+		// Use the custom Params struct
+		params := DialParams{PartnerAgentID: "ag1", PhoneNumber: "555-1212"}
+
+		resp, err := client.Dial(ctx, params)
+		if err != nil {
+			t.Errorf("Dial returned error: %v", err)
+		}
+
+		if !mockService.dialCalled {
+			t.Error("Expected underlying Dial to be called")
+		}
+		// Can add more detailed check on mockService.dialReq if needed
+		// Check the custom Result struct field
+		if resp.CallSid != "CS123" {
+			t.Errorf("Dial did not return expected CallSid, got %s", resp.CallSid)
 		}
 	})
 }
@@ -434,7 +434,6 @@ func TestClient_ListAgents(t *testing.T) {
 
 	// --- Test ListAgents (Streaming) ---
 	t.Run("ListAgents", func(t *testing.T) {
-		// TODO: Fix corev2 import path and uncomment Agent checks when resolved.
 		mockStream := &mockListAgentsClient{
 			respQueue: []*gatev2.ListAgentsResponse{
 				{Agent: &gatev2.Agent{UserId: "u1"}}, // Using gatev2.Agent temporarily for structure

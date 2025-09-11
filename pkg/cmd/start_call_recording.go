@@ -29,7 +29,6 @@ func StartCallRecordingCmd(configPath *string) *cobra.Command {
 			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			// TODO: Add flags for StartCallRecordingRequest fields
 			// Build the request struct
 			request := &gatev2.StartCallRecordingRequest{}
 

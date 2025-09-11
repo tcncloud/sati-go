@@ -45,7 +45,6 @@ func GetAgentStatusCmd(configPath *string) *cobra.Command {
 			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			// TODO: Add flags for GetAgentStatusRequest fields
 			// Build the request struct
 			request := &gatev2.GetAgentStatusRequest{}
 
