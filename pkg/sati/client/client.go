@@ -9,8 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	gatev2grpc "buf.build/gen/go/tcn/exileapi/grpc/go/tcnapi/exile/gate/v2/gatev2grpc" // Keep for internal mapping
-	gatev2pb "buf.build/gen/go/tcn/exileapi/protocolbuffers/go/tcnapi/exile/gate/v2"   // Keep for internal mapping
+	gatev2pb "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2" // Keep for internal mapping
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -20,7 +19,7 @@ import (
 // Client provides methods for interacting with the GateService API.
 type Client struct {
 	conn *grpc.ClientConn
-	gate gatev2grpc.GateServiceClient
+	gate gatev2pb.GateServiceClient
 }
 
 // NewClient creates a new Sati API client.
@@ -32,7 +31,7 @@ func NewClient(cfg *saticonfig.Config) (*Client, error) {
 	}
 	return &Client{
 		conn: conn,
-		gate: gatev2grpc.NewGateServiceClient(conn),
+		gate: gatev2pb.NewGateServiceClient(conn),
 	}, nil
 }
 
@@ -262,7 +261,7 @@ func (c *Client) StopCallRecording(ctx context.Context, req *gatev2pb.StopCallRe
 }
 
 // StreamJobs remains unchanged for now
-func (c *Client) StreamJobs(ctx context.Context, req *gatev2pb.StreamJobsRequest) (gatev2grpc.GateService_StreamJobsClient, error) {
+func (c *Client) StreamJobs(ctx context.Context, req *gatev2pb.StreamJobsRequest) (gatev2pb.GateService_StreamJobsClient, error) {
 	return c.gate.StreamJobs(ctx, req)
 }
 

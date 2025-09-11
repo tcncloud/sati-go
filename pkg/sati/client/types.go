@@ -1,7 +1,7 @@
 package client
 
 import (
-	gatev2pb "buf.build/gen/go/tcn/exileapi/protocolbuffers/go/tcnapi/exile/gate/v2"
+	gatev2pb "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 )
 
 // --- Common/Shared Types ---

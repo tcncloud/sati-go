@@ -6,8 +6,7 @@ import (
 	"io"
 	"testing"
 
-	gatev2grpc "buf.build/gen/go/tcn/exileapi/grpc/go/tcnapi/exile/gate/v2/gatev2grpc"
-	gatev2pb "buf.build/gen/go/tcn/exileapi/protocolbuffers/go/tcnapi/exile/gate/v2"
+	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -16,98 +15,98 @@ import (
 
 // Mock GateServiceClient
 type mockGateServiceClient struct {
-	gatev2grpc.GateServiceClient // Embed the interface
+	gatev2.GateServiceClient // Embed the interface
 	// Store calls for verification
 	addAgentCallResponseCalled   bool
-	addAgentCallResponseReq      *gatev2pb.AddAgentCallResponseRequest
+	addAgentCallResponseReq      *gatev2.AddAgentCallResponseRequest
 	addScrubListEntriesCalled    bool
-	addScrubListEntriesReq       *gatev2pb.AddScrubListEntriesRequest
+	addScrubListEntriesReq       *gatev2.AddScrubListEntriesRequest
 	listAgentsCalled             bool
-	listAgentsReq                *gatev2pb.ListAgentsRequest
+	listAgentsReq                *gatev2.ListAgentsRequest
 	dialCalled                   bool
-	dialReq                      *gatev2pb.DialRequest
+	dialReq                      *gatev2.DialRequest
 	getAgentByIdCalled           bool
-	getAgentByIdReq              *gatev2pb.GetAgentByIdRequest
+	getAgentByIdReq              *gatev2.GetAgentByIdRequest
 	getClientConfigurationCalled bool
-	getClientConfigurationReq    *gatev2pb.GetClientConfigurationRequest
+	getClientConfigurationReq    *gatev2.GetClientConfigurationRequest
 	pollEventsCalled             bool
-	pollEventsReq                *gatev2pb.PollEventsRequest
+	pollEventsReq                *gatev2.PollEventsRequest
 	updateAgentStatusCalled      bool
-	updateAgentStatusReq         *gatev2pb.UpdateAgentStatusRequest
+	updateAgentStatusReq         *gatev2.UpdateAgentStatusRequest
 	streamJobsCalled             bool
-	streamJobsReq                *gatev2pb.StreamJobsRequest
+	streamJobsReq                *gatev2.StreamJobsRequest
 	// Add fields for other methods as needed
 
 	// Mock responses/errors
-	addAgentCallResponseResp   *gatev2pb.AddAgentCallResponseResponse
+	addAgentCallResponseResp   *gatev2.AddAgentCallResponseResponse
 	addAgentCallResponseErr    error
-	addScrubListEntriesResp    *gatev2pb.AddScrubListEntriesResponse
+	addScrubListEntriesResp    *gatev2.AddScrubListEntriesResponse
 	addScrubListEntriesErr     error
-	listAgentsStream           gatev2grpc.GateService_ListAgentsClient
+	listAgentsStream           gatev2.GateService_ListAgentsClient
 	listAgentsErr              error
-	dialResp                   *gatev2pb.DialResponse
+	dialResp                   *gatev2.DialResponse
 	dialErr                    error
-	getAgentByIdResp           *gatev2pb.GetAgentByIdResponse
+	getAgentByIdResp           *gatev2.GetAgentByIdResponse
 	getAgentByIdErr            error
-	getClientConfigurationResp *gatev2pb.GetClientConfigurationResponse
+	getClientConfigurationResp *gatev2.GetClientConfigurationResponse
 	getClientConfigurationErr  error
-	pollEventsResp             *gatev2pb.PollEventsResponse
+	pollEventsResp             *gatev2.PollEventsResponse
 	pollEventsErr              error
-	updateAgentStatusResp      *gatev2pb.UpdateAgentStatusResponse
+	updateAgentStatusResp      *gatev2.UpdateAgentStatusResponse
 	updateAgentStatusErr       error
-	streamJobsStream           gatev2grpc.GateService_StreamJobsClient
+	streamJobsStream           gatev2.GateService_StreamJobsClient
 	streamJobsErr              error
 }
 
-func (m *mockGateServiceClient) AddAgentCallResponse(ctx context.Context, in *gatev2pb.AddAgentCallResponseRequest, opts ...grpc.CallOption) (*gatev2pb.AddAgentCallResponseResponse, error) {
+func (m *mockGateServiceClient) AddAgentCallResponse(ctx context.Context, in *gatev2.AddAgentCallResponseRequest, opts ...grpc.CallOption) (*gatev2.AddAgentCallResponseResponse, error) {
 	m.addAgentCallResponseCalled = true
 	m.addAgentCallResponseReq = in
 	return m.addAgentCallResponseResp, m.addAgentCallResponseErr
 }
 
-func (m *mockGateServiceClient) AddScrubListEntries(ctx context.Context, in *gatev2pb.AddScrubListEntriesRequest, opts ...grpc.CallOption) (*gatev2pb.AddScrubListEntriesResponse, error) {
+func (m *mockGateServiceClient) AddScrubListEntries(ctx context.Context, in *gatev2.AddScrubListEntriesRequest, opts ...grpc.CallOption) (*gatev2.AddScrubListEntriesResponse, error) {
 	m.addScrubListEntriesCalled = true
 	m.addScrubListEntriesReq = in
 	return m.addScrubListEntriesResp, m.addScrubListEntriesErr
 }
 
-func (m *mockGateServiceClient) ListAgents(ctx context.Context, in *gatev2pb.ListAgentsRequest, opts ...grpc.CallOption) (gatev2grpc.GateService_ListAgentsClient, error) {
+func (m *mockGateServiceClient) ListAgents(ctx context.Context, in *gatev2.ListAgentsRequest, opts ...grpc.CallOption) (gatev2.GateService_ListAgentsClient, error) {
 	m.listAgentsCalled = true
 	m.listAgentsReq = in
 	return m.listAgentsStream, m.listAgentsErr
 }
 
-func (m *mockGateServiceClient) Dial(ctx context.Context, in *gatev2pb.DialRequest, opts ...grpc.CallOption) (*gatev2pb.DialResponse, error) {
+func (m *mockGateServiceClient) Dial(ctx context.Context, in *gatev2.DialRequest, opts ...grpc.CallOption) (*gatev2.DialResponse, error) {
 	m.dialCalled = true
 	m.dialReq = in
 	return m.dialResp, m.dialErr
 }
 
-func (m *mockGateServiceClient) GetAgentById(ctx context.Context, in *gatev2pb.GetAgentByIdRequest, opts ...grpc.CallOption) (*gatev2pb.GetAgentByIdResponse, error) {
+func (m *mockGateServiceClient) GetAgentById(ctx context.Context, in *gatev2.GetAgentByIdRequest, opts ...grpc.CallOption) (*gatev2.GetAgentByIdResponse, error) {
 	m.getAgentByIdCalled = true
 	m.getAgentByIdReq = in
 	return m.getAgentByIdResp, m.getAgentByIdErr
 }
 
-func (m *mockGateServiceClient) GetClientConfiguration(ctx context.Context, in *gatev2pb.GetClientConfigurationRequest, opts ...grpc.CallOption) (*gatev2pb.GetClientConfigurationResponse, error) {
+func (m *mockGateServiceClient) GetClientConfiguration(ctx context.Context, in *gatev2.GetClientConfigurationRequest, opts ...grpc.CallOption) (*gatev2.GetClientConfigurationResponse, error) {
 	m.getClientConfigurationCalled = true
 	m.getClientConfigurationReq = in
 	return m.getClientConfigurationResp, m.getClientConfigurationErr
 }
 
-func (m *mockGateServiceClient) PollEvents(ctx context.Context, in *gatev2pb.PollEventsRequest, opts ...grpc.CallOption) (*gatev2pb.PollEventsResponse, error) {
+func (m *mockGateServiceClient) PollEvents(ctx context.Context, in *gatev2.PollEventsRequest, opts ...grpc.CallOption) (*gatev2.PollEventsResponse, error) {
 	m.pollEventsCalled = true
 	m.pollEventsReq = in
 	return m.pollEventsResp, m.pollEventsErr
 }
 
-func (m *mockGateServiceClient) UpdateAgentStatus(ctx context.Context, in *gatev2pb.UpdateAgentStatusRequest, opts ...grpc.CallOption) (*gatev2pb.UpdateAgentStatusResponse, error) {
+func (m *mockGateServiceClient) UpdateAgentStatus(ctx context.Context, in *gatev2.UpdateAgentStatusRequest, opts ...grpc.CallOption) (*gatev2.UpdateAgentStatusResponse, error) {
 	m.updateAgentStatusCalled = true
 	m.updateAgentStatusReq = in
 	return m.updateAgentStatusResp, m.updateAgentStatusErr
 }
 
-func (m *mockGateServiceClient) StreamJobs(ctx context.Context, in *gatev2pb.StreamJobsRequest, opts ...grpc.CallOption) (gatev2grpc.GateService_StreamJobsClient, error) {
+func (m *mockGateServiceClient) StreamJobs(ctx context.Context, in *gatev2.StreamJobsRequest, opts ...grpc.CallOption) (gatev2.GateService_StreamJobsClient, error) {
 	m.streamJobsCalled = true
 	m.streamJobsReq = in
 	return m.streamJobsStream, m.streamJobsErr
@@ -116,12 +115,12 @@ func (m *mockGateServiceClient) StreamJobs(ctx context.Context, in *gatev2pb.Str
 // Mock GateService_ListAgentsClient (for streaming)
 type mockListAgentsClient struct {
 	grpc.ClientStream // Embed interface
-	respQueue         []*gatev2pb.ListAgentsResponse
+	respQueue         []*gatev2.ListAgentsResponse
 	err               error
 	recvCalled        int
 }
 
-func (m *mockListAgentsClient) Recv() (*gatev2pb.ListAgentsResponse, error) {
+func (m *mockListAgentsClient) Recv() (*gatev2.ListAgentsResponse, error) {
 	m.recvCalled++
 	if len(m.respQueue) > 0 {
 		resp := m.respQueue[0]
@@ -151,12 +150,12 @@ func (m *mockClientConn) Close() error {
 // Mock GateService_StreamJobsClient (for streaming)
 type mockStreamJobsClient struct {
 	grpc.ClientStream // Embed interface
-	respQueue         []*gatev2pb.StreamJobsResponse
+	respQueue         []*gatev2.StreamJobsResponse
 	err               error
 	recvCalled        int
 }
 
-func (m *mockStreamJobsClient) Recv() (*gatev2pb.StreamJobsResponse, error) {
+func (m *mockStreamJobsClient) Recv() (*gatev2.StreamJobsResponse, error) {
 	m.recvCalled++
 	if len(m.respQueue) > 0 {
 		resp := m.respQueue[0]
@@ -210,9 +209,9 @@ func TestClient_API_Methods(t *testing.T) {
 	// --- Test AddAgentCallResponse ---
 	t.Run("AddAgentCallResponse", func(t *testing.T) {
 		mockService.addAgentCallResponseCalled = false // Reset
-		mockService.addAgentCallResponseResp = &gatev2pb.AddAgentCallResponseResponse{}
+		mockService.addAgentCallResponseResp = &gatev2.AddAgentCallResponseResponse{}
 		mockService.addAgentCallResponseErr = nil
-		req := &gatev2pb.AddAgentCallResponseRequest{PartnerAgentId: "agent1"}
+		req := &gatev2.AddAgentCallResponseRequest{PartnerAgentId: "agent1"}
 
 		resp, err := client.AddAgentCallResponse(ctx, req)
 
@@ -255,7 +254,7 @@ func TestClient_API_Methods(t *testing.T) {
 	// --- Test Dial ---
 	t.Run("DialSuccess", func(t *testing.T) {
 		mockService.dialCalled = false // Reset
-		mockService.dialResp = &gatev2pb.DialResponse{CallSid: "CS123"}
+		mockService.dialResp = &gatev2.DialResponse{CallSid: "CS123"}
 		mockService.dialErr = nil
 		// Use the custom Params struct
 		params := DialParams{PartnerAgentID: "ag1", PhoneNumber: "555-1212"}
@@ -279,7 +278,7 @@ func TestClient_API_Methods(t *testing.T) {
 	t.Run("GetAgentByIdSuccess", func(t *testing.T) {
 		mockService.getAgentByIdCalled = false // Reset
 		// TODO: Fix corev2 import path and uncomment Agent checks when resolved.
-		mockService.getAgentByIdResp = &gatev2pb.GetAgentByIdResponse{Agent: &gatev2pb.Agent{UserId: "agent-xyz", FirstName: "Test"}}
+		mockService.getAgentByIdResp = &gatev2.GetAgentByIdResponse{Agent: &gatev2.Agent{UserId: "agent-xyz", FirstName: "Test"}}
 		mockService.getAgentByIdErr = nil
 		// Use the custom Params struct
 		params := GetAgentByIdParams{UserID: "agent-xyz"}
@@ -318,7 +317,7 @@ func TestClient_API_Methods(t *testing.T) {
 	// --- Test GetClientConfiguration ---
 	t.Run("GetClientConfigurationSuccess", func(t *testing.T) {
 		mockService.getClientConfigurationCalled = false // Reset
-		mockService.getClientConfigurationResp = &gatev2pb.GetClientConfigurationResponse{OrgId: "org1", ConfigName: "default"}
+		mockService.getClientConfigurationResp = &gatev2.GetClientConfigurationResponse{OrgId: "org1", ConfigName: "default"}
 		mockService.getClientConfigurationErr = nil
 		// Use the custom Params struct
 		params := GetClientConfigurationParams{}
@@ -341,9 +340,9 @@ func TestClient_API_Methods(t *testing.T) {
 	t.Run("PollEventsSuccess", func(t *testing.T) {
 		mockService.pollEventsCalled = false // Reset
 		// Revert check to original (likely incorrect based on previous error)
-		mockService.pollEventsResp = &gatev2pb.PollEventsResponse{Events: []*gatev2pb.Event{{}}}
+		mockService.pollEventsResp = &gatev2.PollEventsResponse{Events: []*gatev2.Event{{}}}
 		mockService.pollEventsErr = nil
-		req := &gatev2pb.PollEventsRequest{}
+		req := &gatev2.PollEventsRequest{}
 
 		resp, err := client.PollEvents(ctx, req)
 
@@ -365,12 +364,12 @@ func TestClient_API_Methods(t *testing.T) {
 	// --- Test UpdateAgentStatus ---
 	t.Run("UpdateAgentStatusSuccess", func(t *testing.T) {
 		mockService.updateAgentStatusCalled = false // Reset
-		mockService.updateAgentStatusResp = &gatev2pb.UpdateAgentStatusResponse{}
+		mockService.updateAgentStatusResp = &gatev2.UpdateAgentStatusResponse{}
 		mockService.updateAgentStatusErr = nil
 		// Use custom Params struct
 		params := UpdateAgentStatusParams{
 			PartnerAgentID: "agent2",
-			NewState:       gatev2pb.AgentState_AGENT_STATE_READY,
+			NewState:       gatev2.AgentState_AGENT_STATE_READY,
 		}
 
 		_, err := client.UpdateAgentStatus(ctx, params) // Check error only for empty response
@@ -388,9 +387,9 @@ func TestClient_API_Methods(t *testing.T) {
 	t.Run("ListAgents", func(t *testing.T) {
 		// TODO: Fix corev2 import path and uncomment Agent checks when resolved.
 		mockStream := &mockListAgentsClient{
-			respQueue: []*gatev2pb.ListAgentsResponse{
-				{Agent: &gatev2pb.Agent{UserId: "u1"}}, // Using gatev2pb.Agent temporarily for structure
-				{Agent: &gatev2pb.Agent{UserId: "u2"}},
+			respQueue: []*gatev2.ListAgentsResponse{
+				{Agent: &gatev2.Agent{UserId: "u1"}}, // Using gatev2.Agent temporarily for structure
+				{Agent: &gatev2.Agent{UserId: "u2"}},
 			},
 			err: io.EOF, // Simulate normal stream end
 		}
@@ -439,7 +438,7 @@ func TestClient_API_Methods(t *testing.T) {
 	// --- Test StreamJobs (Streaming) ---
 	t.Run("StreamJobs", func(t *testing.T) {
 		mockStream := &mockStreamJobsClient{
-			respQueue: []*gatev2pb.StreamJobsResponse{
+			respQueue: []*gatev2.StreamJobsResponse{
 				{JobId: "job1"},
 				// Revert oneof initialization, just provide basic struct
 				{JobId: "job2"},
@@ -449,7 +448,7 @@ func TestClient_API_Methods(t *testing.T) {
 		mockService.streamJobsCalled = false // Reset
 		mockService.streamJobsStream = mockStream
 		mockService.streamJobsErr = nil
-		req := &gatev2pb.StreamJobsRequest{}
+		req := &gatev2.StreamJobsRequest{}
 
 		stream, err := client.StreamJobs(ctx, req)
 		if err != nil {
