@@ -63,7 +63,7 @@ func ListAgentsCmd(configPath *string) *cobra.Command {
 			}
 
 			// Process collected agents
-			if OutputFormat == "json" {
+			if OutputFormat == OutputFormatJSON {
 				data, err := json.MarshalIndent(agents, "", "  ")
 				if err != nil {
 					return err

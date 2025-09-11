@@ -27,7 +27,7 @@ func TakeCallOffSimpleHoldCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer handleClientClose(client)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
