@@ -58,7 +58,7 @@ func ListAgentSkillsCmd(configPath *string) *cobra.Command {
 			}
 
 			// Use the custom Result struct
-			if OutputFormat == "json" {
+			if OutputFormat == OutputFormatJSON {
 				data, err := json.MarshalIndent(resp.Skills, "", "  ")
 				if err != nil {
 					return err
