@@ -18,7 +18,9 @@ package config // <--- Changed from 'sati'
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"os"
+	"sync"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/rs/zerolog/log"
@@ -77,9 +79,22 @@ func NewConfigFromString(configString string) (*Config, error) {
 
 type ConfigLoaderFunc func(path string) error
 
-var watcher *fsnotify.Watcher
+var (
+	watcher *fsnotify.Watcher
+	mu      sync.RWMutex
+)
 
 func WatchConfig(configPaths []string, loader ConfigLoaderFunc) error {
+	if len(configPaths) == 0 {
+		return errors.New("config paths are required")
+	}
+	if loader == nil {
+		return errors.New("loader is required")
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+
 	if watcher != nil {
 		watcher.Close()
 		watcher = nil
@@ -88,19 +103,22 @@ func WatchConfig(configPaths []string, loader ConfigLoaderFunc) error {
 	if err != nil {
 		return err
 	}
-	defer watcher.Close()
+	// defer watcher.Close()
+
+	// Store the watcher in a local variable to avoid race conditions
+	currentWatcher := watcher
 
 	go func() {
 		for {
 			select {
-			case event, ok := <-watcher.Events:
+			case event, ok := <-currentWatcher.Events:
 				if !ok {
 					return
 				}
 				if event.Op&fsnotify.Write == fsnotify.Write {
 					loader(event.Name)
 				}
-			case err, ok := <-watcher.Errors:
+			case err, ok := <-currentWatcher.Errors:
 				if !ok {
 					return
 				}
@@ -110,8 +128,11 @@ func WatchConfig(configPaths []string, loader ConfigLoaderFunc) error {
 	}()
 
 	for _, configPath := range configPaths {
-		watcher.Add(configPath)
+		if err := currentWatcher.Add(configPath); err != nil {
+			currentWatcher.Close()
+			watcher = nil
+			return err
+		}
 	}
-
 	return nil
 }
