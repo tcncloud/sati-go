@@ -1,2 +1,4 @@
 /sati-client
 com.tcn.exiles.sati.config.cfg*
+/cover*
+/profile.out
