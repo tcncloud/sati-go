@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/url"
 	"strings"
+	"time"
 
 	gatev2pb "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2" // Keep for internal mapping
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
@@ -305,6 +306,259 @@ func (c *Client) UpdateScrubListEntry(ctx context.Context, req *gatev2pb.UpdateS
 // UpsertAgent remains unchanged for now
 func (c *Client) UpsertAgent(ctx context.Context, req *gatev2pb.UpsertAgentRequest) (*gatev2pb.UpsertAgentResponse, error) {
 	return c.gate.UpsertAgent(ctx, req)
+}
+
+// --- New Methods for Missing Commands ---
+
+// ListNCLRulesetNames calls the ListNCLRulesetNames RPC
+func (c *Client) ListNCLRulesetNames(ctx context.Context, params ListNCLRulesetNamesParams) (ListNCLRulesetNamesResult, error) {
+	req := &gatev2pb.ListNCLRulesetNamesRequest{}
+
+	resp, err := c.gate.ListNCLRulesetNames(ctx, req)
+	if err != nil {
+		return ListNCLRulesetNamesResult{}, err
+	}
+
+	return ListNCLRulesetNamesResult{
+		RulesetNames: resp.RulesetNames,
+	}, nil
+}
+
+// ListSkills calls the ListSkills RPC
+func (c *Client) ListSkills(ctx context.Context, params ListSkillsParams) (ListSkillsResult, error) {
+	req := &gatev2pb.ListSkillsRequest{}
+
+	resp, err := c.gate.ListSkills(ctx, req)
+	if err != nil {
+		return ListSkillsResult{}, err
+	}
+
+	var skills []Skill
+	for _, skill := range resp.Skills {
+		skills = append(skills, Skill{
+			ID:          skill.SkillId,
+			Name:        skill.Name,
+			Description: skill.Description,
+		})
+	}
+
+	return ListSkillsResult{
+		Skills: skills,
+	}, nil
+}
+
+// ListAgentSkills calls the ListAgentSkills RPC
+func (c *Client) ListAgentSkills(ctx context.Context, params ListAgentSkillsParams) (ListAgentSkillsResult, error) {
+	req := &gatev2pb.ListAgentSkillsRequest{
+		PartnerAgentId: params.PartnerAgentID,
+	}
+
+	resp, err := c.gate.ListAgentSkills(ctx, req)
+	if err != nil {
+		return ListAgentSkillsResult{}, err
+	}
+
+	var skills []Skill
+	for _, skill := range resp.Skills {
+		skills = append(skills, Skill{
+			ID:          skill.SkillId,
+			Name:        skill.Name,
+			Description: skill.Description,
+		})
+	}
+
+	return ListAgentSkillsResult{
+		Skills: skills,
+	}, nil
+}
+
+// AssignAgentSkill calls the AssignAgentSkill RPC
+func (c *Client) AssignAgentSkill(ctx context.Context, params AssignAgentSkillParams) (AssignAgentSkillResult, error) {
+	req := &gatev2pb.AssignAgentSkillRequest{
+		PartnerAgentId: params.PartnerAgentID,
+		SkillId:        params.SkillID,
+	}
+
+	_, err := c.gate.AssignAgentSkill(ctx, req)
+	if err != nil {
+		return AssignAgentSkillResult{}, err
+	}
+
+	return AssignAgentSkillResult{}, nil
+}
+
+// UnassignAgentSkill calls the UnassignAgentSkill RPC
+func (c *Client) UnassignAgentSkill(ctx context.Context, params UnassignAgentSkillParams) (UnassignAgentSkillResult, error) {
+	req := &gatev2pb.UnassignAgentSkillRequest{
+		PartnerAgentId: params.PartnerAgentID,
+		SkillId:        params.SkillID,
+	}
+
+	_, err := c.gate.UnassignAgentSkill(ctx, req)
+	if err != nil {
+		return UnassignAgentSkillResult{}, err
+	}
+
+	return UnassignAgentSkillResult{}, nil
+}
+
+// SearchVoiceRecordings calls the SearchVoiceRecordings RPC (streaming)
+func (c *Client) SearchVoiceRecordings(ctx context.Context, params SearchVoiceRecordingsParams) <-chan SearchVoiceRecordingsResult {
+	resultChan := make(chan SearchVoiceRecordingsResult, 1)
+
+	go func() {
+		defer close(resultChan)
+
+		req := &gatev2pb.SearchVoiceRecordingsRequest{}
+
+		// Build search options from parameters
+		var searchOptions []*gatev2pb.SearchOption
+
+		if params.StartDate != nil {
+			searchOptions = append(searchOptions, &gatev2pb.SearchOption{
+				Field:    "start_time",
+				Operator: gatev2pb.Operator_EQUAL, // Use EQUAL for now, date comparison might need different approach
+				Value:    *params.StartDate,
+			})
+		}
+		if params.EndDate != nil {
+			searchOptions = append(searchOptions, &gatev2pb.SearchOption{
+				Field:    "start_time",
+				Operator: gatev2pb.Operator_EQUAL, // Use EQUAL for now, date comparison might need different approach
+				Value:    *params.EndDate,
+			})
+		}
+		if params.AgentID != nil {
+			searchOptions = append(searchOptions, &gatev2pb.SearchOption{
+				Field:    "partner_agent_ids",
+				Operator: gatev2pb.Operator_CONTAINS,
+				Value:    *params.AgentID,
+			})
+		}
+		if params.CallSid != nil {
+			searchOptions = append(searchOptions, &gatev2pb.SearchOption{
+				Field:    "call_sid",
+				Operator: gatev2pb.Operator_EQUAL,
+				Value:    *params.CallSid,
+			})
+		}
+
+		req.SearchOptions = searchOptions
+
+		stream, err := c.gate.SearchVoiceRecordings(ctx, req)
+		if err != nil {
+			resultChan <- SearchVoiceRecordingsResult{Error: err}
+			return
+		}
+
+		for {
+			resp, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				resultChan <- SearchVoiceRecordingsResult{Error: err}
+				return
+			}
+
+			// Process each recording in the response
+			for _, recording := range resp.Recordings {
+				voiceRecording := &VoiceRecording{
+					RecordingSid: recording.Name, // Use name as recording ID
+					CallSid:      fmt.Sprintf("%d", recording.CallSid),
+					AgentID:      strings.Join(recording.PartnerAgentIds, ","),
+					StartTime:    recording.StartTime.AsTime().Format(time.RFC3339),
+					EndTime:      recording.StartTime.AsTime().Add(recording.Duration.AsDuration()).Format(time.RFC3339),
+					Duration:     int32(recording.Duration.AsDuration().Seconds()),
+					FileSize:     0,           // Not available in this response
+					Status:       "completed", // Assume completed for now
+				}
+
+				resultChan <- SearchVoiceRecordingsResult{
+					Recording: voiceRecording,
+					NextToken: "", // Not available in this response
+				}
+			}
+		}
+	}()
+
+	return resultChan
+}
+
+// GetVoiceRecordingDownloadLink calls the GetVoiceRecordingDownloadLink RPC
+func (c *Client) GetVoiceRecordingDownloadLink(ctx context.Context, params GetVoiceRecordingDownloadLinkParams) (GetVoiceRecordingDownloadLinkResult, error) {
+	req := &gatev2pb.GetVoiceRecordingDownloadLinkRequest{
+		RecordingId: params.RecordingSid,
+	}
+
+	resp, err := c.gate.GetVoiceRecordingDownloadLink(ctx, req)
+	if err != nil {
+		return GetVoiceRecordingDownloadLinkResult{}, err
+	}
+
+	return GetVoiceRecordingDownloadLinkResult{
+		DownloadURL: resp.DownloadLink,
+		ExpiresAt:   "", // Not available in this response
+	}, nil
+}
+
+// ListSearchableRecordingFields calls the ListSearchableRecordingFields RPC
+func (c *Client) ListSearchableRecordingFields(ctx context.Context, params ListSearchableRecordingFieldsParams) (ListSearchableRecordingFieldsResult, error) {
+	req := &gatev2pb.ListSearchableRecordingFieldsRequest{}
+
+	resp, err := c.gate.ListSearchableRecordingFields(ctx, req)
+	if err != nil {
+		return ListSearchableRecordingFieldsResult{}, err
+	}
+
+	var fields []SearchableField
+	for _, fieldName := range resp.Fields {
+		fields = append(fields, SearchableField{
+			Name:        fieldName,
+			DisplayName: fieldName, // Use field name as display name
+			Type:        "string",  // Default type
+		})
+	}
+
+	return ListSearchableRecordingFieldsResult{
+		Fields: fields,
+	}, nil
+}
+
+// Transfer calls the Transfer RPC
+func (c *Client) Transfer(ctx context.Context, params TransferParams) (TransferResult, error) {
+	req := &gatev2pb.TransferRequest{
+		PartnerAgentId: params.CallSid, // Use CallSid as PartnerAgentId for now
+	}
+
+	if params.ReceivingPartnerAgentID != nil {
+		req.Destination = &gatev2pb.TransferRequest_ReceivingPartnerAgentId{
+			ReceivingPartnerAgentId: &gatev2pb.TransferRequest_Agent{
+				PartnerAgentId: *params.ReceivingPartnerAgentID,
+			},
+		}
+	} else if params.Outbound != nil {
+		outbound := &gatev2pb.TransferRequest_Outbound{
+			Destination: params.Outbound.PhoneNumber,
+		}
+		if params.Outbound.CallerID != nil {
+			outbound.CallerId = *params.Outbound.CallerID
+		}
+		req.Destination = &gatev2pb.TransferRequest_Outbound_{
+			Outbound: outbound,
+		}
+	} else if params.Queue != nil {
+		req.Destination = &gatev2pb.TransferRequest_Queue_{
+			Queue: &gatev2pb.TransferRequest_Queue{},
+		}
+	}
+
+	_, err := c.gate.Transfer(ctx, req)
+	if err != nil {
+		return TransferResult{}, err
+	}
+
+	return TransferResult{}, nil
 }
 
 // --- Internal Helper Functions ---

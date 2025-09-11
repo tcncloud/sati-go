@@ -90,4 +90,123 @@ type GetClientConfigurationResult struct {
 	ConfigPayload string
 }
 
+// --- ListNCLRulesetNames ---
+type ListNCLRulesetNamesParams struct{}
+
+type ListNCLRulesetNamesResult struct {
+	RulesetNames []string
+}
+
+// --- ListSkills ---
+type ListSkillsParams struct{}
+
+type ListSkillsResult struct {
+	Skills []Skill
+}
+
+type Skill struct {
+	ID          string
+	Name        string
+	Description string
+}
+
+// --- ListAgentSkills ---
+type ListAgentSkillsParams struct {
+	PartnerAgentID string // Required
+}
+
+type ListAgentSkillsResult struct {
+	Skills []Skill
+}
+
+// --- AssignAgentSkill ---
+type AssignAgentSkillParams struct {
+	PartnerAgentID string // Required
+	SkillID        string // Required
+}
+
+type AssignAgentSkillResult struct{}
+
+// --- UnassignAgentSkill ---
+type UnassignAgentSkillParams struct {
+	PartnerAgentID string // Required
+	SkillID        string // Required
+}
+
+type UnassignAgentSkillResult struct{}
+
+// --- SearchVoiceRecordings ---
+type SearchVoiceRecordingsParams struct {
+	StartDate    *string
+	EndDate      *string
+	AgentID      *string
+	CallSid      *string
+	RecordingSid *string
+	SearchFields []string
+	SearchQuery  *string
+	PageSize     *int32
+	PageToken    *string
+}
+
+type SearchVoiceRecordingsResult struct {
+	Recording *VoiceRecording
+	NextToken string
+	Error     error
+}
+
+type VoiceRecording struct {
+	RecordingSid string
+	CallSid      string
+	AgentID      string
+	StartTime    string
+	EndTime      string
+	Duration     int32
+	FileSize     int64
+	Status       string
+}
+
+// --- GetVoiceRecordingDownloadLink ---
+type GetVoiceRecordingDownloadLinkParams struct {
+	RecordingSid string // Required
+}
+
+type GetVoiceRecordingDownloadLinkResult struct {
+	DownloadURL string
+	ExpiresAt   string
+}
+
+// --- ListSearchableRecordingFields ---
+type ListSearchableRecordingFieldsParams struct{}
+
+type ListSearchableRecordingFieldsResult struct {
+	Fields []SearchableField
+}
+
+type SearchableField struct {
+	Name        string
+	DisplayName string
+	Type        string
+}
+
+// --- Transfer ---
+type TransferParams struct {
+	CallSid                 string // Required
+	ReceivingPartnerAgentID *string
+	Outbound                *TransferOutbound
+	Queue                   *TransferQueue
+}
+
+type TransferOutbound struct {
+	PhoneNumber string
+	CallerID    *string
+	PoolID      *string
+	RecordID    *string
+}
+
+type TransferQueue struct {
+	QueueID string
+}
+
+type TransferResult struct{}
+
 // Add definitions for other methods (PollEvents, StreamJobs, etc.) following this pattern.

@@ -44,6 +44,7 @@ func init() {
 		PutCallOnSimpleHoldCmd(&configPath),
 		TakeCallOffSimpleHoldCmd(&configPath),
 		DialCmd(&configPath),
+		ListNCLRulesetNamesCmd(&configPath),
 		StartCallRecordingCmd(&configPath),
 		StopCallRecordingCmd(&configPath),
 		GetRecordingStatusCmd(&configPath),
@@ -51,6 +52,14 @@ func init() {
 		AddScrubListEntriesCmd(&configPath),
 		UpdateScrubListEntryCmd(&configPath),
 		RemoveScrubListEntriesCmd(&configPath),
+		ListSkillsCmd(&configPath),
+		ListAgentSkillsCmd(&configPath),
+		AssignAgentSkillCmd(&configPath),
+		UnassignAgentSkillCmd(&configPath),
 		LogCmd(&configPath),
+		SearchVoiceRecordingsCmd(&configPath),
+		GetVoiceRecordingDownloadLinkCmd(&configPath),
+		ListSearchableRecordingFieldsCmd(&configPath),
+		TransferCmd(&configPath),
 	)
 }
