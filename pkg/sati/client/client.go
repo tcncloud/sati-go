@@ -574,13 +574,15 @@ func (c *Client) Transfer(ctx context.Context, params TransferParams) (TransferR
 		PartnerAgentId: params.CallSid, // Use CallSid as PartnerAgentId for now
 	}
 
-	if params.ReceivingPartnerAgentID != nil {
+	// Set destination based on transfer type
+	switch {
+	case params.ReceivingPartnerAgentID != nil:
 		req.Destination = &gatev2pb.TransferRequest_ReceivingPartnerAgentId{
 			ReceivingPartnerAgentId: &gatev2pb.TransferRequest_Agent{
 				PartnerAgentId: *params.ReceivingPartnerAgentID,
 			},
 		}
-	} else if params.Outbound != nil {
+	case params.Outbound != nil:
 		outbound := &gatev2pb.TransferRequest_Outbound{
 			Destination: params.Outbound.PhoneNumber,
 		}
@@ -591,7 +593,7 @@ func (c *Client) Transfer(ctx context.Context, params TransferParams) (TransferR
 		req.Destination = &gatev2pb.TransferRequest_Outbound_{
 			Outbound: outbound,
 		}
-	} else if params.Queue != nil {
+	case params.Queue != nil:
 		req.Destination = &gatev2pb.TransferRequest_Queue_{
 			Queue: &gatev2pb.TransferRequest_Queue{},
 		}

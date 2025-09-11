@@ -23,6 +23,66 @@ import (
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
 
+// buildSearchParams builds the search parameters from command flags.
+func buildSearchParams(startDate, endDate, agentID, callSid, recordingSid, searchQuery, pageToken string, pageSize int32, searchFields []string) saticlient.SearchVoiceRecordingsParams {
+	params := saticlient.SearchVoiceRecordingsParams{
+		SearchFields: searchFields,
+	}
+
+	if startDate != "" {
+		params.StartDate = &startDate
+	}
+
+	if endDate != "" {
+		params.EndDate = &endDate
+	}
+
+	if agentID != "" {
+		params.AgentID = &agentID
+	}
+
+	if callSid != "" {
+		params.CallSid = &callSid
+	}
+
+	if recordingSid != "" {
+		params.RecordingSid = &recordingSid
+	}
+
+	if searchQuery != "" {
+		params.SearchQuery = &searchQuery
+	}
+
+	if pageSize > 0 {
+		params.PageSize = &pageSize
+	}
+
+	if pageToken != "" {
+		params.PageToken = &pageToken
+	}
+
+	return params
+}
+
+// processSearchResults processes the search results and outputs them.
+func processSearchResults(recordings []*saticlient.VoiceRecording) error {
+	if OutputFormat == OutputFormatJSON {
+		data, err := json.MarshalIndent(recordings, "", "  ")
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(string(data))
+	} else {
+		for _, recording := range recordings {
+			fmt.Printf("RecordingSid: %s, CallSid: %s, AgentID: %s, StartTime: %s, EndTime: %s, Duration: %d, FileSize: %d, Status: %s\n",
+				recording.RecordingSid, recording.CallSid, recording.AgentID, recording.StartTime, recording.EndTime, recording.Duration, recording.FileSize, recording.Status)
+		}
+	}
+
+	return nil
+}
+
 func SearchVoiceRecordingsCmd(configPath *string) *cobra.Command {
 	var (
 		startDate    string
@@ -45,47 +105,17 @@ func SearchVoiceRecordingsCmd(configPath *string) *cobra.Command {
 				return err
 			}
 
-			// Use the new client constructor
 			client, err := saticlient.NewClient(cfg)
 			if err != nil {
 				return err
 			}
-			defer handleClientClose(client) // Ensure connection is closed
+			defer handleClientClose(client)
 
 			ctx, cancel := createContext(LongTimeout)
 			defer cancel()
 
-			// Build the custom Params struct
-			params := saticlient.SearchVoiceRecordingsParams{
-				SearchFields: searchFields,
-			}
+			params := buildSearchParams(startDate, endDate, agentID, callSid, recordingSid, searchQuery, pageToken, pageSize, searchFields)
 
-			if startDate != "" {
-				params.StartDate = &startDate
-			}
-			if endDate != "" {
-				params.EndDate = &endDate
-			}
-			if agentID != "" {
-				params.AgentID = &agentID
-			}
-			if callSid != "" {
-				params.CallSid = &callSid
-			}
-			if recordingSid != "" {
-				params.RecordingSid = &recordingSid
-			}
-			if searchQuery != "" {
-				params.SearchQuery = &searchQuery
-			}
-			if pageSize > 0 {
-				params.PageSize = &pageSize
-			}
-			if pageToken != "" {
-				params.PageToken = &pageToken
-			}
-
-			// Call the client stream method - returns a channel
 			resultsChan := client.SearchVoiceRecordings(ctx, params)
 
 			var recordings []*saticlient.VoiceRecording
@@ -98,21 +128,7 @@ func SearchVoiceRecordingsCmd(configPath *string) *cobra.Command {
 				}
 			}
 
-			// Process collected recordings
-			if OutputFormat == "json" {
-				data, err := json.MarshalIndent(recordings, "", "  ")
-				if err != nil {
-					return err
-				}
-				fmt.Println(string(data))
-			} else {
-				for _, recording := range recordings {
-					fmt.Printf("RecordingSid: %s, CallSid: %s, AgentID: %s, StartTime: %s, EndTime: %s, Duration: %d, FileSize: %d, Status: %s\n",
-						recording.RecordingSid, recording.CallSid, recording.AgentID, recording.StartTime, recording.EndTime, recording.Duration, recording.FileSize, recording.Status)
-				}
-			}
-
-			return nil
+			return processSearchResults(recordings)
 		},
 	}
 	cmd.Flags().StringVar(&startDate, "start-date", "", "Start date for search (ISO format)")
