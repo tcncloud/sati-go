@@ -37,7 +37,58 @@ type mockGateServiceClient struct {
 	updateAgentStatusReq         *gatev2.UpdateAgentStatusRequest
 	streamJobsCalled             bool
 	streamJobsReq                *gatev2.StreamJobsRequest
-	// Add fields for other methods as needed
+
+	// Additional mock fields for missing methods
+	getAgentByPartnerIDCalled           bool
+	getAgentByPartnerIDReq              *gatev2.GetAgentByPartnerIdRequest
+	getAgentStatusCalled                bool
+	getAgentStatusReq                   *gatev2.GetAgentStatusRequest
+	getOrganizationInfoCalled           bool
+	getOrganizationInfoReq              *gatev2.GetOrganizationInfoRequest
+	getRecordingStatusCalled            bool
+	getRecordingStatusReq               *gatev2.GetRecordingStatusRequest
+	listHuntGroupPauseCodesCalled       bool
+	listHuntGroupPauseCodesReq          *gatev2.ListHuntGroupPauseCodesRequest
+	listScrubListsCalled                bool
+	listScrubListsReq                   *gatev2.ListScrubListsRequest
+	logCalled                           bool
+	logReq                              *gatev2.LogRequest
+	putCallOnSimpleHoldCalled           bool
+	putCallOnSimpleHoldReq              *gatev2.PutCallOnSimpleHoldRequest
+	removeScrubListEntriesCalled        bool
+	removeScrubListEntriesReq           *gatev2.RemoveScrubListEntriesRequest
+	rotateCertificateCalled             bool
+	rotateCertificateReq                *gatev2.RotateCertificateRequest
+	startCallRecordingCalled            bool
+	startCallRecordingReq               *gatev2.StartCallRecordingRequest
+	stopCallRecordingCalled             bool
+	stopCallRecordingReq                *gatev2.StopCallRecordingRequest
+	submitJobResultsCalled              bool
+	submitJobResultsReq                 *gatev2.SubmitJobResultsRequest
+	takeCallOffSimpleHoldCalled         bool
+	takeCallOffSimpleHoldReq            *gatev2.TakeCallOffSimpleHoldRequest
+	updateScrubListEntryCalled          bool
+	updateScrubListEntryReq             *gatev2.UpdateScrubListEntryRequest
+	upsertAgentCalled                   bool
+	upsertAgentReq                      *gatev2.UpsertAgentRequest
+	listNCLRulesetNamesCalled           bool
+	listNCLRulesetNamesReq              *gatev2.ListNCLRulesetNamesRequest
+	listSkillsCalled                    bool
+	listSkillsReq                       *gatev2.ListSkillsRequest
+	listAgentSkillsCalled               bool
+	listAgentSkillsReq                  *gatev2.ListAgentSkillsRequest
+	assignAgentSkillCalled              bool
+	assignAgentSkillReq                 *gatev2.AssignAgentSkillRequest
+	unassignAgentSkillCalled            bool
+	unassignAgentSkillReq               *gatev2.UnassignAgentSkillRequest
+	searchVoiceRecordingsCalled         bool
+	searchVoiceRecordingsReq            *gatev2.SearchVoiceRecordingsRequest
+	getVoiceRecordingDownloadLinkCalled bool
+	getVoiceRecordingDownloadLinkReq    *gatev2.GetVoiceRecordingDownloadLinkRequest
+	listSearchableRecordingFieldsCalled bool
+	listSearchableRecordingFieldsReq    *gatev2.ListSearchableRecordingFieldsRequest
+	transferCalled                      bool
+	transferReq                         *gatev2.TransferRequest
 
 	// Mock responses/errors
 	addAgentCallResponseResp   *gatev2.AddAgentCallResponseResponse
@@ -58,6 +109,58 @@ type mockGateServiceClient struct {
 	updateAgentStatusErr       error
 	streamJobsStream           gatev2.GateService_StreamJobsClient
 	streamJobsErr              error
+
+	// Additional mock responses/errors
+	getAgentByPartnerIDResp           *gatev2.GetAgentByPartnerIdResponse
+	getAgentByPartnerIDErr            error
+	getAgentStatusResp                *gatev2.GetAgentStatusResponse
+	getAgentStatusErr                 error
+	getOrganizationInfoResp           *gatev2.GetOrganizationInfoResponse
+	getOrganizationInfoErr            error
+	getRecordingStatusResp            *gatev2.GetRecordingStatusResponse
+	getRecordingStatusErr             error
+	listHuntGroupPauseCodesResp       *gatev2.ListHuntGroupPauseCodesResponse
+	listHuntGroupPauseCodesErr        error
+	listScrubListsResp                *gatev2.ListScrubListsResponse
+	listScrubListsErr                 error
+	logResp                           *gatev2.LogResponse
+	logErr                            error
+	putCallOnSimpleHoldResp           *gatev2.PutCallOnSimpleHoldResponse
+	putCallOnSimpleHoldErr            error
+	removeScrubListEntriesResp        *gatev2.RemoveScrubListEntriesResponse
+	removeScrubListEntriesErr         error
+	rotateCertificateResp             *gatev2.RotateCertificateResponse
+	rotateCertificateErr              error
+	startCallRecordingResp            *gatev2.StartCallRecordingResponse
+	startCallRecordingErr             error
+	stopCallRecordingResp             *gatev2.StopCallRecordingResponse
+	stopCallRecordingErr              error
+	submitJobResultsResp              *gatev2.SubmitJobResultsResponse
+	submitJobResultsErr               error
+	takeCallOffSimpleHoldResp         *gatev2.TakeCallOffSimpleHoldResponse
+	takeCallOffSimpleHoldErr          error
+	updateScrubListEntryResp          *gatev2.UpdateScrubListEntryResponse
+	updateScrubListEntryErr           error
+	upsertAgentResp                   *gatev2.UpsertAgentResponse
+	upsertAgentErr                    error
+	listNCLRulesetNamesResp           *gatev2.ListNCLRulesetNamesResponse
+	listNCLRulesetNamesErr            error
+	listSkillsResp                    *gatev2.ListSkillsResponse
+	listSkillsErr                     error
+	listAgentSkillsResp               *gatev2.ListAgentSkillsResponse
+	listAgentSkillsErr                error
+	assignAgentSkillResp              *gatev2.AssignAgentSkillResponse
+	assignAgentSkillErr               error
+	unassignAgentSkillResp            *gatev2.UnassignAgentSkillResponse
+	unassignAgentSkillErr             error
+	searchVoiceRecordingsStream       gatev2.GateService_SearchVoiceRecordingsClient
+	searchVoiceRecordingsErr          error
+	getVoiceRecordingDownloadLinkResp *gatev2.GetVoiceRecordingDownloadLinkResponse
+	getVoiceRecordingDownloadLinkErr  error
+	listSearchableRecordingFieldsResp *gatev2.ListSearchableRecordingFieldsResponse
+	listSearchableRecordingFieldsErr  error
+	transferResp                      *gatev2.TransferResponse
+	transferErr                       error
 }
 
 func (m *mockGateServiceClient) AddAgentCallResponse(ctx context.Context, in *gatev2.AddAgentCallResponseRequest, opts ...grpc.CallOption) (*gatev2.AddAgentCallResponseResponse, error) {
@@ -122,6 +225,157 @@ func (m *mockGateServiceClient) StreamJobs(ctx context.Context, in *gatev2.Strea
 	m.streamJobsReq = in
 
 	return m.streamJobsStream, m.streamJobsErr
+}
+
+// Additional mock method implementations
+func (m *mockGateServiceClient) GetAgentByPartnerId(ctx context.Context, in *gatev2.GetAgentByPartnerIdRequest, opts ...grpc.CallOption) (*gatev2.GetAgentByPartnerIdResponse, error) {
+	m.getAgentByPartnerIDCalled = true
+	m.getAgentByPartnerIDReq = in
+	return m.getAgentByPartnerIDResp, m.getAgentByPartnerIDErr
+}
+
+func (m *mockGateServiceClient) GetAgentStatus(ctx context.Context, in *gatev2.GetAgentStatusRequest, opts ...grpc.CallOption) (*gatev2.GetAgentStatusResponse, error) {
+	m.getAgentStatusCalled = true
+	m.getAgentStatusReq = in
+	return m.getAgentStatusResp, m.getAgentStatusErr
+}
+
+func (m *mockGateServiceClient) GetOrganizationInfo(ctx context.Context, in *gatev2.GetOrganizationInfoRequest, opts ...grpc.CallOption) (*gatev2.GetOrganizationInfoResponse, error) {
+	m.getOrganizationInfoCalled = true
+	m.getOrganizationInfoReq = in
+	return m.getOrganizationInfoResp, m.getOrganizationInfoErr
+}
+
+func (m *mockGateServiceClient) GetRecordingStatus(ctx context.Context, in *gatev2.GetRecordingStatusRequest, opts ...grpc.CallOption) (*gatev2.GetRecordingStatusResponse, error) {
+	m.getRecordingStatusCalled = true
+	m.getRecordingStatusReq = in
+	return m.getRecordingStatusResp, m.getRecordingStatusErr
+}
+
+func (m *mockGateServiceClient) ListHuntGroupPauseCodes(ctx context.Context, in *gatev2.ListHuntGroupPauseCodesRequest, opts ...grpc.CallOption) (*gatev2.ListHuntGroupPauseCodesResponse, error) {
+	m.listHuntGroupPauseCodesCalled = true
+	m.listHuntGroupPauseCodesReq = in
+	return m.listHuntGroupPauseCodesResp, m.listHuntGroupPauseCodesErr
+}
+
+func (m *mockGateServiceClient) ListScrubLists(ctx context.Context, in *gatev2.ListScrubListsRequest, opts ...grpc.CallOption) (*gatev2.ListScrubListsResponse, error) {
+	m.listScrubListsCalled = true
+	m.listScrubListsReq = in
+	return m.listScrubListsResp, m.listScrubListsErr
+}
+
+func (m *mockGateServiceClient) Log(ctx context.Context, in *gatev2.LogRequest, opts ...grpc.CallOption) (*gatev2.LogResponse, error) {
+	m.logCalled = true
+	m.logReq = in
+	return m.logResp, m.logErr
+}
+
+func (m *mockGateServiceClient) PutCallOnSimpleHold(ctx context.Context, in *gatev2.PutCallOnSimpleHoldRequest, opts ...grpc.CallOption) (*gatev2.PutCallOnSimpleHoldResponse, error) {
+	m.putCallOnSimpleHoldCalled = true
+	m.putCallOnSimpleHoldReq = in
+	return m.putCallOnSimpleHoldResp, m.putCallOnSimpleHoldErr
+}
+
+func (m *mockGateServiceClient) RemoveScrubListEntries(ctx context.Context, in *gatev2.RemoveScrubListEntriesRequest, opts ...grpc.CallOption) (*gatev2.RemoveScrubListEntriesResponse, error) {
+	m.removeScrubListEntriesCalled = true
+	m.removeScrubListEntriesReq = in
+	return m.removeScrubListEntriesResp, m.removeScrubListEntriesErr
+}
+
+func (m *mockGateServiceClient) RotateCertificate(ctx context.Context, in *gatev2.RotateCertificateRequest, opts ...grpc.CallOption) (*gatev2.RotateCertificateResponse, error) {
+	m.rotateCertificateCalled = true
+	m.rotateCertificateReq = in
+	return m.rotateCertificateResp, m.rotateCertificateErr
+}
+
+func (m *mockGateServiceClient) StartCallRecording(ctx context.Context, in *gatev2.StartCallRecordingRequest, opts ...grpc.CallOption) (*gatev2.StartCallRecordingResponse, error) {
+	m.startCallRecordingCalled = true
+	m.startCallRecordingReq = in
+	return m.startCallRecordingResp, m.startCallRecordingErr
+}
+
+func (m *mockGateServiceClient) StopCallRecording(ctx context.Context, in *gatev2.StopCallRecordingRequest, opts ...grpc.CallOption) (*gatev2.StopCallRecordingResponse, error) {
+	m.stopCallRecordingCalled = true
+	m.stopCallRecordingReq = in
+	return m.stopCallRecordingResp, m.stopCallRecordingErr
+}
+
+func (m *mockGateServiceClient) SubmitJobResults(ctx context.Context, in *gatev2.SubmitJobResultsRequest, opts ...grpc.CallOption) (*gatev2.SubmitJobResultsResponse, error) {
+	m.submitJobResultsCalled = true
+	m.submitJobResultsReq = in
+	return m.submitJobResultsResp, m.submitJobResultsErr
+}
+
+func (m *mockGateServiceClient) TakeCallOffSimpleHold(ctx context.Context, in *gatev2.TakeCallOffSimpleHoldRequest, opts ...grpc.CallOption) (*gatev2.TakeCallOffSimpleHoldResponse, error) {
+	m.takeCallOffSimpleHoldCalled = true
+	m.takeCallOffSimpleHoldReq = in
+	return m.takeCallOffSimpleHoldResp, m.takeCallOffSimpleHoldErr
+}
+
+func (m *mockGateServiceClient) UpdateScrubListEntry(ctx context.Context, in *gatev2.UpdateScrubListEntryRequest, opts ...grpc.CallOption) (*gatev2.UpdateScrubListEntryResponse, error) {
+	m.updateScrubListEntryCalled = true
+	m.updateScrubListEntryReq = in
+	return m.updateScrubListEntryResp, m.updateScrubListEntryErr
+}
+
+func (m *mockGateServiceClient) UpsertAgent(ctx context.Context, in *gatev2.UpsertAgentRequest, opts ...grpc.CallOption) (*gatev2.UpsertAgentResponse, error) {
+	m.upsertAgentCalled = true
+	m.upsertAgentReq = in
+	return m.upsertAgentResp, m.upsertAgentErr
+}
+
+func (m *mockGateServiceClient) ListNCLRulesetNames(ctx context.Context, in *gatev2.ListNCLRulesetNamesRequest, opts ...grpc.CallOption) (*gatev2.ListNCLRulesetNamesResponse, error) {
+	m.listNCLRulesetNamesCalled = true
+	m.listNCLRulesetNamesReq = in
+	return m.listNCLRulesetNamesResp, m.listNCLRulesetNamesErr
+}
+
+func (m *mockGateServiceClient) ListSkills(ctx context.Context, in *gatev2.ListSkillsRequest, opts ...grpc.CallOption) (*gatev2.ListSkillsResponse, error) {
+	m.listSkillsCalled = true
+	m.listSkillsReq = in
+	return m.listSkillsResp, m.listSkillsErr
+}
+
+func (m *mockGateServiceClient) ListAgentSkills(ctx context.Context, in *gatev2.ListAgentSkillsRequest, opts ...grpc.CallOption) (*gatev2.ListAgentSkillsResponse, error) {
+	m.listAgentSkillsCalled = true
+	m.listAgentSkillsReq = in
+	return m.listAgentSkillsResp, m.listAgentSkillsErr
+}
+
+func (m *mockGateServiceClient) AssignAgentSkill(ctx context.Context, in *gatev2.AssignAgentSkillRequest, opts ...grpc.CallOption) (*gatev2.AssignAgentSkillResponse, error) {
+	m.assignAgentSkillCalled = true
+	m.assignAgentSkillReq = in
+	return m.assignAgentSkillResp, m.assignAgentSkillErr
+}
+
+func (m *mockGateServiceClient) UnassignAgentSkill(ctx context.Context, in *gatev2.UnassignAgentSkillRequest, opts ...grpc.CallOption) (*gatev2.UnassignAgentSkillResponse, error) {
+	m.unassignAgentSkillCalled = true
+	m.unassignAgentSkillReq = in
+	return m.unassignAgentSkillResp, m.unassignAgentSkillErr
+}
+
+func (m *mockGateServiceClient) SearchVoiceRecordings(ctx context.Context, in *gatev2.SearchVoiceRecordingsRequest, opts ...grpc.CallOption) (gatev2.GateService_SearchVoiceRecordingsClient, error) {
+	m.searchVoiceRecordingsCalled = true
+	m.searchVoiceRecordingsReq = in
+	return m.searchVoiceRecordingsStream, m.searchVoiceRecordingsErr
+}
+
+func (m *mockGateServiceClient) GetVoiceRecordingDownloadLink(ctx context.Context, in *gatev2.GetVoiceRecordingDownloadLinkRequest, opts ...grpc.CallOption) (*gatev2.GetVoiceRecordingDownloadLinkResponse, error) {
+	m.getVoiceRecordingDownloadLinkCalled = true
+	m.getVoiceRecordingDownloadLinkReq = in
+	return m.getVoiceRecordingDownloadLinkResp, m.getVoiceRecordingDownloadLinkErr
+}
+
+func (m *mockGateServiceClient) ListSearchableRecordingFields(ctx context.Context, in *gatev2.ListSearchableRecordingFieldsRequest, opts ...grpc.CallOption) (*gatev2.ListSearchableRecordingFieldsResponse, error) {
+	m.listSearchableRecordingFieldsCalled = true
+	m.listSearchableRecordingFieldsReq = in
+	return m.listSearchableRecordingFieldsResp, m.listSearchableRecordingFieldsErr
+}
+
+func (m *mockGateServiceClient) Transfer(ctx context.Context, in *gatev2.TransferRequest, opts ...grpc.CallOption) (*gatev2.TransferResponse, error) {
+	m.transferCalled = true
+	m.transferReq = in
+	return m.transferResp, m.transferErr
 }
 
 // Mock GateService_ListAgentsClient (for streaming).
@@ -189,6 +443,33 @@ func (m *mockStreamJobsClient) Header() (metadata.MD, error) { return nil, nil }
 func (m *mockStreamJobsClient) Trailer() metadata.MD         { return nil }
 func (m *mockStreamJobsClient) CloseSend() error             { return nil }
 func (m *mockStreamJobsClient) Context() context.Context     { return context.Background() }
+
+// Mock GateService_SearchVoiceRecordingsClient (for streaming).
+type mockSearchVoiceRecordingsClient struct {
+	grpc.ClientStream // Embed interface
+
+	respQueue  []*gatev2.SearchVoiceRecordingsResponse
+	err        error
+	recvCalled int
+}
+
+func (m *mockSearchVoiceRecordingsClient) Recv() (*gatev2.SearchVoiceRecordingsResponse, error) {
+	m.recvCalled++
+	if len(m.respQueue) > 0 {
+		resp := m.respQueue[0]
+		m.respQueue = m.respQueue[1:]
+
+		return resp, nil
+	}
+
+	return nil, m.err // Return error when queue is empty (simulate stream end or error)
+}
+
+// Implement other methods of grpc.ClientStream if needed.
+func (m *mockSearchVoiceRecordingsClient) Header() (metadata.MD, error) { return nil, nil }
+func (m *mockSearchVoiceRecordingsClient) Trailer() metadata.MD         { return nil }
+func (m *mockSearchVoiceRecordingsClient) CloseSend() error             { return nil }
+func (m *mockSearchVoiceRecordingsClient) Context() context.Context     { return context.Background() }
 
 // --- Tests ---
 
@@ -346,6 +627,78 @@ func TestClient_DialMethods(t *testing.T) {
 			t.Errorf("Dial did not return expected CallSid, got %s", resp.CallSid)
 		}
 	})
+
+	// --- Test GetAgentByPartnerID ---
+	t.Run("GetAgentByPartnerIDSuccess", func(t *testing.T) {
+		mockService.getAgentByPartnerIDCalled = false // Reset
+		mockService.getAgentByPartnerIDResp = &gatev2.GetAgentByPartnerIdResponse{Agent: &gatev2.Agent{UserId: "agent-xyz", FirstName: "Test"}}
+		mockService.getAgentByPartnerIDErr = nil
+		req := &gatev2.GetAgentByPartnerIdRequest{PartnerAgentId: "agent-xyz"}
+
+		resp, err := client.GetAgentByPartnerID(ctx, req)
+		if err != nil {
+			t.Errorf("GetAgentByPartnerID returned error: %v", err)
+		}
+
+		if !mockService.getAgentByPartnerIDCalled {
+			t.Error("Expected underlying GetAgentByPartnerID to be called")
+		}
+		if resp.Agent == nil || resp.Agent.UserId != "agent-xyz" {
+			t.Error("GetAgentByPartnerID did not return expected response")
+		}
+	})
+
+	t.Run("GetAgentByPartnerIDError", func(t *testing.T) {
+		mockService.getAgentByPartnerIDCalled = false // Reset
+		mockService.getAgentByPartnerIDResp = nil
+		mockService.getAgentByPartnerIDErr = errors.New("agent not found")
+		req := &gatev2.GetAgentByPartnerIdRequest{PartnerAgentId: "unknown"}
+
+		_, err := client.GetAgentByPartnerID(ctx, req)
+		if err == nil {
+			t.Error("GetAgentByPartnerID did not return expected error")
+		}
+
+		if !mockService.getAgentByPartnerIDCalled {
+			t.Error("Expected underlying GetAgentByPartnerID to be called")
+		}
+	})
+
+	// --- Test GetAgentStatus ---
+	t.Run("GetAgentStatusSuccess", func(t *testing.T) {
+		mockService.getAgentStatusCalled = false // Reset
+		mockService.getAgentStatusResp = &gatev2.GetAgentStatusResponse{PartnerAgentId: "agent-xyz", AgentState: gatev2.AgentState_AGENT_STATE_READY}
+		mockService.getAgentStatusErr = nil
+		req := &gatev2.GetAgentStatusRequest{PartnerAgentId: "agent-xyz"}
+
+		resp, err := client.GetAgentStatus(ctx, req)
+		if err != nil {
+			t.Errorf("GetAgentStatus returned error: %v", err)
+		}
+
+		if !mockService.getAgentStatusCalled {
+			t.Error("Expected underlying GetAgentStatus to be called")
+		}
+		if resp == nil {
+			t.Error("GetAgentStatus did not return expected response")
+		}
+	})
+
+	t.Run("GetAgentStatusError", func(t *testing.T) {
+		mockService.getAgentStatusCalled = false // Reset
+		mockService.getAgentStatusResp = nil
+		mockService.getAgentStatusErr = errors.New("agent not found")
+		req := &gatev2.GetAgentStatusRequest{PartnerAgentId: "unknown"}
+
+		_, err := client.GetAgentStatus(ctx, req)
+		if err == nil {
+			t.Error("GetAgentStatus did not return expected error")
+		}
+
+		if !mockService.getAgentStatusCalled {
+			t.Error("Expected underlying GetAgentStatus to be called")
+		}
+	})
 }
 
 func TestClient_ConfigurationMethods(t *testing.T) {
@@ -399,6 +752,78 @@ func TestClient_ConfigurationMethods(t *testing.T) {
 			t.Error("PollEvents did not return expected response (Events slice is nil)")
 		}
 	})
+
+	// --- Test GetOrganizationInfo ---
+	t.Run("GetOrganizationInfoSuccess", func(t *testing.T) {
+		mockService.getOrganizationInfoCalled = false // Reset
+		mockService.getOrganizationInfoResp = &gatev2.GetOrganizationInfoResponse{OrgId: "org123"}
+		mockService.getOrganizationInfoErr = nil
+		req := &gatev2.GetOrganizationInfoRequest{}
+
+		resp, err := client.GetOrganizationInfo(ctx, req)
+		if err != nil {
+			t.Errorf("GetOrganizationInfo returned error: %v", err)
+		}
+
+		if !mockService.getOrganizationInfoCalled {
+			t.Error("Expected underlying GetOrganizationInfo to be called")
+		}
+		if resp == nil {
+			t.Error("GetOrganizationInfo did not return expected response")
+		}
+	})
+
+	t.Run("GetOrganizationInfoError", func(t *testing.T) {
+		mockService.getOrganizationInfoCalled = false // Reset
+		mockService.getOrganizationInfoResp = nil
+		mockService.getOrganizationInfoErr = errors.New("org not found")
+		req := &gatev2.GetOrganizationInfoRequest{}
+
+		_, err := client.GetOrganizationInfo(ctx, req)
+		if err == nil {
+			t.Error("GetOrganizationInfo did not return expected error")
+		}
+
+		if !mockService.getOrganizationInfoCalled {
+			t.Error("Expected underlying GetOrganizationInfo to be called")
+		}
+	})
+
+	// --- Test GetRecordingStatus ---
+	t.Run("GetRecordingStatusSuccess", func(t *testing.T) {
+		mockService.getRecordingStatusCalled = false // Reset
+		mockService.getRecordingStatusResp = &gatev2.GetRecordingStatusResponse{IsRecording: true}
+		mockService.getRecordingStatusErr = nil
+		req := &gatev2.GetRecordingStatusRequest{PartnerAgentId: "agent-xyz"}
+
+		resp, err := client.GetRecordingStatus(ctx, req)
+		if err != nil {
+			t.Errorf("GetRecordingStatus returned error: %v", err)
+		}
+
+		if !mockService.getRecordingStatusCalled {
+			t.Error("Expected underlying GetRecordingStatus to be called")
+		}
+		if resp == nil {
+			t.Error("GetRecordingStatus did not return expected response")
+		}
+	})
+
+	t.Run("GetRecordingStatusError", func(t *testing.T) {
+		mockService.getRecordingStatusCalled = false // Reset
+		mockService.getRecordingStatusResp = nil
+		mockService.getRecordingStatusErr = errors.New("recording not found")
+		req := &gatev2.GetRecordingStatusRequest{PartnerAgentId: "unknown"}
+
+		_, err := client.GetRecordingStatus(ctx, req)
+		if err == nil {
+			t.Error("GetRecordingStatus did not return expected error")
+		}
+
+		if !mockService.getRecordingStatusCalled {
+			t.Error("Expected underlying GetRecordingStatus to be called")
+		}
+	})
 }
 
 func TestClient_StatusMethods(t *testing.T) {
@@ -426,6 +851,871 @@ func TestClient_StatusMethods(t *testing.T) {
 		}
 		// Can add detailed check on mockService.updateAgentStatusReq if needed
 	})
+
+	// --- Test Log ---
+	t.Run("LogSuccess", func(t *testing.T) {
+		mockService.logCalled = false // Reset
+		mockService.logResp = &gatev2.LogResponse{}
+		mockService.logErr = nil
+		req := &gatev2.LogRequest{Payload: "test message"}
+
+		resp, err := client.Log(ctx, req)
+		if err != nil {
+			t.Errorf("Log returned error: %v", err)
+		}
+
+		if !mockService.logCalled {
+			t.Error("Expected underlying Log to be called")
+		}
+		if resp == nil {
+			t.Error("Log did not return expected response")
+		}
+	})
+
+	t.Run("LogError", func(t *testing.T) {
+		mockService.logCalled = false // Reset
+		mockService.logResp = nil
+		mockService.logErr = errors.New("log error")
+		req := &gatev2.LogRequest{Payload: "test message"}
+
+		_, err := client.Log(ctx, req)
+		if err == nil {
+			t.Error("Log did not return expected error")
+		}
+
+		if !mockService.logCalled {
+			t.Error("Expected underlying Log to be called")
+		}
+	})
+
+	// --- Test PutCallOnSimpleHold ---
+	t.Run("PutCallOnSimpleHoldSuccess", func(t *testing.T) {
+		mockService.putCallOnSimpleHoldCalled = false // Reset
+		mockService.putCallOnSimpleHoldResp = &gatev2.PutCallOnSimpleHoldResponse{}
+		mockService.putCallOnSimpleHoldErr = nil
+		req := &gatev2.PutCallOnSimpleHoldRequest{PartnerAgentId: "agent123"}
+
+		resp, err := client.PutCallOnSimpleHold(ctx, req)
+		if err != nil {
+			t.Errorf("PutCallOnSimpleHold returned error: %v", err)
+		}
+
+		if !mockService.putCallOnSimpleHoldCalled {
+			t.Error("Expected underlying PutCallOnSimpleHold to be called")
+		}
+		if resp == nil {
+			t.Error("PutCallOnSimpleHold did not return expected response")
+		}
+	})
+
+	t.Run("PutCallOnSimpleHoldError", func(t *testing.T) {
+		mockService.putCallOnSimpleHoldCalled = false // Reset
+		mockService.putCallOnSimpleHoldResp = nil
+		mockService.putCallOnSimpleHoldErr = errors.New("hold error")
+		req := &gatev2.PutCallOnSimpleHoldRequest{PartnerAgentId: "agent123"}
+
+		_, err := client.PutCallOnSimpleHold(ctx, req)
+		if err == nil {
+			t.Error("PutCallOnSimpleHold did not return expected error")
+		}
+
+		if !mockService.putCallOnSimpleHoldCalled {
+			t.Error("Expected underlying PutCallOnSimpleHold to be called")
+		}
+	})
+
+	// --- Test StartCallRecording ---
+	t.Run("StartCallRecordingSuccess", func(t *testing.T) {
+		mockService.startCallRecordingCalled = false // Reset
+		mockService.startCallRecordingResp = &gatev2.StartCallRecordingResponse{}
+		mockService.startCallRecordingErr = nil
+		req := &gatev2.StartCallRecordingRequest{PartnerAgentId: "agent123"}
+
+		resp, err := client.StartCallRecording(ctx, req)
+		if err != nil {
+			t.Errorf("StartCallRecording returned error: %v", err)
+		}
+
+		if !mockService.startCallRecordingCalled {
+			t.Error("Expected underlying StartCallRecording to be called")
+		}
+		if resp == nil {
+			t.Error("StartCallRecording did not return expected response")
+		}
+	})
+
+	t.Run("StartCallRecordingError", func(t *testing.T) {
+		mockService.startCallRecordingCalled = false // Reset
+		mockService.startCallRecordingResp = nil
+		mockService.startCallRecordingErr = errors.New("recording error")
+		req := &gatev2.StartCallRecordingRequest{PartnerAgentId: "agent123"}
+
+		_, err := client.StartCallRecording(ctx, req)
+		if err == nil {
+			t.Error("StartCallRecording did not return expected error")
+		}
+
+		if !mockService.startCallRecordingCalled {
+			t.Error("Expected underlying StartCallRecording to be called")
+		}
+	})
+
+	// --- Test StopCallRecording ---
+	t.Run("StopCallRecordingSuccess", func(t *testing.T) {
+		mockService.stopCallRecordingCalled = false // Reset
+		mockService.stopCallRecordingResp = &gatev2.StopCallRecordingResponse{}
+		mockService.stopCallRecordingErr = nil
+		req := &gatev2.StopCallRecordingRequest{PartnerAgentId: "agent123"}
+
+		resp, err := client.StopCallRecording(ctx, req)
+		if err != nil {
+			t.Errorf("StopCallRecording returned error: %v", err)
+		}
+
+		if !mockService.stopCallRecordingCalled {
+			t.Error("Expected underlying StopCallRecording to be called")
+		}
+		if resp == nil {
+			t.Error("StopCallRecording did not return expected response")
+		}
+	})
+
+	t.Run("StopCallRecordingError", func(t *testing.T) {
+		mockService.stopCallRecordingCalled = false // Reset
+		mockService.stopCallRecordingResp = nil
+		mockService.stopCallRecordingErr = errors.New("recording error")
+		req := &gatev2.StopCallRecordingRequest{PartnerAgentId: "agent123"}
+
+		_, err := client.StopCallRecording(ctx, req)
+		if err == nil {
+			t.Error("StopCallRecording did not return expected error")
+		}
+
+		if !mockService.stopCallRecordingCalled {
+			t.Error("Expected underlying StopCallRecording to be called")
+		}
+	})
+
+	// --- Test TakeCallOffSimpleHold ---
+	t.Run("TakeCallOffSimpleHoldSuccess", func(t *testing.T) {
+		mockService.takeCallOffSimpleHoldCalled = false // Reset
+		mockService.takeCallOffSimpleHoldResp = &gatev2.TakeCallOffSimpleHoldResponse{}
+		mockService.takeCallOffSimpleHoldErr = nil
+		req := &gatev2.TakeCallOffSimpleHoldRequest{PartnerAgentId: "agent123"}
+
+		resp, err := client.TakeCallOffSimpleHold(ctx, req)
+		if err != nil {
+			t.Errorf("TakeCallOffSimpleHold returned error: %v", err)
+		}
+
+		if !mockService.takeCallOffSimpleHoldCalled {
+			t.Error("Expected underlying TakeCallOffSimpleHold to be called")
+		}
+		if resp == nil {
+			t.Error("TakeCallOffSimpleHold did not return expected response")
+		}
+	})
+
+	t.Run("TakeCallOffSimpleHoldError", func(t *testing.T) {
+		mockService.takeCallOffSimpleHoldCalled = false // Reset
+		mockService.takeCallOffSimpleHoldResp = nil
+		mockService.takeCallOffSimpleHoldErr = errors.New("hold error")
+		req := &gatev2.TakeCallOffSimpleHoldRequest{PartnerAgentId: "agent123"}
+
+		_, err := client.TakeCallOffSimpleHold(ctx, req)
+		if err == nil {
+			t.Error("TakeCallOffSimpleHold did not return expected error")
+		}
+
+		if !mockService.takeCallOffSimpleHoldCalled {
+			t.Error("Expected underlying TakeCallOffSimpleHold to be called")
+		}
+	})
+}
+
+func TestClient_ListMethods(t *testing.T) {
+	client, mockService := setupTestClient()
+	ctx := context.Background()
+
+	// --- Test ListHuntGroupPauseCodes ---
+	t.Run("ListHuntGroupPauseCodesSuccess", func(t *testing.T) {
+		mockService.listHuntGroupPauseCodesCalled = false // Reset
+		mockService.listHuntGroupPauseCodesResp = &gatev2.ListHuntGroupPauseCodesResponse{Name: "Test Group", PauseCodes: []string{"break", "lunch"}}
+		mockService.listHuntGroupPauseCodesErr = nil
+		req := &gatev2.ListHuntGroupPauseCodesRequest{}
+
+		resp, err := client.ListHuntGroupPauseCodes(ctx, req)
+		if err != nil {
+			t.Errorf("ListHuntGroupPauseCodes returned error: %v", err)
+		}
+
+		if !mockService.listHuntGroupPauseCodesCalled {
+			t.Error("Expected underlying ListHuntGroupPauseCodes to be called")
+		}
+		if resp == nil {
+			t.Error("ListHuntGroupPauseCodes did not return expected response")
+		}
+	})
+
+	t.Run("ListHuntGroupPauseCodesError", func(t *testing.T) {
+		mockService.listHuntGroupPauseCodesCalled = false // Reset
+		mockService.listHuntGroupPauseCodesResp = nil
+		mockService.listHuntGroupPauseCodesErr = errors.New("list error")
+		req := &gatev2.ListHuntGroupPauseCodesRequest{}
+
+		_, err := client.ListHuntGroupPauseCodes(ctx, req)
+		if err == nil {
+			t.Error("ListHuntGroupPauseCodes did not return expected error")
+		}
+
+		if !mockService.listHuntGroupPauseCodesCalled {
+			t.Error("Expected underlying ListHuntGroupPauseCodes to be called")
+		}
+	})
+
+	// --- Test ListScrubLists ---
+	t.Run("ListScrubListsSuccess", func(t *testing.T) {
+		mockService.listScrubListsCalled = false // Reset
+		mockService.listScrubListsResp = &gatev2.ListScrubListsResponse{ScrubLists: []*gatev2.ScrubList{{ScrubListId: "list1"}}}
+		mockService.listScrubListsErr = nil
+		req := &gatev2.ListScrubListsRequest{}
+
+		resp, err := client.ListScrubLists(ctx, req)
+		if err != nil {
+			t.Errorf("ListScrubLists returned error: %v", err)
+		}
+
+		if !mockService.listScrubListsCalled {
+			t.Error("Expected underlying ListScrubLists to be called")
+		}
+		if resp == nil {
+			t.Error("ListScrubLists did not return expected response")
+		}
+	})
+
+	t.Run("ListScrubListsError", func(t *testing.T) {
+		mockService.listScrubListsCalled = false // Reset
+		mockService.listScrubListsResp = nil
+		mockService.listScrubListsErr = errors.New("list error")
+		req := &gatev2.ListScrubListsRequest{}
+
+		_, err := client.ListScrubLists(ctx, req)
+		if err == nil {
+			t.Error("ListScrubLists did not return expected error")
+		}
+
+		if !mockService.listScrubListsCalled {
+			t.Error("Expected underlying ListScrubLists to be called")
+		}
+	})
+
+	// --- Test ListNCLRulesetNames ---
+	t.Run("ListNCLRulesetNamesSuccess", func(t *testing.T) {
+		mockService.listNCLRulesetNamesCalled = false // Reset
+		mockService.listNCLRulesetNamesResp = &gatev2.ListNCLRulesetNamesResponse{RulesetNames: []string{"ruleset1"}}
+		mockService.listNCLRulesetNamesErr = nil
+		params := ListNCLRulesetNamesParams{}
+
+		resp, err := client.ListNCLRulesetNames(ctx, params)
+		if err != nil {
+			t.Errorf("ListNCLRulesetNames returned error: %v", err)
+		}
+
+		if !mockService.listNCLRulesetNamesCalled {
+			t.Error("Expected underlying ListNCLRulesetNames to be called")
+		}
+		if len(resp.RulesetNames) == 0 {
+			t.Error("ListNCLRulesetNames did not return expected response")
+		}
+	})
+
+	t.Run("ListNCLRulesetNamesError", func(t *testing.T) {
+		mockService.listNCLRulesetNamesCalled = false // Reset
+		mockService.listNCLRulesetNamesResp = nil
+		mockService.listNCLRulesetNamesErr = errors.New("list error")
+		params := ListNCLRulesetNamesParams{}
+
+		_, err := client.ListNCLRulesetNames(ctx, params)
+		if err == nil {
+			t.Error("ListNCLRulesetNames did not return expected error")
+		}
+
+		if !mockService.listNCLRulesetNamesCalled {
+			t.Error("Expected underlying ListNCLRulesetNames to be called")
+		}
+	})
+
+	// --- Test ListSkills ---
+	t.Run("ListSkillsSuccess", func(t *testing.T) {
+		mockService.listSkillsCalled = false // Reset
+		mockService.listSkillsResp = &gatev2.ListSkillsResponse{Skills: []*gatev2.Skill{{SkillId: "skill1", Name: "Test Skill"}}}
+		mockService.listSkillsErr = nil
+		params := ListSkillsParams{}
+
+		resp, err := client.ListSkills(ctx, params)
+		if err != nil {
+			t.Errorf("ListSkills returned error: %v", err)
+		}
+
+		if !mockService.listSkillsCalled {
+			t.Error("Expected underlying ListSkills to be called")
+		}
+		if len(resp.Skills) == 0 {
+			t.Error("ListSkills did not return expected response")
+		}
+	})
+
+	t.Run("ListSkillsError", func(t *testing.T) {
+		mockService.listSkillsCalled = false // Reset
+		mockService.listSkillsResp = nil
+		mockService.listSkillsErr = errors.New("list error")
+		params := ListSkillsParams{}
+
+		_, err := client.ListSkills(ctx, params)
+		if err == nil {
+			t.Error("ListSkills did not return expected error")
+		}
+
+		if !mockService.listSkillsCalled {
+			t.Error("Expected underlying ListSkills to be called")
+		}
+	})
+
+	// --- Test ListAgentSkills ---
+	t.Run("ListAgentSkillsSuccess", func(t *testing.T) {
+		mockService.listAgentSkillsCalled = false // Reset
+		mockService.listAgentSkillsResp = &gatev2.ListAgentSkillsResponse{Skills: []*gatev2.Skill{{SkillId: "skill1", Name: "Test Skill"}}}
+		mockService.listAgentSkillsErr = nil
+		params := ListAgentSkillsParams{PartnerAgentID: "agent-xyz"}
+
+		resp, err := client.ListAgentSkills(ctx, params)
+		if err != nil {
+			t.Errorf("ListAgentSkills returned error: %v", err)
+		}
+
+		if !mockService.listAgentSkillsCalled {
+			t.Error("Expected underlying ListAgentSkills to be called")
+		}
+		if len(resp.Skills) == 0 {
+			t.Error("ListAgentSkills did not return expected response")
+		}
+	})
+
+	t.Run("ListAgentSkillsError", func(t *testing.T) {
+		mockService.listAgentSkillsCalled = false // Reset
+		mockService.listAgentSkillsResp = nil
+		mockService.listAgentSkillsErr = errors.New("list error")
+		params := ListAgentSkillsParams{PartnerAgentID: "unknown"}
+
+		_, err := client.ListAgentSkills(ctx, params)
+		if err == nil {
+			t.Error("ListAgentSkills did not return expected error")
+		}
+
+		if !mockService.listAgentSkillsCalled {
+			t.Error("Expected underlying ListAgentSkills to be called")
+		}
+	})
+}
+
+func TestClient_ScrubMethods(t *testing.T) {
+	client, mockService := setupTestClient()
+	ctx := context.Background()
+
+	// --- Test RemoveScrubListEntries ---
+	t.Run("RemoveScrubListEntriesSuccess", func(t *testing.T) {
+		mockService.removeScrubListEntriesCalled = false // Reset
+		mockService.removeScrubListEntriesResp = &gatev2.RemoveScrubListEntriesResponse{}
+		mockService.removeScrubListEntriesErr = nil
+		req := &gatev2.RemoveScrubListEntriesRequest{ScrubListId: "list1", Entries: []string{"entry1"}}
+
+		resp, err := client.RemoveScrubListEntries(ctx, req)
+		if err != nil {
+			t.Errorf("RemoveScrubListEntries returned error: %v", err)
+		}
+
+		if !mockService.removeScrubListEntriesCalled {
+			t.Error("Expected underlying RemoveScrubListEntries to be called")
+		}
+		if resp == nil {
+			t.Error("RemoveScrubListEntries did not return expected response")
+		}
+	})
+
+	t.Run("RemoveScrubListEntriesError", func(t *testing.T) {
+		mockService.removeScrubListEntriesCalled = false // Reset
+		mockService.removeScrubListEntriesResp = nil
+		mockService.removeScrubListEntriesErr = errors.New("remove error")
+		req := &gatev2.RemoveScrubListEntriesRequest{ScrubListId: "list1", Entries: []string{"entry1"}}
+
+		_, err := client.RemoveScrubListEntries(ctx, req)
+		if err == nil {
+			t.Error("RemoveScrubListEntries did not return expected error")
+		}
+
+		if !mockService.removeScrubListEntriesCalled {
+			t.Error("Expected underlying RemoveScrubListEntries to be called")
+		}
+	})
+
+	// --- Test UpdateScrubListEntry ---
+	t.Run("UpdateScrubListEntrySuccess", func(t *testing.T) {
+		mockService.updateScrubListEntryCalled = false // Reset
+		mockService.updateScrubListEntryResp = &gatev2.UpdateScrubListEntryResponse{}
+		mockService.updateScrubListEntryErr = nil
+		req := &gatev2.UpdateScrubListEntryRequest{ScrubListId: "list1", Content: "updated content"}
+
+		resp, err := client.UpdateScrubListEntry(ctx, req)
+		if err != nil {
+			t.Errorf("UpdateScrubListEntry returned error: %v", err)
+		}
+
+		if !mockService.updateScrubListEntryCalled {
+			t.Error("Expected underlying UpdateScrubListEntry to be called")
+		}
+		if resp == nil {
+			t.Error("UpdateScrubListEntry did not return expected response")
+		}
+	})
+
+	t.Run("UpdateScrubListEntryError", func(t *testing.T) {
+		mockService.updateScrubListEntryCalled = false // Reset
+		mockService.updateScrubListEntryResp = nil
+		mockService.updateScrubListEntryErr = errors.New("update error")
+		req := &gatev2.UpdateScrubListEntryRequest{ScrubListId: "list1", Content: "updated content"}
+
+		_, err := client.UpdateScrubListEntry(ctx, req)
+		if err == nil {
+			t.Error("UpdateScrubListEntry did not return expected error")
+		}
+
+		if !mockService.updateScrubListEntryCalled {
+			t.Error("Expected underlying UpdateScrubListEntry to be called")
+		}
+	})
+}
+
+func TestClient_OtherMethods(t *testing.T) {
+	client, mockService := setupTestClient()
+	ctx := context.Background()
+
+	// --- Test RotateCertificate ---
+	t.Run("RotateCertificateSuccess", func(t *testing.T) {
+		mockService.rotateCertificateCalled = false // Reset
+		mockService.rotateCertificateResp = &gatev2.RotateCertificateResponse{}
+		mockService.rotateCertificateErr = nil
+		req := &gatev2.RotateCertificateRequest{}
+
+		resp, err := client.RotateCertificate(ctx, req)
+		if err != nil {
+			t.Errorf("RotateCertificate returned error: %v", err)
+		}
+
+		if !mockService.rotateCertificateCalled {
+			t.Error("Expected underlying RotateCertificate to be called")
+		}
+		if resp == nil {
+			t.Error("RotateCertificate did not return expected response")
+		}
+	})
+
+	t.Run("RotateCertificateError", func(t *testing.T) {
+		mockService.rotateCertificateCalled = false // Reset
+		mockService.rotateCertificateResp = nil
+		mockService.rotateCertificateErr = errors.New("certificate error")
+		req := &gatev2.RotateCertificateRequest{}
+
+		_, err := client.RotateCertificate(ctx, req)
+		if err == nil {
+			t.Error("RotateCertificate did not return expected error")
+		}
+
+		if !mockService.rotateCertificateCalled {
+			t.Error("Expected underlying RotateCertificate to be called")
+		}
+	})
+
+	// --- Test SubmitJobResults ---
+	t.Run("SubmitJobResultsSuccess", func(t *testing.T) {
+		mockService.submitJobResultsCalled = false // Reset
+		mockService.submitJobResultsResp = &gatev2.SubmitJobResultsResponse{}
+		mockService.submitJobResultsErr = nil
+		req := &gatev2.SubmitJobResultsRequest{JobId: "job123"}
+
+		resp, err := client.SubmitJobResults(ctx, req)
+		if err != nil {
+			t.Errorf("SubmitJobResults returned error: %v", err)
+		}
+
+		if !mockService.submitJobResultsCalled {
+			t.Error("Expected underlying SubmitJobResults to be called")
+		}
+		if resp == nil {
+			t.Error("SubmitJobResults did not return expected response")
+		}
+	})
+
+	t.Run("SubmitJobResultsError", func(t *testing.T) {
+		mockService.submitJobResultsCalled = false // Reset
+		mockService.submitJobResultsResp = nil
+		mockService.submitJobResultsErr = errors.New("job error")
+		req := &gatev2.SubmitJobResultsRequest{JobId: "job123"}
+
+		_, err := client.SubmitJobResults(ctx, req)
+		if err == nil {
+			t.Error("SubmitJobResults did not return expected error")
+		}
+
+		if !mockService.submitJobResultsCalled {
+			t.Error("Expected underlying SubmitJobResults to be called")
+		}
+	})
+
+	// --- Test UpsertAgent ---
+	t.Run("UpsertAgentSuccess", func(t *testing.T) {
+		mockService.upsertAgentCalled = false // Reset
+		mockService.upsertAgentResp = &gatev2.UpsertAgentResponse{Agent: &gatev2.Agent{UserId: "agent123"}}
+		mockService.upsertAgentErr = nil
+		req := &gatev2.UpsertAgentRequest{Username: "agent123", FirstName: "Test", LastName: "User"}
+
+		resp, err := client.UpsertAgent(ctx, req)
+		if err != nil {
+			t.Errorf("UpsertAgent returned error: %v", err)
+		}
+
+		if !mockService.upsertAgentCalled {
+			t.Error("Expected underlying UpsertAgent to be called")
+		}
+		if resp == nil {
+			t.Error("UpsertAgent did not return expected response")
+		}
+	})
+
+	t.Run("UpsertAgentError", func(t *testing.T) {
+		mockService.upsertAgentCalled = false // Reset
+		mockService.upsertAgentResp = nil
+		mockService.upsertAgentErr = errors.New("agent error")
+		req := &gatev2.UpsertAgentRequest{Username: "agent123", FirstName: "Test", LastName: "User"}
+
+		_, err := client.UpsertAgent(ctx, req)
+		if err == nil {
+			t.Error("UpsertAgent did not return expected error")
+		}
+
+		if !mockService.upsertAgentCalled {
+			t.Error("Expected underlying UpsertAgent to be called")
+		}
+	})
+}
+
+func TestClient_SkillMethods(t *testing.T) {
+	client, mockService := setupTestClient()
+	ctx := context.Background()
+
+	// --- Test AssignAgentSkill ---
+	t.Run("AssignAgentSkillSuccess", func(t *testing.T) {
+		mockService.assignAgentSkillCalled = false // Reset
+		mockService.assignAgentSkillResp = &gatev2.AssignAgentSkillResponse{}
+		mockService.assignAgentSkillErr = nil
+		params := AssignAgentSkillParams{PartnerAgentID: "agent123", SkillID: "skill123"}
+
+		resp, err := client.AssignAgentSkill(ctx, params)
+		if err != nil {
+			t.Errorf("AssignAgentSkill returned error: %v", err)
+		}
+
+		if !mockService.assignAgentSkillCalled {
+			t.Error("Expected underlying AssignAgentSkill to be called")
+		}
+		// AssignAgentSkillResult is a struct type, so we just check that it was returned
+		_ = resp
+	})
+
+	t.Run("AssignAgentSkillError", func(t *testing.T) {
+		mockService.assignAgentSkillCalled = false // Reset
+		mockService.assignAgentSkillResp = nil
+		mockService.assignAgentSkillErr = errors.New("assign error")
+		params := AssignAgentSkillParams{PartnerAgentID: "agent123", SkillID: "skill123"}
+
+		_, err := client.AssignAgentSkill(ctx, params)
+		if err == nil {
+			t.Error("AssignAgentSkill did not return expected error")
+		}
+
+		if !mockService.assignAgentSkillCalled {
+			t.Error("Expected underlying AssignAgentSkill to be called")
+		}
+	})
+
+	// --- Test UnassignAgentSkill ---
+	t.Run("UnassignAgentSkillSuccess", func(t *testing.T) {
+		mockService.unassignAgentSkillCalled = false // Reset
+		mockService.unassignAgentSkillResp = &gatev2.UnassignAgentSkillResponse{}
+		mockService.unassignAgentSkillErr = nil
+		params := UnassignAgentSkillParams{PartnerAgentID: "agent123", SkillID: "skill123"}
+
+		resp, err := client.UnassignAgentSkill(ctx, params)
+		if err != nil {
+			t.Errorf("UnassignAgentSkill returned error: %v", err)
+		}
+
+		if !mockService.unassignAgentSkillCalled {
+			t.Error("Expected underlying UnassignAgentSkill to be called")
+		}
+		// UnassignAgentSkillResult is a struct type, so we just check that it was returned
+		_ = resp
+	})
+
+	t.Run("UnassignAgentSkillError", func(t *testing.T) {
+		mockService.unassignAgentSkillCalled = false // Reset
+		mockService.unassignAgentSkillResp = nil
+		mockService.unassignAgentSkillErr = errors.New("unassign error")
+		params := UnassignAgentSkillParams{PartnerAgentID: "agent123", SkillID: "skill123"}
+
+		_, err := client.UnassignAgentSkill(ctx, params)
+		if err == nil {
+			t.Error("UnassignAgentSkill did not return expected error")
+		}
+
+		if !mockService.unassignAgentSkillCalled {
+			t.Error("Expected underlying UnassignAgentSkill to be called")
+		}
+	})
+}
+
+func TestClient_VoiceMethods(t *testing.T) {
+	client, mockService := setupTestClient()
+	ctx := context.Background()
+
+	// --- Test SearchVoiceRecordings ---
+	t.Run("SearchVoiceRecordingsSuccess", func(t *testing.T) {
+		mockStream := &mockSearchVoiceRecordingsClient{
+			respQueue: []*gatev2.SearchVoiceRecordingsResponse{
+				{Recordings: []*gatev2.Recording{{Name: "rec1"}}},
+			},
+			err: io.EOF,
+		}
+		mockService.searchVoiceRecordingsCalled = false // Reset
+		mockService.searchVoiceRecordingsStream = mockStream
+		mockService.searchVoiceRecordingsErr = nil
+		params := SearchVoiceRecordingsParams{}
+
+		resultsChan := client.SearchVoiceRecordings(ctx, params)
+
+		count := 0
+		for result := range resultsChan {
+			if result.Error != nil {
+				t.Fatalf("SearchVoiceRecordings streaming error: %v", result.Error)
+			}
+			count++
+		}
+
+		if !mockService.searchVoiceRecordingsCalled {
+			t.Error("Expected underlying SearchVoiceRecordings to be called")
+		}
+		if count != 1 {
+			t.Errorf("Expected 1 result, got %d", count)
+		}
+	})
+
+	t.Run("SearchVoiceRecordingsError", func(t *testing.T) {
+		mockService.searchVoiceRecordingsCalled = false // Reset
+		mockService.searchVoiceRecordingsStream = nil
+		mockService.searchVoiceRecordingsErr = errors.New("search error")
+		params := SearchVoiceRecordingsParams{}
+
+		resultsChan := client.SearchVoiceRecordings(ctx, params)
+
+		count := 0
+		for result := range resultsChan {
+			if result.Error != nil {
+				count++
+			}
+		}
+
+		if !mockService.searchVoiceRecordingsCalled {
+			t.Error("Expected underlying SearchVoiceRecordings to be called")
+		}
+		if count != 1 {
+			t.Error("Expected 1 error result")
+		}
+	})
+
+	// --- Test GetVoiceRecordingDownloadLink ---
+	t.Run("GetVoiceRecordingDownloadLinkSuccess", func(t *testing.T) {
+		mockService.getVoiceRecordingDownloadLinkCalled = false // Reset
+		mockService.getVoiceRecordingDownloadLinkResp = &gatev2.GetVoiceRecordingDownloadLinkResponse{DownloadLink: "https://example.com/recording.mp3"}
+		mockService.getVoiceRecordingDownloadLinkErr = nil
+		params := GetVoiceRecordingDownloadLinkParams{RecordingSid: "rec123"}
+
+		resp, err := client.GetVoiceRecordingDownloadLink(ctx, params)
+		if err != nil {
+			t.Errorf("GetVoiceRecordingDownloadLink returned error: %v", err)
+		}
+
+		if !mockService.getVoiceRecordingDownloadLinkCalled {
+			t.Error("Expected underlying GetVoiceRecordingDownloadLink to be called")
+		}
+		// GetVoiceRecordingDownloadLinkResult is a struct type, so we just check that it was returned
+		_ = resp
+	})
+
+	t.Run("GetVoiceRecordingDownloadLinkError", func(t *testing.T) {
+		mockService.getVoiceRecordingDownloadLinkCalled = false // Reset
+		mockService.getVoiceRecordingDownloadLinkResp = nil
+		mockService.getVoiceRecordingDownloadLinkErr = errors.New("download error")
+		params := GetVoiceRecordingDownloadLinkParams{RecordingSid: "rec123"}
+
+		_, err := client.GetVoiceRecordingDownloadLink(ctx, params)
+		if err == nil {
+			t.Error("GetVoiceRecordingDownloadLink did not return expected error")
+		}
+
+		if !mockService.getVoiceRecordingDownloadLinkCalled {
+			t.Error("Expected underlying GetVoiceRecordingDownloadLink to be called")
+		}
+	})
+
+	// --- Test ListSearchableRecordingFields ---
+	t.Run("ListSearchableRecordingFieldsSuccess", func(t *testing.T) {
+		mockService.listSearchableRecordingFieldsCalled = false // Reset
+		mockService.listSearchableRecordingFieldsResp = &gatev2.ListSearchableRecordingFieldsResponse{Fields: []string{"agent_id", "call_sid"}}
+		mockService.listSearchableRecordingFieldsErr = nil
+		params := ListSearchableRecordingFieldsParams{}
+
+		resp, err := client.ListSearchableRecordingFields(ctx, params)
+		if err != nil {
+			t.Errorf("ListSearchableRecordingFields returned error: %v", err)
+		}
+
+		if !mockService.listSearchableRecordingFieldsCalled {
+			t.Error("Expected underlying ListSearchableRecordingFields to be called")
+		}
+		// ListSearchableRecordingFieldsResult is a struct type, so we just check that it was returned
+		_ = resp
+	})
+
+	t.Run("ListSearchableRecordingFieldsError", func(t *testing.T) {
+		mockService.listSearchableRecordingFieldsCalled = false // Reset
+		mockService.listSearchableRecordingFieldsResp = nil
+		mockService.listSearchableRecordingFieldsErr = errors.New("fields error")
+		params := ListSearchableRecordingFieldsParams{}
+
+		_, err := client.ListSearchableRecordingFields(ctx, params)
+		if err == nil {
+			t.Error("ListSearchableRecordingFields did not return expected error")
+		}
+
+		if !mockService.listSearchableRecordingFieldsCalled {
+			t.Error("Expected underlying ListSearchableRecordingFields to be called")
+		}
+	})
+
+	// --- Test Transfer ---
+	t.Run("TransferToAgentSuccess", func(t *testing.T) {
+		mockService.transferCalled = false // Reset
+		mockService.transferResp = &gatev2.TransferResponse{}
+		mockService.transferErr = nil
+		params := TransferParams{CallSid: "CS123", ReceivingPartnerAgentID: stringPtr("agent456")}
+
+		resp, err := client.Transfer(ctx, params)
+		if err != nil {
+			t.Errorf("Transfer returned error: %v", err)
+		}
+
+		if !mockService.transferCalled {
+			t.Error("Expected underlying Transfer to be called")
+		}
+		// TransferResult is a struct type, so we just check that it was returned
+		_ = resp
+	})
+
+	t.Run("TransferToOutboundSuccess", func(t *testing.T) {
+		mockService.transferCalled = false // Reset
+		mockService.transferResp = &gatev2.TransferResponse{}
+		mockService.transferErr = nil
+		params := TransferParams{
+			CallSid: "CS123",
+			Outbound: &TransferOutbound{
+				PhoneNumber: "555-1234",
+				CallerID:    stringPtr("555-5678"),
+			},
+		}
+
+		resp, err := client.Transfer(ctx, params)
+		if err != nil {
+			t.Errorf("Transfer returned error: %v", err)
+		}
+
+		if !mockService.transferCalled {
+			t.Error("Expected underlying Transfer to be called")
+		}
+		_ = resp
+	})
+
+	t.Run("TransferToOutboundWithoutCallerID", func(t *testing.T) {
+		mockService.transferCalled = false // Reset
+		mockService.transferResp = &gatev2.TransferResponse{}
+		mockService.transferErr = nil
+		params := TransferParams{
+			CallSid: "CS123",
+			Outbound: &TransferOutbound{
+				PhoneNumber: "555-1234",
+				CallerID:    nil,
+			},
+		}
+
+		resp, err := client.Transfer(ctx, params)
+		if err != nil {
+			t.Errorf("Transfer returned error: %v", err)
+		}
+
+		if !mockService.transferCalled {
+			t.Error("Expected underlying Transfer to be called")
+		}
+		_ = resp
+	})
+
+	t.Run("TransferToQueueSuccess", func(t *testing.T) {
+		mockService.transferCalled = false // Reset
+		mockService.transferResp = &gatev2.TransferResponse{}
+		mockService.transferErr = nil
+		params := TransferParams{
+			CallSid: "CS123",
+			Queue:   &TransferQueue{QueueID: "queue123"},
+		}
+
+		resp, err := client.Transfer(ctx, params)
+		if err != nil {
+			t.Errorf("Transfer returned error: %v", err)
+		}
+
+		if !mockService.transferCalled {
+			t.Error("Expected underlying Transfer to be called")
+		}
+		_ = resp
+	})
+
+	t.Run("TransferError", func(t *testing.T) {
+		mockService.transferCalled = false // Reset
+		mockService.transferResp = nil
+		mockService.transferErr = errors.New("transfer error")
+		params := TransferParams{CallSid: "CS123", ReceivingPartnerAgentID: stringPtr("agent456")}
+
+		_, err := client.Transfer(ctx, params)
+		if err == nil {
+			t.Error("Transfer did not return expected error")
+		}
+
+		if !mockService.transferCalled {
+			t.Error("Expected underlying Transfer to be called")
+		}
+	})
+}
+
+// Helper function for string pointers
+func stringPtr(s string) *string {
+	return &s
 }
 
 func TestClient_ListAgents(t *testing.T) {
