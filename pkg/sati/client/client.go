@@ -370,7 +370,7 @@ func (c *Client) ListSkills(ctx context.Context, params ListSkillsParams) (ListS
 		return ListSkillsResult{}, err
 	}
 
-	var skills []Skill
+	skills := make([]Skill, 0, len(resp.GetSkills()))
 	for _, skill := range resp.GetSkills() {
 		skills = append(skills, Skill{
 			ID:          skill.GetSkillId(),
@@ -395,7 +395,7 @@ func (c *Client) ListAgentSkills(ctx context.Context, params ListAgentSkillsPara
 		return ListAgentSkillsResult{}, err
 	}
 
-	var skills []Skill
+	skills := make([]Skill, 0, len(resp.GetSkills()))
 	for _, skill := range resp.GetSkills() {
 		skills = append(skills, Skill{
 			ID:          skill.GetSkillId(),
@@ -554,7 +554,7 @@ func (c *Client) ListSearchableRecordingFields(ctx context.Context, params ListS
 		return ListSearchableRecordingFieldsResult{}, err
 	}
 
-	var fields []SearchableField
+	fields := make([]SearchableField, 0, len(resp.GetFields()))
 	for _, fieldName := range resp.GetFields() {
 		fields = append(fields, SearchableField{
 			Name:        fieldName,

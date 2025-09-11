@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
@@ -30,7 +28,7 @@ func RotateCertificateCmd(configPath *string) *cobra.Command {
 			}
 			defer handleClientClose(client)
 
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
 			request := &gatev2.RotateCertificateRequest{
@@ -40,7 +38,7 @@ func RotateCertificateCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if OutputFormat == "json" {
+			if OutputFormat == OutputFormatJSON {
 				data, err := json.MarshalIndent(resp, "", "  ")
 				if err != nil {
 					return err

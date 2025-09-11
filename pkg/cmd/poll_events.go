@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
@@ -29,7 +27,7 @@ func PollEventsCmd(configPath *string) *cobra.Command {
 			}
 			defer handleClientClose(client) // Ensure connection is closed
 
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
 			// Build the request struct
@@ -40,7 +38,7 @@ func PollEventsCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if OutputFormat == "json" {
+			if OutputFormat == OutputFormatJSON {
 				data, err := json.MarshalIndent(resp, "", "  ")
 				if err != nil {
 					return err

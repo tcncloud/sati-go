@@ -43,7 +43,7 @@ linters:
     - containedctx 
     - forcetypeassert
     # - funlen  	
-    - tagliatelle
+    # - tagliatelle
     - gocheckcompilerdirectives
     - gocognit  	
     - goconst  

@@ -21,7 +21,8 @@ var expectedValidConfig = &Config{
 
 // Marshal the expected config to get the canonical JSON string.
 var validJSONBytes, _ = json.Marshal(expectedValidConfig)
-var validJSONString = string(validJSONBytes)
+
+// var validJSONString = string(validJSONBytes) // Unused variable
 
 // Base64 encode the canonical JSON string.
 var validBase64JSON = base64.StdEncoding.EncodeToString(validJSONBytes)

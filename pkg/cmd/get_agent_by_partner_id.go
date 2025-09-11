@@ -58,7 +58,7 @@ func GetAgentByPartnerIDCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if OutputFormat == "json" {
+			if OutputFormat == OutputFormatJSON {
 				data, err := json.MarshalIndent(resp, "", "  ")
 				if err != nil {
 					return err

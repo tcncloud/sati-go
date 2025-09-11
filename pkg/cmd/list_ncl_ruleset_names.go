@@ -53,7 +53,7 @@ func ListNCLRulesetNamesCmd(configPath *string) *cobra.Command {
 			}
 
 			// Use the custom Result struct
-			if OutputFormat == "json" {
+			if OutputFormat == OutputFormatJSON {
 				data, err := json.MarshalIndent(resp.RulesetNames, "", "  ")
 				if err != nil {
 					return err
