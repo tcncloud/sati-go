@@ -149,10 +149,7 @@ func TestWatchConfig(t *testing.T) {
 	// t.Parallel() // Commented out to run tests sequentially
 
 	// Ensure we start with a clean state
-	if watcher != nil {
-		watcher.Close()
-		watcher = nil
-	}
+	StopWatching()
 
 	tempDir := t.TempDir()
 
@@ -181,10 +178,7 @@ func TestWatchConfig(t *testing.T) {
 		// The actual watcher functionality will be tested in FileWriteEvents test
 
 		// Clean up
-		if watcher != nil {
-			watcher.Close()
-			watcher = nil
-		}
+		StopWatching()
 	})
 
 	// --- Test: Multiple Config Paths ---
@@ -222,10 +216,7 @@ func TestWatchConfig(t *testing.T) {
 		// The actual watcher functionality will be tested in FileWriteEvents test
 
 		// Clean up
-		if watcher != nil {
-			watcher.Close()
-			watcher = nil
-		}
+		StopWatching()
 	})
 
 	// --- Test: File Write Events ---
@@ -285,10 +276,7 @@ func TestWatchConfig(t *testing.T) {
 		}
 
 		// Clean up
-		if watcher != nil {
-			watcher.Close()
-			watcher = nil
-		}
+		StopWatching()
 	})
 
 	// --- Test: Watcher Replacement ---
@@ -319,10 +307,7 @@ func TestWatchConfig(t *testing.T) {
 		// The actual replacement behavior is internal to the function
 
 		// Clean up
-		if watcher != nil {
-			watcher.Close()
-			watcher = nil
-		}
+		StopWatching()
 	})
 
 	// --- Test: Non-existent File ---
@@ -413,10 +398,7 @@ func TestWatchConfig(t *testing.T) {
 		// but we can verify the watcher continues to work
 
 		// Clean up
-		if watcher != nil {
-			watcher.Close()
-			watcher = nil
-		}
+		StopWatching()
 	})
 
 	// --- Test: Concurrent File Writes ---
@@ -484,10 +466,7 @@ func TestWatchConfig(t *testing.T) {
 		}
 
 		// Clean up
-		if watcher != nil {
-			watcher.Close()
-			watcher = nil
-		}
+		StopWatching()
 	})
 
 	// --- Test: Watcher Cleanup ---
@@ -521,15 +500,82 @@ func TestWatchConfig(t *testing.T) {
 		// was created.
 
 		// Clean up
-		if watcher != nil {
-			watcher.Close()
-			watcher = nil
-		}
+		StopWatching()
 	})
 
 	// Final cleanup
-	if watcher != nil {
-		watcher.Close()
-		watcher = nil
+	StopWatching()
+}
+
+func TestConfigValidation(t *testing.T) {
+	t.Run("ValidConfig", func(t *testing.T) {
+		config := &Config{
+			APIEndpoint:   "test.com",
+			CACertificate: "test_ca",
+			Certificate:   "test_cert",
+			PrivateKey:    "test_key",
+		}
+
+		err := config.Validate()
+		if err != nil {
+			t.Errorf("Expected no validation error, got: %v", err)
+		}
+	})
+
+	t.Run("MissingAPIEndpoint", func(t *testing.T) {
+		config := &Config{
+			CACertificate: "test_ca",
+			Certificate:   "test_cert",
+			PrivateKey:    "test_key",
+		}
+
+		err := config.Validate()
+		if err == nil {
+			t.Error("Expected validation error for missing API endpoint")
+		}
+	})
+
+	t.Run("MissingCACertificate", func(t *testing.T) {
+		config := &Config{
+			APIEndpoint: "test.com",
+			Certificate: "test_cert",
+			PrivateKey:  "test_key",
+		}
+
+		err := config.Validate()
+		if err == nil {
+			t.Error("Expected validation error for missing CA certificate")
+		}
+	})
+}
+
+func TestLoadAndValidateConfig(t *testing.T) {
+	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, "valid.cfg")
+
+	// Create a valid config file
+	err := os.WriteFile(configPath, []byte(validBase64JSON), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create test config file: %v", err)
+	}
+
+	config, err := LoadAndValidateConfig(configPath)
+	if err != nil {
+		t.Fatalf("LoadAndValidateConfig failed: %v", err)
+	}
+
+	if config.APIEndpoint != "test.com" {
+		t.Errorf("Expected APIEndpoint to be 'test.com', got '%s'", config.APIEndpoint)
+	}
+}
+
+func TestLoadAndValidateConfigFromString(t *testing.T) {
+	config, err := LoadAndValidateConfigFromString(validBase64JSON)
+	if err != nil {
+		t.Fatalf("LoadAndValidateConfigFromString failed: %v", err)
+	}
+
+	if config.APIEndpoint != "test.com" {
+		t.Errorf("Expected APIEndpoint to be 'test.com', got '%s'", config.APIEndpoint)
 	}
 }
