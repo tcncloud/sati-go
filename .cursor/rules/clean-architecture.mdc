@@ -1,0 +1,252 @@
+---
+globs: pkg/domain/*.go,pkg/ports/*.go,pkg/sati/*.go
+description: Clean architecture patterns and dependency inversion principles
+---
+
+# Clean Architecture Patterns
+
+## Layer Structure
+
+### Ports Layer (Interfaces)
+- **Location**: `pkg/ports/`
+- **Purpose**: Define interfaces that the application depends on
+- **Pattern**: Pure interfaces with no implementation details
+- **Naming**: Use descriptive interface names (e.g., `ConfigWatcher`, `ConfigLoader`)
+
+```go
+// Ports define what the application needs
+type ConfigWatcher interface {
+    Start(ctx context.Context) error
+    Stop() error
+    IsWatching() bool
+}
+```
+
+### Domain Layer (Business Logic)
+- **Location**: `pkg/domain/`
+- **Purpose**: Contains business logic and domain entities
+- **Pattern**: Depends only on ports, not on adapters
+- **Dependencies**: Only import `pkg/ports/` and standard library
+
+```go
+// Domain depends on ports, not implementations
+type Domain struct {
+    configWatcher ports.ConfigWatcher
+}
+
+func (d *Domain) StartConfigWatcher(ctx context.Context) error {
+    return d.configWatcher.Start(ctx)
+}
+```
+
+### Adapters Layer (Infrastructure)
+- **Location**: `pkg/sati/`
+- **Purpose**: Implements ports interfaces with concrete implementations
+- **Pattern**: Implements ports interfaces, handles external concerns
+- **Dependencies**: Can import domain, ports, and external libraries
+
+```go
+// Adapters implement ports interfaces
+type ConfigWatcher struct {
+    // implementation details
+}
+
+func (cw *ConfigWatcher) Start(ctx context.Context) error {
+    // concrete implementation
+}
+```
+
+## Dependency Direction
+
+### Dependency Flow
+```
+Domain → Ports ← Adapters
+```
+
+- **Domain** depends on **Ports** (interfaces)
+- **Adapters** implement **Ports** (interfaces)
+- **Domain** never depends on **Adapters**
+- **Adapters** can depend on **Domain** for business logic
+
+### Interface Segregation
+- Keep interfaces small and focused
+- Each interface should have a single responsibility
+- Avoid "god interfaces" with many methods
+- Group related functionality into separate interfaces
+
+## Module Organization
+
+### Ports Module Structure
+```go
+// pkg/ports/config.go
+package ports
+
+type ConfigWatcher interface {
+    Start(ctx context.Context) error
+    Stop() error
+    IsWatching() bool
+}
+
+type ConfigLoader interface {
+    LoadConfig(path string) (interface{}, error)
+    LoadConfigFromString(configString string) (interface{}, error)
+}
+```
+
+### Domain Module Structure
+```go
+// pkg/domain/domain.go
+package domain
+
+import "github.com/tcncloud/sati-go/pkg/ports"
+
+type Domain struct {
+    configWatcher ports.ConfigWatcher
+}
+
+func NewDomain() *Domain {
+    return &Domain{}
+}
+
+func (d *Domain) SetConfigWatcher(watcher ports.ConfigWatcher) {
+    d.configWatcher = watcher
+}
+```
+
+### Adapter Module Structure
+```go
+// pkg/sati/config/config.go
+package config
+
+import "github.com/tcncloud/sati-go/pkg/ports"
+
+type ConfigWatcher struct {
+    // implementation details
+}
+
+func (cw *ConfigWatcher) Start(ctx context.Context) error {
+    // implementation
+}
+
+// Ensure interface compliance
+var _ ports.ConfigWatcher = (*ConfigWatcher)(nil)
+```
+
+## Dependency Injection Patterns
+
+### Constructor Injection
+```go
+// Preferred: Constructor injection
+func NewDomain(configWatcher ports.ConfigWatcher) *Domain {
+    return &Domain{
+        configWatcher: configWatcher,
+    }
+}
+```
+
+### Setter Injection
+```go
+// Alternative: Setter injection for optional dependencies
+func (d *Domain) SetConfigWatcher(watcher ports.ConfigWatcher) {
+    d.configWatcher = watcher
+}
+```
+
+### Interface Segregation
+```go
+// Good: Small, focused interfaces
+type ConfigWatcher interface {
+    Start(ctx context.Context) error
+    Stop() error
+}
+
+type ConfigLoader interface {
+    LoadConfig(path string) (interface{}, error)
+}
+
+// Avoid: Large interfaces with many responsibilities
+type ConfigManager interface {
+    Start(ctx context.Context) error
+    Stop() error
+    LoadConfig(path string) (interface{}, error)
+    SaveConfig(config interface{}) error
+    ValidateConfig(config interface{}) error
+}
+```
+
+## Testing Patterns
+
+### Domain Testing
+```go
+// Test domain with mock implementations
+func TestDomain(t *testing.T) {
+    mockWatcher := &MockConfigWatcher{}
+    domain := NewDomain(mockWatcher)
+    
+    // Test domain logic
+    err := domain.StartConfigWatcher(context.Background())
+    // Assertions...
+}
+```
+
+### Adapter Testing
+```go
+// Test adapter implementations
+func TestConfigWatcher(t *testing.T) {
+    watcher := NewConfigWatcher(paths, loader)
+    
+    // Test implementation
+    err := watcher.Start(context.Background())
+    // Assertions...
+}
+```
+
+## Error Handling
+
+### Error Propagation
+- Domain should return domain-specific errors
+- Adapters should wrap external errors with domain context
+- Use error wrapping to maintain error chain
+
+```go
+// Domain error
+func (d *Domain) StartConfigWatcher(ctx context.Context) error {
+    if d.configWatcher == nil {
+        return ErrConfigWatcherNotSet
+    }
+    return d.configWatcher.Start(ctx)
+}
+
+// Adapter error wrapping
+func (cw *ConfigWatcher) Start(ctx context.Context) error {
+    if err := cw.setupWatcher(); err != nil {
+        return fmt.Errorf("failed to setup config watcher: %w", err)
+    }
+    return nil
+}
+```
+
+## Best Practices
+
+### Layer Responsibilities
+- **Ports**: Define contracts, no implementation
+- **Domain**: Business logic, depends only on ports
+- **Adapters**: External concerns, implements ports
+
+### Interface Design
+- Keep interfaces small and focused
+- Use descriptive names
+- Avoid leaking implementation details
+- Group related functionality
+
+### Dependency Management
+- Use constructor injection when possible
+- Avoid circular dependencies
+- Keep domain pure (no external dependencies)
+- Use interfaces for all external dependencies
+
+### Testing Strategy
+- Test domain with mocks
+- Test adapters with real implementations
+- Use interface mocks for testing
+- Test integration points separately

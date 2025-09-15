@@ -1,0 +1,267 @@
+---
+alwaysApply: true
+description: Code organization patterns and file structure guidelines
+---
+
+# Code Organization Patterns
+
+## File Naming Conventions
+
+### Package Structure
+- **Commands**: `pkg/cmd/*.go` - CLI command implementations
+- **Domain**: `pkg/domain/*.go` - Business logic and domain entities
+- **Ports**: `pkg/ports/*.go` - Interface definitions
+- **Adapters**: `pkg/sati/*.go` - Infrastructure implementations
+- **Modules**: `**/module.go` - Uber FX module definitions
+
+### File Naming Patterns
+- **Commands**: `action_object.go` (e.g., `get_agent_by_id.go`, `start_call_recording.go`)
+- **Modules**: `module.go` - FX module definitions
+- **Tests**: `*_test.go` - Test files
+- **Types**: `types.go` - Type definitions
+- **Common**: `common.go` - Shared utilities
+
+## Package Organization
+
+### Command Package Structure
+```
+pkg/cmd/
+├── common.go              # Shared utilities and constants
+├── root.go               # Root command definition
+├── get_agent_by_id.go    # Individual command implementations
+├── start_call_recording.go
+└── ...
+```
+
+### Domain Package Structure
+```
+pkg/domain/
+├── domain.go             # Main domain entity
+├── module.go             # FX module definition
+└── ...
+```
+
+### Adapter Package Structure
+```
+pkg/sati/
+├── client/
+│   ├── client.go         # gRPC client implementation
+│   ├── types.go          # Client-specific types
+│   └── client_test.go     # Client tests
+├── config/
+│   ├── config.go         # Configuration management
+│   ├── module.go         # FX module definition
+│   └── config_test.go    # Configuration tests
+└── ...
+```
+
+## Code Organization Principles
+
+### Single Responsibility
+- Each file should have one clear purpose
+- Each function should do one thing well
+- Each package should represent one concept
+
+### DRY (Don't Repeat Yourself)
+- Extract common logic into helper functions
+- Use shared utilities in `common.go`
+- Create reusable components
+
+### Separation of Concerns
+- **Commands**: CLI interface and user interaction
+- **Domain**: Business logic and rules
+- **Ports**: Interface definitions
+- **Adapters**: External system integration
+
+## Import Organization
+
+### Import Order
+```go
+import (
+    // Standard library
+    "context"
+    "fmt"
+    "os"
+    
+    // Third-party libraries
+    "github.com/rs/zerolog"
+    "go.uber.org/fx"
+    
+    // Internal packages
+    "github.com/tcncloud/sati-go/pkg/ports"
+    "github.com/tcncloud/sati-go/pkg/domain"
+)
+```
+
+### Import Grouping
+1. Standard library packages
+2. Third-party packages
+3. Internal packages (project-specific)
+
+## Function Organization
+
+### Function Order in Files
+1. **Types and interfaces**
+2. **Constants and variables**
+3. **Constructor functions** (`New*`)
+4. **Public methods**
+5. **Private methods**
+6. **Helper functions**
+
+### Method Organization
+```go
+// Constructor
+func NewService() *Service
+
+// Public methods (alphabetical)
+func (s *Service) MethodA()
+func (s *Service) MethodB()
+
+// Private methods (alphabetical)
+func (s *Service) helperMethod()
+func (s *Service) internalMethod()
+```
+
+## Documentation Organization
+
+### Package Documentation
+```go
+// Package config provides configuration management functionality for the sati-go project.
+// It handles loading, parsing, and watching configuration files that contain base64-encoded JSON data.
+package config
+```
+
+### Function Documentation
+```go
+// LoadConfig loads configuration from a file path.
+// It reads the file, decodes the base64 content, and unmarshals the JSON.
+func LoadConfig(path string) (*Config, error)
+```
+
+### Type Documentation
+```go
+// Config represents the application configuration structure.
+// It contains all necessary settings for the application to function.
+type Config struct {
+    // ... fields
+}
+```
+
+## Error Organization
+
+### Error Constants
+```go
+// Error constants for configuration operations.
+var (
+    ErrConfigPathsRequired = errors.New("config paths are required")
+    ErrLoaderRequired      = errors.New("loader is required")
+    ErrInvalidBase64       = errors.New("invalid base64 encoding")
+    ErrInvalidJSON         = errors.New("invalid JSON format")
+    ErrEmptyConfig         = errors.New("empty configuration")
+    ErrRequiredField       = errors.New("required field is missing")
+)
+```
+
+### Error Grouping
+- Group related errors together
+- Use descriptive error names
+- Follow consistent naming patterns
+- Document error conditions
+
+## Test Organization
+
+### Test File Structure
+```go
+func TestFunctionName(t *testing.T) {
+    // Test cases grouped by functionality
+    t.Run("ValidInput", func(t *testing.T) {
+        // Test valid input
+    })
+    
+    t.Run("InvalidInput", func(t *testing.T) {
+        // Test invalid input
+    })
+    
+    t.Run("EdgeCases", func(t *testing.T) {
+        // Test edge cases
+    })
+}
+```
+
+### Test Helper Functions
+```go
+func setupTestClient() *Client {
+    // Common test setup
+}
+
+func createTestConfig() *Config {
+    // Test data creation
+}
+```
+
+## Module Organization
+
+### FX Module Structure
+```go
+var Module = fx.Module("module-name",
+    // Core services
+    fx.Provide(NewService),
+    
+    // Interface implementations
+    fx.Provide(func() ports.Interface {
+        return &implementation{}
+    }),
+    
+    // Utility functions
+    fx.Provide(UtilityFunction),
+)
+```
+
+### Module Documentation
+```go
+// Module provides the [name] module for dependency injection.
+// It includes [description of what the module provides].
+//
+// Usage example:
+//
+//	app := fx.New(
+//	  module.Module,
+//	  fx.Invoke(func(service Service) {
+//	    service.DoSomething()
+//	  }),
+//	)
+```
+
+## Best Practices
+
+### File Size
+- Keep files under 500 lines when possible
+- Split large files into logical components
+- Use multiple files for complex packages
+
+### Function Size
+- Keep functions under 50 lines when possible
+- Break down complex functions
+- Use helper functions for clarity
+
+### Package Size
+- Keep packages focused and cohesive
+- Avoid "god packages" with too many responsibilities
+- Split packages when they grow too large
+
+### Naming Consistency
+- Use consistent naming patterns across the codebase
+- Follow Go naming conventions
+- Use descriptive names that explain intent
+
+### Documentation
+- Document all public APIs
+- Include usage examples where helpful
+- Keep documentation up to date
+- Use clear, concise language
+
+### Code Comments
+- Comment complex logic
+- Explain "why" not "what"
+- Use TODO comments for future improvements
+- Remove commented-out code

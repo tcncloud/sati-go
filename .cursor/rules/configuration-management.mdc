@@ -1,0 +1,292 @@
+---
+globs: pkg/sati/config/*.go,**/config/*.go
+description: Configuration management patterns and best practices
+---
+
+# Configuration Management Patterns
+
+## Configuration Structure
+
+### Config Type Definition
+```go
+type Config struct {
+    CACertificate           string `json:"ca_certificate"`
+    Certificate             string `json:"certificate"`
+    PrivateKey              string `json:"private_key"`
+    FingerprintSHA256       string `json:"fingerprint_sha256"`
+    FingerprintSHA256String string `json:"fingerprint_sha256_string"`
+    APIEndpoint             string `json:"api_endpoint"`
+    CertificateName         string `json:"certificate_name"`
+    CertificateDescription  string `json:"certificate_description"`
+}
+```
+
+### Configuration Validation
+```go
+func (c *Config) Validate() error {
+    if c.APIEndpoint == "" {
+        return fmt.Errorf("%w: api_endpoint", ErrRequiredField)
+    }
+    if c.CACertificate == "" {
+        return fmt.Errorf("%w: ca_certificate", ErrRequiredField)
+    }
+    // ... validate other required fields
+    return nil
+}
+```
+
+## Error Constants
+
+### Static Error Definitions
+```go
+var (
+    ErrConfigPathsRequired = errors.New("config paths are required")
+    ErrLoaderRequired      = errors.New("loader is required")
+    ErrInvalidBase64       = errors.New("invalid base64 encoding")
+    ErrInvalidJSON         = errors.New("invalid JSON format")
+    ErrEmptyConfig         = errors.New("empty configuration")
+    ErrRequiredField       = errors.New("required field is missing")
+)
+```
+
+## Configuration Loading
+
+### Base64 JSON Decoding Pattern
+```go
+func decodeConfigFromBytes(data []byte) (*Config, error) {
+    if len(data) == 0 {
+        return nil, ErrEmptyConfig
+    }
+
+    decoded := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
+    n, err := base64.StdEncoding.Decode(decoded, data)
+    if err != nil {
+        return nil, fmt.Errorf("%w: %v", ErrInvalidBase64, err)
+    }
+
+    var config Config
+    if err := json.Unmarshal(decoded[:n], &config); err != nil {
+        return nil, fmt.Errorf("%w: %v", ErrInvalidJSON, err)
+    }
+
+    return &config, nil
+}
+```
+
+### File Loading with Validation
+```go
+func LoadAndValidateConfig(path string) (*Config, error) {
+    config, err := LoadConfig(path)
+    if err != nil {
+        return nil, err
+    }
+
+    if err := config.Validate(); err != nil {
+        return nil, fmt.Errorf("config validation failed: %w", err)
+    }
+
+    return config, nil
+}
+```
+
+## Configuration Watching
+
+### Watcher Interface Implementation
+```go
+type ConfigWatcher struct {
+    watcher     *fsnotify.Watcher
+    mu          sync.RWMutex
+    ctx         context.Context
+    cancel      context.CancelFunc
+    done        chan struct{}
+    configPaths []string
+    loader      ConfigLoaderFunc
+    watching    bool
+}
+
+func (cw *ConfigWatcher) Start(ctx context.Context) error {
+    cw.mu.Lock()
+    defer cw.mu.Unlock()
+
+    if cw.watching {
+        return nil // Already watching
+    }
+
+    // Read config files at startup if they exist
+    for _, configPath := range cw.configPaths {
+        if _, err := os.Stat(configPath); err == nil {
+            if err := cw.loader(configPath); err != nil {
+                log.Error().Err(err).Str("path", configPath).Msg("Failed to load config at startup")
+            }
+        }
+    }
+
+    // Start watching...
+    cw.watching = true
+    return nil
+}
+```
+
+### Startup Configuration Loading
+- Always check if config files exist at startup
+- Load existing configs before starting to watch
+- Log errors but don't fail startup if configs are missing
+- Use `os.Stat()` to check file existence
+
+## Thread Safety
+
+### Synchronization Patterns
+```go
+type ConfigWatcher struct {
+    mu       sync.RWMutex
+    watching bool
+}
+
+func (cw *ConfigWatcher) IsWatching() bool {
+    cw.mu.RLock()
+    defer cw.mu.RUnlock()
+    return cw.watching
+}
+
+func (cw *ConfigWatcher) Start(ctx context.Context) error {
+    cw.mu.Lock()
+    defer cw.mu.Unlock()
+    // ... implementation
+}
+```
+
+### Resource Management
+```go
+func (cw *ConfigWatcher) Stop() error {
+    cw.mu.Lock()
+    defer cw.mu.Unlock()
+
+    if !cw.watching {
+        return nil // Already stopped
+    }
+
+    if cw.cancel != nil {
+        cw.cancel()
+    }
+
+    if cw.watcher != nil {
+        if err := cw.watcher.Close(); err != nil {
+            return err
+        }
+    }
+
+    // Wait for the watch loop to finish
+    <-cw.done
+
+    cw.watching = false
+    return nil
+}
+```
+
+## File Operations
+
+### Secure File Reading
+```go
+func LoadConfig(path string) (*Config, error) {
+    // Note: path is validated to be a configuration file path, not user input
+    //nolint:gosec // Configuration file path is controlled, not user input
+    data, err := os.ReadFile(path)
+    if err != nil {
+        return nil, err
+    }
+
+    config, err := decodeConfigFromBytes(data)
+    if err != nil {
+        return nil, err
+    }
+
+    return config, nil
+}
+```
+
+### File Watching Setup
+```go
+func (cw *ConfigWatcher) watchLoop() {
+    defer close(cw.done)
+
+    for {
+        select {
+        case <-cw.ctx.Done():
+            return
+        case event, ok := <-cw.watcher.Events:
+            if !ok {
+                return
+            }
+            if event.Op&fsnotify.Write == fsnotify.Write {
+                if err := cw.loader(event.Name); err != nil {
+                    log.Error().Err(err).Str("path", event.Name).Msg("Error in config loader")
+                }
+            }
+        case err, ok := <-cw.watcher.Errors:
+            if !ok {
+                return
+            }
+            log.Error().Err(err).Msg("Error watching config file")
+        }
+    }
+}
+```
+
+## Error Handling
+
+### Error Wrapping
+```go
+func NewConfigFromString(configString string) (*Config, error) {
+    config, err := decodeConfigFromBytes([]byte(configString))
+    if err != nil {
+        return nil, fmt.Errorf("failed to decode config string: %w", err)
+    }
+    return config, nil
+}
+```
+
+### Validation Error Messages
+```go
+func (c *Config) Validate() error {
+    if c.APIEndpoint == "" {
+        return fmt.Errorf("%w: api_endpoint", ErrRequiredField)
+    }
+    if c.CACertificate == "" {
+        return fmt.Errorf("%w: ca_certificate", ErrRequiredField)
+    }
+    // ... more validations
+    return nil
+}
+```
+
+## Best Practices
+
+### Configuration Design
+- Use struct tags for JSON mapping
+- Validate all required fields
+- Use descriptive field names
+- Group related configuration together
+
+### Error Handling
+- Define static error constants
+- Use error wrapping to maintain context
+- Log errors with structured logging
+- Don't fail startup for missing optional configs
+
+### Thread Safety
+- Use appropriate mutex types (RWMutex for read-heavy operations)
+- Protect all shared state
+- Use channels for goroutine communication
+- Implement proper cleanup in Stop methods
+
+### Resource Management
+- Always close resources in defer statements
+- Use context cancellation for long-running operations
+- Wait for goroutines to finish before returning
+- Implement proper error handling in cleanup
+
+### Testing
+- Test with valid and invalid configurations
+- Test file watching with mock files
+- Test error conditions and edge cases
+- Use temporary directories for file-based tests

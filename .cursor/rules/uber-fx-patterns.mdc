@@ -1,0 +1,182 @@
+---
+globs: **/module.go,**/domain/*.go,**/config/*.go
+description: Uber FX dependency injection patterns and module definitions
+---
+
+# Uber FX Patterns and Module Definitions
+
+## Module Structure
+
+### Module Definition Pattern
+```go
+// Module provides the [module-name] module for dependency injection.
+var Module = fx.Module("[module-name]",
+    // Provide core services
+    fx.Provide(NewService),
+    
+    // Provide interface implementations
+    fx.Provide(func() ports.Interface {
+        return &implementation{}
+    }),
+    
+    // Provide utility functions
+    fx.Provide(UtilityFunction),
+)
+```
+
+### Module File Structure
+- Module definitions go in `module.go` files
+- Always include comprehensive documentation with usage examples
+- Use descriptive comments for each provider
+- Group related providers together
+
+## Interface Implementation
+
+### Ports Interface Pattern
+```go
+// In ports package
+type ServiceInterface interface {
+    Method1(ctx context.Context) error
+    Method2() error
+}
+
+// In implementation package
+type service struct {
+    // fields
+}
+
+func (s *service) Method1(ctx context.Context) error {
+    // implementation
+}
+
+// Ensure interface compliance
+var _ ports.ServiceInterface = (*service)(nil)
+```
+
+### Factory Pattern
+```go
+// Provide factory functions for complex object creation
+fx.Provide(func() func(params) (ports.Interface, error) {
+    return func(params) (ports.Interface, error) {
+        return NewService(params)
+    }
+}),
+```
+
+## Service Provider Pattern
+
+### Service Provider Structure
+```go
+type ServiceProvider struct {
+    service *Service
+}
+
+func NewServiceProvider(service *Service) *ServiceProvider {
+    return &ServiceProvider{service: service}
+}
+
+func (sp *ServiceProvider) GetMethod() func() {
+    return sp.service.Method
+}
+```
+
+## Error Handling in Modules
+
+### Error Constants
+- Define static error constants in module files
+- Use `errors.New()` for static error creation
+- Wrap errors with context using `fmt.Errorf("%w", err)`
+
+### Module Error Handling
+```go
+fx.Provide(func() (Service, error) {
+    service, err := NewService()
+    if err != nil {
+        return nil, fmt.Errorf("failed to create service: %w", err)
+    }
+    return service, nil
+}),
+```
+
+## Documentation Standards
+
+### Module Documentation
+- Include comprehensive usage examples in comments
+- Document all provided services and their purposes
+- Show integration examples with other modules
+- Include parameter descriptions and return values
+
+### Example Documentation Format
+```go
+// Module provides the [name] module for dependency injection.
+// It includes [description of what the module provides].
+//
+// Usage example:
+//
+//	app := fx.New(
+//	  module.Module,
+//	  fx.Invoke(func(service Service) {
+//	    service.DoSomething()
+//	  }),
+//	)
+```
+
+## Integration Patterns
+
+### Multi-Module Integration
+```go
+app := fx.New(
+    config.Module,
+    domain.Module,
+    fx.Invoke(func(
+        configService config.Service,
+        domainService *domain.Domain,
+    ) {
+        // Integration logic
+    }),
+)
+```
+
+### Context Management
+- Always pass `context.Context` for operations that can be cancelled
+- Use `context.Background()` for long-running operations
+- Provide context-aware service methods
+
+## Testing FX Modules
+
+### Module Testing Pattern
+```go
+func TestModule(t *testing.T) {
+    app := fx.New(
+        Module,
+        fx.Invoke(func(service Service) {
+            // Test service functionality
+        }),
+    )
+    
+    err := app.Err()
+    if err != nil {
+        t.Fatalf("Module failed to initialize: %v", err)
+    }
+}
+```
+
+## Best Practices
+
+### Module Organization
+- Keep modules focused on single responsibility
+- Provide both concrete types and interfaces
+- Use factory functions for complex object creation
+- Include service providers for clean access patterns
+
+### Dependency Management
+- Prefer interface dependencies over concrete types
+- Use constructor injection over field injection
+- Provide both individual services and service providers
+- Document all dependencies and their relationships
+
+### Performance Considerations
+- Use `fx.Provide()` for stateless services
+- Use `fx.Invoke()` for initialization logic
+- Avoid heavy computation in provider functions
+- Use lazy initialization where appropriate

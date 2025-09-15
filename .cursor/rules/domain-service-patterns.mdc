@@ -1,0 +1,269 @@
+---
+globs: pkg/domain/*.go
+description: Domain service patterns and business logic organization
+---
+
+# Domain Service Patterns
+
+## Domain Structure
+
+### Domain Entity Pattern
+```go
+type Domain struct {
+    log           *zerolog.Logger
+    configWatcher ports.ConfigWatcher
+}
+
+func NewDomain(log *zerolog.Logger) *Domain {
+    return &Domain{
+        log: log,
+    }
+}
+```
+
+### Service Interface Definition
+```go
+type DomainService interface {
+    StartConfigWatcher(ctx context.Context) error
+    StartGateClient()
+    StartPollEvents()
+    StartStreamJobs()
+}
+
+// Ensure Domain implements DomainService interface
+var _ DomainService = (*Domain)(nil)
+```
+
+## Service Methods
+
+### Context-Aware Service Methods
+```go
+func (d *Domain) StartConfigWatcher(ctx context.Context) error {
+    if d.configWatcher == nil {
+        return nil // No watcher configured
+    }
+    return d.configWatcher.Start(ctx)
+}
+```
+
+### Simple Service Methods
+```go
+func (d *Domain) StartGateClient() {
+    // Implementation for gate client startup
+    d.log.Info().Msg("Starting gate client")
+    // ... business logic
+}
+
+func (d *Domain) StartPollEvents() {
+    // Implementation for poll events startup
+    d.log.Info().Msg("Starting poll events")
+    // ... business logic
+}
+```
+
+## Dependency Injection
+
+### Setter Injection Pattern
+```go
+func (d *Domain) SetConfigWatcher(watcher ports.ConfigWatcher) {
+    d.configWatcher = watcher
+}
+```
+
+### Constructor Injection Pattern
+```go
+func NewDomainWithWatcher(log *zerolog.Logger, watcher ports.ConfigWatcher) *Domain {
+    return &Domain{
+        log:           log,
+        configWatcher: watcher,
+    }
+}
+```
+
+## Service Provider Pattern
+
+### Service Provider Structure
+```go
+type DomainServiceProvider struct {
+    domain *Domain
+}
+
+func NewDomainServiceProvider(domain *Domain) *DomainServiceProvider {
+    return &DomainServiceProvider{
+        domain: domain,
+    }
+}
+```
+
+### Service Method Getters
+```go
+func (dsp *DomainServiceProvider) GetConfigWatcherStarter() func(context.Context) error {
+    return dsp.domain.StartConfigWatcher
+}
+
+func (dsp *DomainServiceProvider) GetGateClientStarter() func() {
+    return dsp.domain.StartGateClient
+}
+
+func (dsp *DomainServiceProvider) GetPollEventsStarter() func() {
+    return dsp.domain.StartPollEvents
+}
+
+func (dsp *DomainServiceProvider) GetStreamJobsStarter() func() {
+    return dsp.domain.StartStreamJobs
+}
+```
+
+## Error Handling
+
+### Service Error Patterns
+```go
+func (d *Domain) StartConfigWatcher(ctx context.Context) error {
+    if d.configWatcher == nil {
+        d.log.Warn().Msg("Config watcher not configured, skipping startup")
+        return nil
+    }
+    
+    if err := d.configWatcher.Start(ctx); err != nil {
+        d.log.Error().Err(err).Msg("Failed to start config watcher")
+        return fmt.Errorf("failed to start config watcher: %w", err)
+    }
+    
+    d.log.Info().Msg("Config watcher started successfully")
+    return nil
+}
+```
+
+### Logging Patterns
+```go
+func (d *Domain) StartGateClient() {
+    d.log.Info().Msg("Starting gate client service")
+    
+    // Implementation...
+    
+    d.log.Info().Msg("Gate client service started")
+}
+```
+
+## Service Lifecycle
+
+### Startup Sequence
+```go
+func (d *Domain) StartAllServices(ctx context.Context) error {
+    // Start services in dependency order
+    if err := d.StartConfigWatcher(ctx); err != nil {
+        return fmt.Errorf("failed to start config watcher: %w", err)
+    }
+    
+    d.StartGateClient()
+    d.StartPollEvents()
+    d.StartStreamJobs()
+    
+    d.log.Info().Msg("All domain services started")
+    return nil
+}
+```
+
+### Shutdown Sequence
+```go
+func (d *Domain) StopAllServices() error {
+    d.log.Info().Msg("Stopping all domain services")
+    
+    // Stop services in reverse dependency order
+    if d.configWatcher != nil {
+        if err := d.configWatcher.Stop(); err != nil {
+            d.log.Error().Err(err).Msg("Failed to stop config watcher")
+            return fmt.Errorf("failed to stop config watcher: %w", err)
+        }
+    }
+    
+    d.log.Info().Msg("All domain services stopped")
+    return nil
+}
+```
+
+## Testing Patterns
+
+### Domain Service Testing
+```go
+func TestDomain_StartConfigWatcher(t *testing.T) {
+    logger := zerolog.New(os.Stdout)
+    domain := NewDomain(&logger)
+    
+    // Test without watcher
+    err := domain.StartConfigWatcher(context.Background())
+    if err != nil {
+        t.Errorf("Expected no error when watcher is nil, got: %v", err)
+    }
+    
+    // Test with mock watcher
+    mockWatcher := &MockConfigWatcher{}
+    domain.SetConfigWatcher(mockWatcher)
+    
+    err = domain.StartConfigWatcher(context.Background())
+    if err != nil {
+        t.Errorf("Expected no error with mock watcher, got: %v", err)
+    }
+}
+```
+
+### Mock Implementation
+```go
+type MockConfigWatcher struct {
+    startError error
+    stopError  error
+    watching   bool
+}
+
+func (m *MockConfigWatcher) Start(ctx context.Context) error {
+    m.watching = true
+    return m.startError
+}
+
+func (m *MockConfigWatcher) Stop() error {
+    m.watching = false
+    return m.stopError
+}
+
+func (m *MockConfigWatcher) IsWatching() bool {
+    return m.watching
+}
+```
+
+## Best Practices
+
+### Service Design
+- Keep services focused on single responsibility
+- Use interfaces for external dependencies
+- Implement proper error handling and logging
+- Use context for cancellable operations
+
+### Dependency Management
+- Use constructor injection when possible
+- Use setter injection for optional dependencies
+- Avoid circular dependencies
+- Keep domain pure (no external library dependencies)
+
+### Error Handling
+- Return errors for operations that can fail
+- Use structured logging for all operations
+- Wrap errors with context
+- Handle nil dependencies gracefully
+
+### Testing
+- Test with and without dependencies
+- Use mocks for external dependencies
+- Test error conditions
+- Test service lifecycle methods
+
+### Logging
+- Log service start/stop operations
+- Use structured logging with context
+- Log errors with full context
+- Use appropriate log levels (Info, Warn, Error)
+
+### Lifecycle Management
+- Implement proper startup sequence
+- Implement proper shutdown sequence
+- Handle graceful shutdown
+- Clean up resources properly
