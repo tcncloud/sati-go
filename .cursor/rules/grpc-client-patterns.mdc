@@ -1,5 +1,5 @@
 ---
-globs: pkg/sati/client/*.go,pkg/cmd/*.go
+globs: pkg/sati/client/*.go,pkg/cmd/*.go,cmd/sati-client/*.go
 description: gRPC client patterns and command implementation guidelines
 ---
 
@@ -99,9 +99,11 @@ for result := range resultsChan {
 - Custom parameter types in [types.go](mdc:pkg/sati/client/types.go)
 - Use pointers for optional fields
 - Follow Go naming conventions (e.g., `GetAgentByID` not `GetAgentById`)
+- Use descriptive type names that clearly indicate their purpose
 
 ## Testing Patterns
 - Use `setupTestClient()` for consistent test setup
 - Mock interface methods must match exactly (including capitalization)
 - Group related tests in focused test functions
 - Use descriptive test names and proper assertions
+- See [testing-guidelines.mdc](mdc:.cursor/rules/testing-guidelines.mdc) for comprehensive testing patterns

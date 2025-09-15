@@ -16,6 +16,7 @@ description: Linting standards and code quality requirements
 - Never ignore error returns
 - Use `handleClientClose(client)` instead of `defer client.Close()`
 - Check all error returns explicitly
+- See [go-best-practices.mdc](mdc:.cursor/rules/go-best-practices.mdc) for detailed error handling patterns
 
 ### Code Duplication (dupl)
 - Extract common logic into helper functions in [common.go](mdc:pkg/cmd/common.go)

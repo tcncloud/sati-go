@@ -13,10 +13,23 @@ sati-go/
 ├── pkg/
 │   ├── cmd/                  # CLI command implementations
 │   │   ├── common.go         # Shared helper functions and constants
+│   │   ├── root.go           # Root command definition
 │   │   └── *.go             # Individual command files
-│   ├── sati/
-│   │   ├── client/           # gRPC client wrapper
-│   │   └── config/           # Configuration management
+│   ├── domain/               # Domain layer (business logic)
+│   │   ├── domain.go         # Main domain entity
+│   │   └── module.go         # FX module definition
+│   ├── ports/                # Port interfaces
+│   │   ├── config.go         # Configuration interfaces
+│   │   └── doc.go            # Package documentation
+│   └── sati/                 # Infrastructure adapters
+│       ├── client/           # gRPC client wrapper
+│       │   ├── client.go     # Core client implementation
+│       │   ├── types.go      # Client-specific types
+│       │   └── client_test.go # Client tests
+│       └── config/           # Configuration management
+│           ├── config.go     # Configuration implementation
+│           ├── module.go     # FX module definition
+│           └── config_test.go # Configuration tests
 └── .cursor/rules/            # Cursor IDE rules
 ```
 
@@ -28,6 +41,28 @@ sati-go/
 - [types.go](mdc:pkg/sati/client/types.go) - Client-side type definitions
 
 ## Architecture Patterns
+
+### Hexagonal Architecture (Ports and Adapters)
+The project follows hexagonal architecture with clear separation of concerns:
+
+#### Domain Layer (`pkg/domain/`)
+- **Purpose**: Contains business logic and domain entities
+- **Dependencies**: Only imports `pkg/ports/` and standard library
+- **Files**: `domain.go` (main entity), `module.go` (FX module)
+
+#### Ports Layer (`pkg/ports/`)
+- **Purpose**: Define interfaces that the application depends on
+- **Pattern**: Pure interfaces with no implementation details
+- **Files**: `config.go` (configuration interfaces), `doc.go` (documentation)
+
+#### Adapters Layer (`pkg/sati/`)
+- **Purpose**: Implements ports interfaces with concrete implementations
+- **Pattern**: Handles external concerns (gRPC, file I/O, etc.)
+- **Structure**: `client/` (gRPC client), `config/` (configuration management)
+
+#### Interface Layer (`pkg/cmd/`)
+- **Purpose**: CLI interface and user interaction
+- **Pattern**: Commands that orchestrate domain operations through ports
 
 ### Command Structure
 - Each command is implemented in its own file (e.g., `get_agent_by_id.go`)
@@ -46,7 +81,9 @@ sati-go/
 - mTLS authentication for gRPC connections
 
 ## Code Organization Principles
-- Single responsibility: each file has one clear purpose
-- DRY principle: shared logic in [common.go](mdc:pkg/cmd/common.go)
-- Consistent patterns across all command implementations
-- Clear separation between CLI layer, client layer, and gRPC layer
+- **Dependency Inversion**: Dependencies point inward toward the domain
+- **Ports and Adapters**: Use interfaces to decouple layers
+- **Single Responsibility**: Each file has one clear purpose
+- **DRY Principle**: Shared logic in [common.go](mdc:pkg/cmd/common.go)
+- **Consistent Patterns**: Uniform patterns across all command implementations
+- **Clear Boundaries**: Maintain clear separation between layers

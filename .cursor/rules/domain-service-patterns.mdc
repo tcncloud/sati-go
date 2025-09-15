@@ -9,6 +9,9 @@ description: Domain service patterns and business logic organization
 
 ### Domain Entity Pattern
 ```go
+// Domain is the main domain object for the application.
+// It implements 5 services:
+// - ConfigWatcher, it instantiate a config watcher that notify the application when config file is present and/or updated.
 type Domain struct {
     log           *zerolog.Logger
     configWatcher ports.ConfigWatcher
@@ -50,14 +53,17 @@ func (d *Domain) StartConfigWatcher(ctx context.Context) error {
 ```go
 func (d *Domain) StartGateClient() {
     // Implementation for gate client startup
-    d.log.Info().Msg("Starting gate client")
-    // ... business logic
+    // Currently empty - to be implemented
 }
 
 func (d *Domain) StartPollEvents() {
     // Implementation for poll events startup
-    d.log.Info().Msg("Starting poll events")
-    // ... business logic
+    // Currently empty - to be implemented
+}
+
+func (d *Domain) StartStreamJobs() {
+    // Implementation for stream jobs startup
+    // Currently empty - to be implemented
 }
 ```
 
@@ -65,6 +71,7 @@ func (d *Domain) StartPollEvents() {
 
 ### Setter Injection Pattern
 ```go
+// SetConfigWatcher sets the configuration watcher for the domain.
 func (d *Domain) SetConfigWatcher(watcher ports.ConfigWatcher) {
     d.configWatcher = watcher
 }
@@ -183,52 +190,11 @@ func (d *Domain) StopAllServices() error {
 ```
 
 ## Testing Patterns
-
-### Domain Service Testing
-```go
-func TestDomain_StartConfigWatcher(t *testing.T) {
-    logger := zerolog.New(os.Stdout)
-    domain := NewDomain(&logger)
-    
-    // Test without watcher
-    err := domain.StartConfigWatcher(context.Background())
-    if err != nil {
-        t.Errorf("Expected no error when watcher is nil, got: %v", err)
-    }
-    
-    // Test with mock watcher
-    mockWatcher := &MockConfigWatcher{}
-    domain.SetConfigWatcher(mockWatcher)
-    
-    err = domain.StartConfigWatcher(context.Background())
-    if err != nil {
-        t.Errorf("Expected no error with mock watcher, got: %v", err)
-    }
-}
-```
-
-### Mock Implementation
-```go
-type MockConfigWatcher struct {
-    startError error
-    stopError  error
-    watching   bool
-}
-
-func (m *MockConfigWatcher) Start(ctx context.Context) error {
-    m.watching = true
-    return m.startError
-}
-
-func (m *MockConfigWatcher) Stop() error {
-    m.watching = false
-    return m.stopError
-}
-
-func (m *MockConfigWatcher) IsWatching() bool {
-    return m.watching
-}
-```
+- Test with and without dependencies
+- Use mocks for external dependencies
+- Test error conditions
+- Test service lifecycle methods
+- See [testing-guidelines.mdc](mdc:.cursor/rules/testing-guidelines.mdc) for comprehensive testing patterns
 
 ## Best Practices
 
@@ -255,6 +221,7 @@ func (m *MockConfigWatcher) IsWatching() bool {
 - Use mocks for external dependencies
 - Test error conditions
 - Test service lifecycle methods
+- See [testing-guidelines.mdc](mdc:.cursor/rules/testing-guidelines.mdc) for comprehensive testing patterns
 
 ### Logging
 - Log service start/stop operations

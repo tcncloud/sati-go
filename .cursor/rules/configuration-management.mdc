@@ -1,5 +1,5 @@
 ---
-globs: pkg/sati/config/*.go,**/config/*.go
+globs: pkg/sati/config/*.go,pkg/ports/config.go
 description: Configuration management patterns and best practices
 ---
 

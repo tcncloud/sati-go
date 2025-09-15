@@ -16,11 +16,15 @@ description: Go best practices and coding standards for the sati-go project
 - Define static error constants in [common.go](mdc:pkg/cmd/common.go) and [client.go](mdc:pkg/sati/client/client.go)
 - Use `errors.New()` for static error creation, not dynamic strings
 - Always check and handle `client.Close()` errors using the `handleClientClose()` helper
+- Use error wrapping to maintain context: `fmt.Errorf("operation failed: %w", err)`
+- Never ignore error returns - always handle them explicitly
+- Use structured logging for error context: `log.Error().Err(err).Msg("operation failed")`
 
 ## Naming Conventions
 - Use `GetAgentByID` (capital ID) for Go naming conventions
 - Interface methods may have different naming (e.g., `GetAgentById` with capital B) - use `//nolint:revive` when required
 - Use descriptive variable names and avoid abbreviations
+- Follow Go naming conventions consistently across the codebase
 
 ## Code Organization
 - Break down complex functions (>30 cognitive complexity) into smaller, focused functions
@@ -31,12 +35,14 @@ description: Go best practices and coding standards for the sati-go project
 - Set minimum TLS version: `MinVersion: tls.VersionTLS12`
 - Use `//nolint:gosec` with explanation for controlled file operations
 - Validate input parameters before use
+- See [security-standards.mdc](mdc:.cursor/rules/security-standards.mdc) for comprehensive security guidelines
 
 ## Testing
 - Use `setupTestClient()` helper for consistent test setup
 - Break large test functions into focused test groups
 - Mock method names must exactly match interface method names
 - Use descriptive test names and group related tests
+- See [testing-guidelines.mdc](mdc:.cursor/rules/testing-guidelines.mdc) for comprehensive testing patterns
 
 ## Linting Compliance
 - Maintain zero linting issues

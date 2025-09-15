@@ -1,5 +1,5 @@
 ---
-globs: **/module.go,**/domain/*.go,**/config/*.go
+globs: **/module.go,pkg/domain/*.go,pkg/sati/config/*.go
 description: Uber FX dependency injection patterns and module definitions
 ---
 

@@ -1,5 +1,5 @@
 ---
-globs: pkg/domain/*.go,pkg/ports/*.go,pkg/sati/*.go
+globs: pkg/domain/*.go,pkg/ports/*.go,pkg/sati/**/*.go
 description: Clean architecture patterns and dependency inversion principles
 ---
 
@@ -175,56 +175,17 @@ type ConfigManager interface {
 ```
 
 ## Testing Patterns
-
-### Domain Testing
-```go
-// Test domain with mock implementations
-func TestDomain(t *testing.T) {
-    mockWatcher := &MockConfigWatcher{}
-    domain := NewDomain(mockWatcher)
-    
-    // Test domain logic
-    err := domain.StartConfigWatcher(context.Background())
-    // Assertions...
-}
-```
-
-### Adapter Testing
-```go
-// Test adapter implementations
-func TestConfigWatcher(t *testing.T) {
-    watcher := NewConfigWatcher(paths, loader)
-    
-    // Test implementation
-    err := watcher.Start(context.Background())
-    // Assertions...
-}
-```
+- Test domain with mock implementations
+- Test adapters with real implementations
+- Use interface mocks for testing
+- Test integration points separately
+- See [testing-guidelines.mdc](mdc:.cursor/rules/testing-guidelines.mdc) for comprehensive testing patterns
 
 ## Error Handling
-
-### Error Propagation
 - Domain should return domain-specific errors
 - Adapters should wrap external errors with domain context
 - Use error wrapping to maintain error chain
-
-```go
-// Domain error
-func (d *Domain) StartConfigWatcher(ctx context.Context) error {
-    if d.configWatcher == nil {
-        return ErrConfigWatcherNotSet
-    }
-    return d.configWatcher.Start(ctx)
-}
-
-// Adapter error wrapping
-func (cw *ConfigWatcher) Start(ctx context.Context) error {
-    if err := cw.setupWatcher(); err != nil {
-        return fmt.Errorf("failed to setup config watcher: %w", err)
-    }
-    return nil
-}
-```
+- See [go-best-practices.mdc](mdc:.cursor/rules/go-best-practices.mdc) for detailed error handling patterns
 
 ## Best Practices
 
