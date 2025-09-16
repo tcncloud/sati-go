@@ -59,7 +59,11 @@ func GetAgentStatusCmd(configPath *string) *cobra.Command {
 				}
 				fmt.Println(string(data))
 			} else {
-				fmt.Printf("%+v\n", resp)
+				if resp.AgentStatus != nil {
+					fmt.Printf("Agent Status: %s\n", resp.AgentStatus.PartnerAgentID)
+				} else {
+					fmt.Println("No agent status available")
+				}
 			}
 
 			return nil
