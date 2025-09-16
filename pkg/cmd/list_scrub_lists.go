@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -36,7 +37,25 @@ func ListScrubListsCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Printf("%+v\n", resp)
+			if OutputFormat == OutputFormatJSON {
+				data, err := json.MarshalIndent(resp, "", "  ")
+				if err != nil {
+					return err
+				}
+				fmt.Println(string(data))
+			} else {
+				fmt.Printf("Scrub Lists:\n")
+				if len(resp.ScrubLists) == 0 {
+					fmt.Println("  No scrub lists found")
+				} else {
+					for _, scrubList := range resp.ScrubLists {
+						fmt.Printf("  - ID: %s, Name: %s\n", scrubList.ID, scrubList.Name)
+						if scrubList.Description != "" {
+							fmt.Printf("    Description: %s\n", scrubList.Description)
+						}
+					}
+				}
+			}
 
 			return nil
 		},
