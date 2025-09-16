@@ -536,10 +536,8 @@ func TestClient_AgentMethods(t *testing.T) {
 			t.Error("Expected underlying AddAgentCallResponse to be called")
 		}
 
-		// Check that the response is not empty (it's a struct, not a pointer)
-		if resp == (AddAgentCallResponseResult{}) {
-			t.Error("AddAgentCallResponse did not return expected response")
-		}
+		// AddAgentCallResponseResult is an empty struct, so we just check it was called successfully
+		_ = resp // Acknowledge the response
 	})
 
 	// --- Test AddScrubListEntries (Error case) ---
@@ -682,9 +680,8 @@ func TestClient_DialMethods(t *testing.T) {
 		if !mockService.getAgentStatusCalled {
 			t.Error("Expected underlying GetAgentStatus to be called")
 		}
-		if resp == (GetAgentStatusResult{}) {
-			t.Error("GetAgentStatus did not return expected response")
-		}
+		// GetAgentStatusResult is an empty struct, so we just check it was called successfully
+		_ = resp // Acknowledge the response
 	})
 
 	t.Run("GetAgentStatusError", func(t *testing.T) {
@@ -765,9 +762,8 @@ func TestClient_ConfigurationMethods(t *testing.T) {
 		if !mockService.getOrganizationInfoCalled {
 			t.Error("Expected underlying GetOrganizationInfo to be called")
 		}
-		if resp == (GetOrganizationInfoResult{}) {
-			t.Error("GetOrganizationInfo did not return expected response")
-		}
+		// GetOrganizationInfoResult is an empty struct, so we just check it was called successfully
+		_ = resp // Acknowledge the response
 	})
 
 	t.Run("GetOrganizationInfoError", func(t *testing.T) {
@@ -801,9 +797,8 @@ func TestClient_ConfigurationMethods(t *testing.T) {
 		if !mockService.getRecordingStatusCalled {
 			t.Error("Expected underlying GetRecordingStatus to be called")
 		}
-		if resp == (GetRecordingStatusResult{}) {
-			t.Error("GetRecordingStatus did not return expected response")
-		}
+		// GetRecordingStatusResult is an empty struct, so we just check it was called successfully
+		_ = resp // Acknowledge the response
 	})
 
 	t.Run("GetRecordingStatusError", func(t *testing.T) {
@@ -864,9 +859,8 @@ func TestClient_StatusMethods(t *testing.T) {
 		if !mockService.logCalled {
 			t.Error("Expected underlying Log to be called")
 		}
-		if resp == (LogResult{}) {
-			t.Error("Log did not return expected response")
-		}
+		// LogResult is an empty struct, so we just check it was called successfully
+		_ = resp // Acknowledge the response
 	})
 
 	t.Run("LogError", func(t *testing.T) {
@@ -900,9 +894,8 @@ func TestClient_StatusMethods(t *testing.T) {
 		if !mockService.putCallOnSimpleHoldCalled {
 			t.Error("Expected underlying PutCallOnSimpleHold to be called")
 		}
-		if resp == (PutCallOnSimpleHoldResult{}) {
-			t.Error("PutCallOnSimpleHold did not return expected response")
-		}
+		// PutCallOnSimpleHoldResult is an empty struct, so we just check it was called successfully
+		_ = resp // Acknowledge the response
 	})
 
 	t.Run("PutCallOnSimpleHoldError", func(t *testing.T) {
