@@ -48,9 +48,10 @@ func GetRecordingStatusCmd(configPath *string) *cobra.Command {
 				}
 				fmt.Println(string(data))
 			} else {
-				fmt.Printf("Recording Status: %s\n", resp.Status)
-				if resp.RecordingSid != "" {
-					fmt.Printf("Recording SID: %s\n", resp.RecordingSid)
+				if resp.IsRecording {
+					fmt.Println("Recording is active")
+				} else {
+					fmt.Println("Recording is not active")
 				}
 			}
 
