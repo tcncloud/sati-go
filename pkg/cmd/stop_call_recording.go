@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -30,10 +29,10 @@ func StopCallRecordingCmd(configPath *string) *cobra.Command {
 			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			request := &gatev2.StopCallRecordingRequest{
-				PartnerAgentId: partnerAgentID,
+			params := saticlient.StopCallRecordingParams{
+				PartnerAgentID: partnerAgentID,
 			}
-			resp, err := client.StopCallRecording(ctx, request)
+			resp, err := client.StopCallRecording(ctx, params)
 			if err != nil {
 				return err
 			}

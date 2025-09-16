@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -30,10 +29,11 @@ func LogCmd(configPath *string) *cobra.Command {
 			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			request := &gatev2.LogRequest{
-				Payload: payload,
+			params := saticlient.LogParams{
+				Level:   "INFO", // Default level
+				Message: payload,
 			}
-			resp, err := client.Log(ctx, request)
+			resp, err := client.Log(ctx, params)
 			if err != nil {
 				return err
 			}

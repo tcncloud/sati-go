@@ -18,9 +18,9 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
-	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -38,8 +38,8 @@ func AddAgentCallResponseCmd(configPath *string) *cobra.Command {
 			if partnerAgentID == "" || callSid == "" || callTypeStr == "" || key == "" || value == "" {
 				return ErrRequiredFieldsMissing
 			}
-			callTypeEnum, ok := gatev2.CallType_value[callTypeStr]
-			if !ok {
+			// Validate call type (not used in the new implementation)
+			if callTypeStr == "" {
 				return fmt.Errorf("%w: %s", ErrInvalidCallType, callTypeStr)
 			}
 			cfg, err := saticonfig.LoadConfig(*configPath)
@@ -55,16 +55,21 @@ func AddAgentCallResponseCmd(configPath *string) *cobra.Command {
 			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			request := &gatev2.AddAgentCallResponseRequest{
-				PartnerAgentId:   partnerAgentID,
-				CallSid:          callSid,
-				CallType:         gatev2.CallType(callTypeEnum),
-				CurrentSessionId: currentSessionID,
-				Key:              key,
-				Value:            value,
+			// Convert callSid from string to int64
+			callSidInt, err := strconv.ParseInt(callSid, 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid call SID: %w", err)
 			}
 
-			resp, err := client.AddAgentCallResponse(ctx, request)
+			params := saticlient.AddAgentCallResponseParams{
+				PartnerAgentID: partnerAgentID,
+				CallSid:        callSidInt,
+				ResponseKey:    key,
+				ResponseValue:  value,
+				AgentSid:       currentSessionID,
+			}
+
+			resp, err := client.AddAgentCallResponse(ctx, params)
 			if err != nil {
 				return err
 			}

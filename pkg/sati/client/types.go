@@ -209,4 +209,256 @@ type TransferQueue struct {
 
 type TransferResult struct{}
 
-// Add definitions for other methods (PollEvents, StreamJobs, etc.) following this pattern.
+// --- PollEvents ---
+type PollEventsParams struct{}
+
+type PollEventsResult struct {
+	Events []Event
+}
+
+type Event struct {
+	Type          string
+	Telephony     *ExileTelephonyResult
+	AgentCall     *ExileAgentCall
+	AgentResponse *ExileAgentResponse
+}
+
+type ExileTelephonyResult struct {
+	CallSid        int64
+	CallType       string
+	CreateTime     string
+	UpdateTime     string
+	Status         string
+	Result         string
+	CallerID       string
+	PhoneNumber    string
+	StartTime      string
+	EndTime        string
+	DeliveryLength int64
+	LinkbackLength int64
+	PoolID         string
+	RecordID       string
+	ClientSid      int64
+	OrgID          string
+	InternalKey    string
+}
+
+type ExileAgentCall struct {
+	AgentCallSid             int64
+	CallSid                  int64
+	CallType                 string
+	TalkDuration             int64
+	CallWaitDuration         int64
+	WrapUpDuration           int64
+	PauseDuration            int64
+	TransferDuration         int64
+	ManualDuration           int64
+	PreviewDuration          int64
+	HoldDuration             int64
+	AgentWaitDuration        int64
+	SuspendedDuration        int64
+	ExternalTransferDuration int64
+	CreateTime               string
+	UpdateTime               string
+	OrgID                    string
+	UserID                   string
+	InternalKey              string
+	PartnerAgentID           string
+}
+
+type ExileAgentResponse struct {
+	AgentCallResponseSid int64
+	CallSid              int64
+	CallType             string
+	ResponseKey          string
+	ResponseValue        string
+	CreateTime           string
+	UpdateTime           string
+	ClientSid            int64
+	OrgID                string
+	AgentSid             int64
+	UserID               string
+	InternalKey          string
+	PartnerAgentID       string
+}
+
+// --- StreamJobs ---
+type StreamJobsParams struct{}
+
+type StreamJobsResult struct {
+	Job   *Job
+	Error error
+}
+
+type Job struct {
+	JobID string
+	Type  string
+	Data  map[string]interface{}
+}
+
+// --- SubmitJobResults ---
+type SubmitJobResultsParams struct {
+	JobID             string
+	EndOfTransmission bool
+	Results           map[string]interface{}
+}
+
+type SubmitJobResultsResult struct{}
+
+// --- GetAgentStatus ---
+type GetAgentStatusParams struct {
+	PartnerAgentID string
+}
+
+type GetAgentStatusResult struct {
+	AgentStatus *AgentStatus
+}
+
+type AgentStatus struct {
+	PartnerAgentID string
+	State          string
+	Reason         string
+	LastUpdate     string
+}
+
+// --- ListHuntGroupPauseCodes ---
+type ListHuntGroupPauseCodesParams struct {
+	PartnerAgentID string
+}
+
+type ListHuntGroupPauseCodesResult struct {
+	PauseCodes []PauseCode
+}
+
+type PauseCode struct {
+	Code        string
+	Description string
+	Duration    int64
+}
+
+// --- PutCallOnSimpleHold ---
+type PutCallOnSimpleHoldParams struct {
+	PartnerAgentID string
+}
+
+type PutCallOnSimpleHoldResult struct{}
+
+// --- TakeCallOffSimpleHold ---
+type TakeCallOffSimpleHoldParams struct {
+	PartnerAgentID string
+}
+
+type TakeCallOffSimpleHoldResult struct{}
+
+// --- StartCallRecording ---
+type StartCallRecordingParams struct {
+	PartnerAgentID string
+}
+
+type StartCallRecordingResult struct{}
+
+// --- StopCallRecording ---
+type StopCallRecordingParams struct {
+	PartnerAgentID string
+}
+
+type StopCallRecordingResult struct{}
+
+// --- GetRecordingStatus ---
+type GetRecordingStatusParams struct {
+	PartnerAgentID string
+}
+
+type GetRecordingStatusResult struct {
+	IsRecording bool
+}
+
+// --- ListScrubLists ---
+type ListScrubListsParams struct{}
+
+type ListScrubListsResult struct {
+	ScrubLists []ScrubList
+}
+
+type ScrubList struct {
+	ID          string
+	Name        string
+	Description string
+	CountryCode string
+}
+
+// --- UpdateScrubListEntry ---
+type UpdateScrubListEntryParams struct {
+	ScrubListID string
+	EntryID     string
+	Content     string
+	Notes       *string
+}
+
+type UpdateScrubListEntryResult struct{}
+
+// --- RemoveScrubListEntries ---
+type RemoveScrubListEntriesParams struct {
+	ScrubListID string
+	EntryIDs    []string
+}
+
+type RemoveScrubListEntriesResult struct{}
+
+// --- UpsertAgent ---
+type UpsertAgentParams struct {
+	UserID         string
+	OrgID          string
+	FirstName      string
+	LastName       string
+	Username       string
+	PartnerAgentID string
+}
+
+type UpsertAgentResult struct{}
+
+// --- GetAgentByPartnerID ---
+type GetAgentByPartnerIDParams struct {
+	PartnerAgentID string
+}
+
+type GetAgentByPartnerIDResult struct {
+	Agent *Agent
+}
+
+// --- AddAgentCallResponse ---
+type AddAgentCallResponseParams struct {
+	PartnerAgentID string
+	CallSid        int64
+	ResponseKey    string
+	ResponseValue  string
+	AgentSid       int64
+}
+
+type AddAgentCallResponseResult struct{}
+
+// --- Log ---
+type LogParams struct {
+	Level   string
+	Message string
+	Context map[string]interface{}
+}
+
+type LogResult struct{}
+
+// --- RotateCertificate ---
+type RotateCertificateParams struct{}
+
+type RotateCertificateResult struct {
+	Certificate   string
+	PrivateKey    string
+	CACertificate string
+}
+
+// --- GetOrganizationInfo ---
+type GetOrganizationInfoParams struct{}
+
+type GetOrganizationInfoResult struct {
+	OrgID   string
+	OrgName string
+}

@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -45,27 +44,23 @@ func StreamJobsCmd(configPath *string) *cobra.Command {
 			ctx, cancel := createContext(LongTimeout)
 			defer cancel()
 
-			// Build the request struct
-			request := &gatev2.StreamJobsRequest{}
+			// Build the params struct
+			params := saticlient.StreamJobsParams{}
 
 			// Call the client stream method
-			stream, err := client.StreamJobs(ctx, request)
-			if err != nil {
-				return err
-			}
-			for {
-				msg, err := stream.Recv()
-				if err != nil {
-					break
+			jobChan := client.StreamJobs(ctx, params)
+			for result := range jobChan {
+				if result.Error != nil {
+					return result.Error
 				}
 				if OutputFormat == "json" {
-					data, err := json.MarshalIndent(msg, "", "  ")
+					data, err := json.MarshalIndent(result, "", "  ")
 					if err != nil {
 						return err
 					}
 					fmt.Println(string(data))
 				} else {
-					fmt.Printf("%+v\n", msg)
+					fmt.Printf("%+v\n", result)
 				}
 			}
 

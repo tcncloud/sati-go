@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -31,13 +30,13 @@ func GetRecordingStatusCmd(configPath *string) *cobra.Command {
 			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			// Build the request struct
-			request := &gatev2.GetRecordingStatusRequest{
-				PartnerAgentId: partnerAgentID,
+			// Build the params struct
+			params := saticlient.GetRecordingStatusParams{
+				PartnerAgentID: partnerAgentID,
 			}
 
 			// Call the client method
-			resp, err := client.GetRecordingStatus(ctx, request)
+			resp, err := client.GetRecordingStatus(ctx, params)
 			if err != nil {
 				return err
 			}

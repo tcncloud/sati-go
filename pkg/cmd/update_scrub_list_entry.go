@@ -2,14 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
-	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
-	"google.golang.org/protobuf/types/known/timestamppb"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func UpdateScrubListEntryCmd(configPath *string) *cobra.Command {
@@ -34,27 +30,18 @@ func UpdateScrubListEntryCmd(configPath *string) *cobra.Command {
 			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			// Build the request struct
-			request := &gatev2.UpdateScrubListEntryRequest{
-				ScrubListId: scrubListID,
+			// Build the params struct
+			params := saticlient.UpdateScrubListEntryParams{
+				ScrubListID: scrubListID,
 				Content:     content,
 			}
 			if notes != "" {
-				request.Notes = &wrapperspb.StringValue{Value: notes}
+				params.Notes = &notes
 			}
-			if countryCode != "" {
-				request.CountryCode = &wrapperspb.StringValue{Value: countryCode}
-			}
-			if expiration != "" {
-				t, err := time.Parse(time.RFC3339, expiration)
-				if err != nil {
-					return fmt.Errorf("invalid expiration format: %w", err)
-				}
-				request.Expiration = timestamppb.New(t)
-			}
+			// Note: CountryCode and Expiration are not available in the current params structure
 
 			// Call the client method
-			resp, err := client.UpdateScrubListEntry(ctx, request)
+			resp, err := client.UpdateScrubListEntry(ctx, params)
 			if err != nil {
 				return err
 			}

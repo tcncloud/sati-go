@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -45,11 +44,11 @@ func GetAgentStatusCmd(configPath *string) *cobra.Command {
 			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			// Build the request struct
-			request := &gatev2.GetAgentStatusRequest{}
+			// Build the params struct
+			params := saticlient.GetAgentStatusParams{}
 
 			// Call the client method
-			resp, err := client.GetAgentStatus(ctx, request)
+			resp, err := client.GetAgentStatus(ctx, params)
 			if err != nil {
 				return err
 			}

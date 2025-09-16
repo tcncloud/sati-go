@@ -2291,6 +2291,7 @@ type ExileTransferInstance_Source_SourceCall struct {
 	UserId         string                 `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	ConversationId int64                  `protobuf:"varint,5,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
 	SessionSid     int64                  `protobuf:"varint,6,opt,name=session_sid,json=sessionSid,proto3" json:"session_sid,omitempty"`
+	AgentCallSid   int64                  `protobuf:"varint,7,opt,name=agent_call_sid,json=agentCallSid,proto3" json:"agent_call_sid,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -2363,6 +2364,13 @@ func (x *ExileTransferInstance_Source_SourceCall) GetConversationId() int64 {
 func (x *ExileTransferInstance_Source_SourceCall) GetSessionSid() int64 {
 	if x != nil {
 		return x.SessionSid
+	}
+	return 0
+}
+
+func (x *ExileTransferInstance_Source_SourceCall) GetAgentCallSid() int64 {
+	if x != nil {
+		return x.AgentCallSid
 	}
 	return 0
 }
@@ -2495,7 +2503,7 @@ const file_tcnapi_exile_gate_v2_entities_proto_rawDesc = "" +
 	" \x01(\x03R\bagentSid\x12\x17\n" +
 	"\auser_id\x18\v \x01(\tR\x06userId\x12!\n" +
 	"\finternal_key\x18\f \x01(\tR\vinternalKey\x12(\n" +
-	"\x10partner_agent_id\x18d \x01(\tR\x0epartnerAgentId\"\x8e\x14\n" +
+	"\x10partner_agent_id\x18d \x01(\tR\x0epartnerAgentId\"\xb4\x14\n" +
 	"\x15ExileTransferInstance\x12\x1d\n" +
 	"\n" +
 	"client_sid\x18\x01 \x01(\x03R\tclientSid\x12\x15\n" +
@@ -2518,9 +2526,9 @@ const file_tcnapi_exile_gate_v2_entities_proto_rawDesc = "" +
 	"\x15started_as_conference\x18\x17 \x01(\bR\x13startedAsConference\x123\n" +
 	"\x15duration_microseconds\x18\x18 \x01(\x03R\x14durationMicroseconds\x12D\n" +
 	"\x1eexternal_duration_microseconds\x18\x19 \x01(\x03R\x1cexternalDurationMicroseconds\x12B\n" +
-	"\x1dpending_duration_microseconds\x18\x1a \x01(\x03R\x1bpendingDurationMicroseconds\x1a\xaf\x02\n" +
+	"\x1dpending_duration_microseconds\x18\x1a \x01(\x03R\x1bpendingDurationMicroseconds\x1a\xd5\x02\n" +
 	"\x06Source\x12Q\n" +
-	"\x04call\x18\x01 \x01(\v2=.tcnapi.exile.gate.v2.ExileTransferInstance.Source.SourceCallR\x04call\x1a\xd1\x01\n" +
+	"\x04call\x18\x01 \x01(\v2=.tcnapi.exile.gate.v2.ExileTransferInstance.Source.SourceCallR\x04call\x1a\xf7\x01\n" +
 	"\n" +
 	"SourceCall\x12\x19\n" +
 	"\bcall_sid\x18\x01 \x01(\x03R\acallSid\x12\x1b\n" +
@@ -2529,7 +2537,8 @@ const file_tcnapi_exile_gate_v2_entities_proto_rawDesc = "" +
 	"\auser_id\x18\x04 \x01(\tR\x06userId\x12'\n" +
 	"\x0fconversation_id\x18\x05 \x01(\x03R\x0econversationId\x12\x1f\n" +
 	"\vsession_sid\x18\x06 \x01(\x03R\n" +
-	"sessionSid\x1a\xb4\x03\n" +
+	"sessionSid\x12$\n" +
+	"\x0eagent_call_sid\x18\a \x01(\x03R\fagentCallSid\x1a\xb4\x03\n" +
 	"\vDestination\x12Q\n" +
 	"\x04call\x18\x01 \x01(\v2;.tcnapi.exile.gate.v2.ExileTransferInstance.DestinationCallH\x00R\x04call\x12T\n" +
 	"\x05agent\x18\x02 \x01(\v2<.tcnapi.exile.gate.v2.ExileTransferInstance.DestinationAgentH\x00R\x05agent\x12Z\n" +

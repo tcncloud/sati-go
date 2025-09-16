@@ -519,9 +519,15 @@ func TestClient_AgentMethods(t *testing.T) {
 		mockService.addAgentCallResponseCalled = false // Reset
 		mockService.addAgentCallResponseResp = &gatev2.AddAgentCallResponseResponse{}
 		mockService.addAgentCallResponseErr = nil
-		req := &gatev2.AddAgentCallResponseRequest{PartnerAgentId: "agent1"}
+		params := AddAgentCallResponseParams{
+			PartnerAgentID: "agent1",
+			CallSid:        12345,
+			ResponseKey:    "key",
+			ResponseValue:  "value",
+			AgentSid:       67890,
+		}
 
-		resp, err := client.AddAgentCallResponse(ctx, req)
+		resp, err := client.AddAgentCallResponse(ctx, params)
 		if err != nil {
 			t.Errorf("AddAgentCallResponse returned error: %v", err)
 		}

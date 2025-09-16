@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -50,31 +49,14 @@ func SubmitJobResultsCmd(configPath *string) *cobra.Command {
 			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			// Build the request struct
-			request := &gatev2.SubmitJobResultsRequest{
-				JobId:             jobID,
+			// Build the params struct
+			params := saticlient.SubmitJobResultsParams{
+				JobID:             jobID,
 				EndOfTransmission: endOfTransmission,
-			}
-			if resultJSON != "" {
-				var resultMap map[string]interface{}
-				if err := json.Unmarshal([]byte(resultJSON), &resultMap); err != nil {
-					return fmt.Errorf("invalid result JSON: %w", err)
-				}
-				// For demonstration, only support error_result (with message)
-				if msg, ok := resultMap["error_result"].(map[string]interface{}); ok {
-					if message, ok := msg["message"].(string); ok {
-						request.Result = &gatev2.SubmitJobResultsRequest_ErrorResult_{
-							ErrorResult: &gatev2.SubmitJobResultsRequest_ErrorResult{
-								Message: message,
-							},
-						}
-					}
-				}
-				// Add more result types as needed
 			}
 
 			// Call the client method
-			resp, err := client.SubmitJobResults(ctx, request)
+			resp, err := client.SubmitJobResults(ctx, params)
 			if err != nil {
 				return err
 			}

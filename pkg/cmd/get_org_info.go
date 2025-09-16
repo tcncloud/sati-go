@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -47,11 +46,11 @@ func GetOrgInfoCmd(configPath *string) *cobra.Command {
 			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			// Build the request struct
-			request := &gatev2.GetOrganizationInfoRequest{}
+			// Build the params struct
+			params := saticlient.GetOrganizationInfoParams{}
 
 			// Call the client method
-			resp, err := client.GetOrganizationInfo(ctx, request)
+			resp, err := client.GetOrganizationInfo(ctx, params)
 			if err != nil {
 				fmt.Printf("Error getting organization info: %v\n", err)
 
@@ -64,7 +63,7 @@ func GetOrgInfoCmd(configPath *string) *cobra.Command {
 				}
 				fmt.Println(string(data))
 			} else {
-				fmt.Printf("OrgID: %s\nOrgName: %s\n", resp.GetOrgId(), resp.GetOrgName())
+				fmt.Printf("OrgID: %s\nOrgName: %s\n", resp.OrgID, resp.OrgName)
 			}
 
 			return nil

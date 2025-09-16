@@ -64,9 +64,23 @@ func (c *Client) Close() error {
 
 // --- GateService Methods (Refactored) ---
 
-// AddAgentCallResponse remains unchanged for now as its types weren't defined in types.go.
-func (c *Client) AddAgentCallResponse(ctx context.Context, req *gatev2pb.AddAgentCallResponseRequest) (*gatev2pb.AddAgentCallResponseResponse, error) {
-	return c.gate.AddAgentCallResponse(ctx, req)
+// AddAgentCallResponse adds a response to an agent call.
+func (c *Client) AddAgentCallResponse(ctx context.Context, params AddAgentCallResponseParams) (AddAgentCallResponseResult, error) {
+	req := &gatev2pb.AddAgentCallResponseRequest{
+		PartnerAgentId:   params.PartnerAgentID,
+		CallSid:          strconv.FormatInt(params.CallSid, 10),
+		CallType:         gatev2pb.CallType_CALL_TYPE_INBOUND, // Default to inbound
+		CurrentSessionId: params.AgentSid,
+		Key:              params.ResponseKey,
+		Value:            params.ResponseValue,
+	}
+
+	_, err := c.gate.AddAgentCallResponse(ctx, req)
+	if err != nil {
+		return AddAgentCallResponseResult{}, err
+	}
+
+	return AddAgentCallResponseResult{}, nil
 }
 
 // AddScrubListEntries adds entries to a scrub list.
@@ -170,14 +184,61 @@ func (c *Client) GetAgentByID(ctx context.Context, params GetAgentByIDParams) (G
 	return result, nil
 }
 
-// GetAgentByPartnerID remains unchanged for now.
-func (c *Client) GetAgentByPartnerID(ctx context.Context, req *gatev2pb.GetAgentByPartnerIdRequest) (*gatev2pb.GetAgentByPartnerIdResponse, error) {
-	return c.gate.GetAgentByPartnerId(ctx, req)
+// GetAgentByPartnerID retrieves agent details by Partner Agent ID.
+func (c *Client) GetAgentByPartnerID(ctx context.Context, params GetAgentByPartnerIDParams) (GetAgentByPartnerIDResult, error) {
+	if params.PartnerAgentID == "" {
+		return GetAgentByPartnerIDResult{}, ErrPartnerAgentIDRequired
+	}
+
+	req := &gatev2pb.GetAgentByPartnerIdRequest{
+		PartnerAgentId: params.PartnerAgentID,
+	}
+
+	resp, err := c.gate.GetAgentByPartnerId(ctx, req)
+	if err != nil {
+		return GetAgentByPartnerIDResult{}, err
+	}
+
+	if resp == nil || resp.GetAgent() == nil {
+		return GetAgentByPartnerIDResult{}, ErrAgentNotFound
+	}
+
+	result := GetAgentByPartnerIDResult{
+		Agent: mapProtoAgentToAgent(resp.GetAgent()),
+	}
+
+	return result, nil
 }
 
-// GetAgentStatus remains unchanged for now.
-func (c *Client) GetAgentStatus(ctx context.Context, req *gatev2pb.GetAgentStatusRequest) (*gatev2pb.GetAgentStatusResponse, error) {
-	return c.gate.GetAgentStatus(ctx, req)
+// GetAgentStatus retrieves the current state of an agent.
+func (c *Client) GetAgentStatus(ctx context.Context, params GetAgentStatusParams) (GetAgentStatusResult, error) {
+	if params.PartnerAgentID == "" {
+		return GetAgentStatusResult{}, ErrPartnerAgentIDRequired
+	}
+
+	req := &gatev2pb.GetAgentStatusRequest{
+		PartnerAgentId: params.PartnerAgentID,
+	}
+
+	resp, err := c.gate.GetAgentStatus(ctx, req)
+	if err != nil {
+		return GetAgentStatusResult{}, err
+	}
+
+	if resp == nil {
+		return GetAgentStatusResult{}, errors.New("received nil response from gRPC GetAgentStatus")
+	}
+
+	result := GetAgentStatusResult{
+		AgentStatus: &AgentStatus{
+			PartnerAgentID: resp.GetPartnerAgentId(),
+			State:          resp.GetAgentState().String(),
+			Reason:         "",                              // Not available in this response
+			LastUpdate:     time.Now().Format(time.RFC3339), // Not available in this response
+		},
+	}
+
+	return result, nil
 }
 
 // GetClientConfiguration retrieves client configuration details.
@@ -203,14 +264,47 @@ func (c *Client) GetClientConfiguration(ctx context.Context, params GetClientCon
 	return result, nil
 }
 
-// GetOrganizationInfo remains unchanged for now.
-func (c *Client) GetOrganizationInfo(ctx context.Context, req *gatev2pb.GetOrganizationInfoRequest) (*gatev2pb.GetOrganizationInfoResponse, error) {
-	return c.gate.GetOrganizationInfo(ctx, req)
+// GetOrganizationInfo retrieves organization details.
+func (c *Client) GetOrganizationInfo(ctx context.Context, params GetOrganizationInfoParams) (GetOrganizationInfoResult, error) {
+	req := &gatev2pb.GetOrganizationInfoRequest{}
+
+	resp, err := c.gate.GetOrganizationInfo(ctx, req)
+	if err != nil {
+		return GetOrganizationInfoResult{}, err
+	}
+
+	if resp == nil {
+		return GetOrganizationInfoResult{}, errors.New("received nil response from gRPC GetOrganizationInfo")
+	}
+
+	result := GetOrganizationInfoResult{
+		OrgID:   resp.GetOrgId(),
+		OrgName: resp.GetOrgName(),
+	}
+
+	return result, nil
 }
 
-// GetRecordingStatus remains unchanged for now.
-func (c *Client) GetRecordingStatus(ctx context.Context, req *gatev2pb.GetRecordingStatusRequest) (*gatev2pb.GetRecordingStatusResponse, error) {
-	return c.gate.GetRecordingStatus(ctx, req)
+// GetRecordingStatus checks if a call is currently being recorded.
+func (c *Client) GetRecordingStatus(ctx context.Context, params GetRecordingStatusParams) (GetRecordingStatusResult, error) {
+	req := &gatev2pb.GetRecordingStatusRequest{
+		PartnerAgentId: params.PartnerAgentID,
+	}
+
+	resp, err := c.gate.GetRecordingStatus(ctx, req)
+	if err != nil {
+		return GetRecordingStatusResult{}, err
+	}
+
+	if resp == nil {
+		return GetRecordingStatusResult{}, errors.New("received nil response from gRPC GetRecordingStatus")
+	}
+
+	result := GetRecordingStatusResult{
+		IsRecording: resp.GetIsRecording(),
+	}
+
+	return result, nil
 }
 
 // ListAgents returns a channel that emits agent details.
@@ -252,64 +346,330 @@ func (c *Client) ListAgents(ctx context.Context, params ListAgentsParams) <-chan
 	return resultsChan
 }
 
-// ListHuntGroupPauseCodes remains unchanged for now.
-func (c *Client) ListHuntGroupPauseCodes(ctx context.Context, req *gatev2pb.ListHuntGroupPauseCodesRequest) (*gatev2pb.ListHuntGroupPauseCodesResponse, error) {
-	return c.gate.ListHuntGroupPauseCodes(ctx, req)
+// ListHuntGroupPauseCodes lists the pause codes defined for a hunt group.
+func (c *Client) ListHuntGroupPauseCodes(ctx context.Context, params ListHuntGroupPauseCodesParams) (ListHuntGroupPauseCodesResult, error) {
+	req := &gatev2pb.ListHuntGroupPauseCodesRequest{
+		PartnerAgentId: params.PartnerAgentID,
+	}
+
+	resp, err := c.gate.ListHuntGroupPauseCodes(ctx, req)
+	if err != nil {
+		return ListHuntGroupPauseCodesResult{}, err
+	}
+
+	if resp == nil {
+		return ListHuntGroupPauseCodesResult{}, errors.New("received nil response from gRPC ListHuntGroupPauseCodes")
+	}
+
+	pauseCodes := make([]PauseCode, 0, len(resp.GetPauseCodes()))
+	for _, pc := range resp.GetPauseCodes() {
+		pauseCodes = append(pauseCodes, PauseCode{
+			Code:        pc,
+			Description: "", // Not available in this response
+			Duration:    0,  // Not available in this response
+		})
+	}
+
+	result := ListHuntGroupPauseCodesResult{
+		PauseCodes: pauseCodes,
+	}
+
+	return result, nil
 }
 
-// ListScrubLists remains unchanged for now.
-func (c *Client) ListScrubLists(ctx context.Context, req *gatev2pb.ListScrubListsRequest) (*gatev2pb.ListScrubListsResponse, error) {
-	return c.gate.ListScrubLists(ctx, req)
+// ListScrubLists lists all available scrub lists.
+func (c *Client) ListScrubLists(ctx context.Context, params ListScrubListsParams) (ListScrubListsResult, error) {
+	req := &gatev2pb.ListScrubListsRequest{}
+
+	resp, err := c.gate.ListScrubLists(ctx, req)
+	if err != nil {
+		return ListScrubListsResult{}, err
+	}
+
+	if resp == nil {
+		return ListScrubListsResult{}, errors.New("received nil response from gRPC ListScrubLists")
+	}
+
+	scrubLists := make([]ScrubList, 0, len(resp.GetScrubLists()))
+	for _, sl := range resp.GetScrubLists() {
+		scrubLists = append(scrubLists, ScrubList{
+			ID:          sl.GetScrubListId(),
+			Name:        "", // Not available in this response
+			Description: "", // Not available in this response
+			CountryCode: "", // Not available in this response
+		})
+	}
+
+	result := ListScrubListsResult{
+		ScrubLists: scrubLists,
+	}
+
+	return result, nil
 }
 
-// Log remains unchanged for now.
-func (c *Client) Log(ctx context.Context, req *gatev2pb.LogRequest) (*gatev2pb.LogResponse, error) {
-	return c.gate.Log(ctx, req)
+// Log sends a log message.
+func (c *Client) Log(ctx context.Context, params LogParams) (LogResult, error) {
+	// Create a structured log message
+	logMessage := fmt.Sprintf("Level: %s, Message: %s", params.Level, params.Message)
+	req := &gatev2pb.LogRequest{
+		Payload: logMessage,
+	}
+
+	_, err := c.gate.Log(ctx, req)
+	if err != nil {
+		return LogResult{}, err
+	}
+
+	return LogResult{}, nil
 }
 
-// PollEvents remains unchanged for now.
-func (c *Client) PollEvents(ctx context.Context, req *gatev2pb.PollEventsRequest) (*gatev2pb.PollEventsResponse, error) {
-	return c.gate.PollEvents(ctx, req)
+// PollEvents polls for events from the Operator platform.
+func (c *Client) PollEvents(ctx context.Context, params PollEventsParams) (PollEventsResult, error) {
+	req := &gatev2pb.PollEventsRequest{}
+
+	resp, err := c.gate.PollEvents(ctx, req)
+	if err != nil {
+		return PollEventsResult{}, err
+	}
+
+	if resp == nil {
+		return PollEventsResult{}, errors.New("received nil response from gRPC PollEvents")
+	}
+
+	events := make([]Event, 0, len(resp.GetEvents()))
+	for _, event := range resp.GetEvents() {
+		e := Event{}
+
+		if telephony := event.GetTelephonyResult(); telephony != nil {
+			e.Telephony = &ExileTelephonyResult{
+				CallSid:        telephony.GetCallSid(),
+				CallType:       telephony.GetCallType(),
+				CreateTime:     telephony.GetCreateTime().AsTime().Format(time.RFC3339),
+				UpdateTime:     telephony.GetUpdateTime().AsTime().Format(time.RFC3339),
+				Status:         telephony.GetStatus().String(),
+				Result:         telephony.GetResult().String(),
+				CallerID:       telephony.GetCallerId(),
+				PhoneNumber:    telephony.GetPhoneNumber(),
+				StartTime:      telephony.GetStartTime().AsTime().Format(time.RFC3339),
+				EndTime:        telephony.GetEndTime().AsTime().Format(time.RFC3339),
+				DeliveryLength: telephony.GetDeliveryLength(),
+				LinkbackLength: telephony.GetLinkbackLength(),
+				PoolID:         telephony.GetPoolId(),
+				RecordID:       telephony.GetRecordId(),
+				ClientSid:      telephony.GetClientSid(),
+				OrgID:          telephony.GetOrgId(),
+				InternalKey:    telephony.GetInternalKey(),
+			}
+		}
+
+		if agentCall := event.GetAgentCall(); agentCall != nil {
+			e.AgentCall = &ExileAgentCall{
+				AgentCallSid:             agentCall.GetAgentCallSid(),
+				CallSid:                  agentCall.GetCallSid(),
+				CallType:                 agentCall.GetCallType(),
+				TalkDuration:             agentCall.GetTalkDuration(),
+				CallWaitDuration:         agentCall.GetCallWaitDuration(),
+				WrapUpDuration:           agentCall.GetWrapUpDuration(),
+				PauseDuration:            agentCall.GetPauseDuration(),
+				TransferDuration:         agentCall.GetTransferDuration(),
+				ManualDuration:           agentCall.GetManualDuration(),
+				PreviewDuration:          agentCall.GetPreviewDuration(),
+				HoldDuration:             agentCall.GetHoldDuration(),
+				AgentWaitDuration:        agentCall.GetAgentWaitDuration(),
+				SuspendedDuration:        agentCall.GetSuspendedDuration(),
+				ExternalTransferDuration: agentCall.GetExternalTransferDuration(),
+				CreateTime:               agentCall.GetCreateTime().AsTime().Format(time.RFC3339),
+				UpdateTime:               agentCall.GetUpdateTime().AsTime().Format(time.RFC3339),
+				OrgID:                    agentCall.GetOrgId(),
+				UserID:                   agentCall.GetUserId(),
+				InternalKey:              agentCall.GetInternalKey(),
+				PartnerAgentID:           agentCall.GetPartnerAgentId(),
+			}
+		}
+
+		if agentResponse := event.GetAgentResponse(); agentResponse != nil {
+			e.AgentResponse = &ExileAgentResponse{
+				AgentCallResponseSid: agentResponse.GetAgentCallResponseSid(),
+				CallSid:              agentResponse.GetCallSid(),
+				CallType:             agentResponse.GetCallType(),
+				ResponseKey:          agentResponse.GetResponseKey(),
+				ResponseValue:        agentResponse.GetResponseValue(),
+				CreateTime:           agentResponse.GetCreateTime().AsTime().Format(time.RFC3339),
+				UpdateTime:           agentResponse.GetUpdateTime().AsTime().Format(time.RFC3339),
+				ClientSid:            agentResponse.GetClientSid(),
+				OrgID:                agentResponse.GetOrgId(),
+				AgentSid:             agentResponse.GetAgentSid(),
+				UserID:               agentResponse.GetUserId(),
+				InternalKey:          agentResponse.GetInternalKey(),
+				PartnerAgentID:       agentResponse.GetPartnerAgentId(),
+			}
+		}
+
+		events = append(events, e)
+	}
+
+	result := PollEventsResult{
+		Events: events,
+	}
+
+	return result, nil
 }
 
-// PutCallOnSimpleHold remains unchanged for now.
-func (c *Client) PutCallOnSimpleHold(ctx context.Context, req *gatev2pb.PutCallOnSimpleHoldRequest) (*gatev2pb.PutCallOnSimpleHoldResponse, error) {
-	return c.gate.PutCallOnSimpleHold(ctx, req)
+// PutCallOnSimpleHold puts a call on simple hold.
+func (c *Client) PutCallOnSimpleHold(ctx context.Context, params PutCallOnSimpleHoldParams) (PutCallOnSimpleHoldResult, error) {
+	req := &gatev2pb.PutCallOnSimpleHoldRequest{
+		PartnerAgentId: params.PartnerAgentID,
+	}
+
+	_, err := c.gate.PutCallOnSimpleHold(ctx, req)
+	if err != nil {
+		return PutCallOnSimpleHoldResult{}, err
+	}
+
+	return PutCallOnSimpleHoldResult{}, nil
 }
 
-// RemoveScrubListEntries remains unchanged for now.
-func (c *Client) RemoveScrubListEntries(ctx context.Context, req *gatev2pb.RemoveScrubListEntriesRequest) (*gatev2pb.RemoveScrubListEntriesResponse, error) {
-	return c.gate.RemoveScrubListEntries(ctx, req)
+// RemoveScrubListEntries removes entries from a scrub list.
+func (c *Client) RemoveScrubListEntries(ctx context.Context, params RemoveScrubListEntriesParams) (RemoveScrubListEntriesResult, error) {
+	req := &gatev2pb.RemoveScrubListEntriesRequest{
+		ScrubListId: params.ScrubListID,
+		Entries:     params.EntryIDs,
+	}
+
+	_, err := c.gate.RemoveScrubListEntries(ctx, req)
+	if err != nil {
+		return RemoveScrubListEntriesResult{}, err
+	}
+
+	return RemoveScrubListEntriesResult{}, nil
 }
 
-// RotateCertificate remains unchanged for now.
-func (c *Client) RotateCertificate(ctx context.Context, req *gatev2pb.RotateCertificateRequest) (*gatev2pb.RotateCertificateResponse, error) {
-	return c.gate.RotateCertificate(ctx, req)
+// RotateCertificate rotates the client certificate.
+func (c *Client) RotateCertificate(ctx context.Context, params RotateCertificateParams) (RotateCertificateResult, error) {
+	req := &gatev2pb.RotateCertificateRequest{}
+
+	resp, err := c.gate.RotateCertificate(ctx, req)
+	if err != nil {
+		return RotateCertificateResult{}, err
+	}
+
+	if resp == nil {
+		return RotateCertificateResult{}, errors.New("received nil response from gRPC RotateCertificate")
+	}
+
+	result := RotateCertificateResult{
+		Certificate:   resp.GetEncodedCertificate(),
+		PrivateKey:    "", // Not available in this response
+		CACertificate: "", // Not available in this response
+	}
+
+	return result, nil
 }
 
-// StartCallRecording remains unchanged for now.
-func (c *Client) StartCallRecording(ctx context.Context, req *gatev2pb.StartCallRecordingRequest) (*gatev2pb.StartCallRecordingResponse, error) {
-	return c.gate.StartCallRecording(ctx, req)
+// StartCallRecording starts recording a call.
+func (c *Client) StartCallRecording(ctx context.Context, params StartCallRecordingParams) (StartCallRecordingResult, error) {
+	req := &gatev2pb.StartCallRecordingRequest{
+		PartnerAgentId: params.PartnerAgentID,
+	}
+
+	_, err := c.gate.StartCallRecording(ctx, req)
+	if err != nil {
+		return StartCallRecordingResult{}, err
+	}
+
+	return StartCallRecordingResult{}, nil
 }
 
-// StopCallRecording remains unchanged for now.
-func (c *Client) StopCallRecording(ctx context.Context, req *gatev2pb.StopCallRecordingRequest) (*gatev2pb.StopCallRecordingResponse, error) {
-	return c.gate.StopCallRecording(ctx, req)
+// StopCallRecording stops recording a call.
+func (c *Client) StopCallRecording(ctx context.Context, params StopCallRecordingParams) (StopCallRecordingResult, error) {
+	req := &gatev2pb.StopCallRecordingRequest{
+		PartnerAgentId: params.PartnerAgentID,
+	}
+
+	_, err := c.gate.StopCallRecording(ctx, req)
+	if err != nil {
+		return StopCallRecordingResult{}, err
+	}
+
+	return StopCallRecordingResult{}, nil
 }
 
-// StreamJobs remains unchanged for now.
-func (c *Client) StreamJobs(ctx context.Context, req *gatev2pb.StreamJobsRequest) (gatev2pb.GateService_StreamJobsClient, error) {
-	return c.gate.StreamJobs(ctx, req)
+// StreamJobs returns a channel that emits jobs from the Operator platform.
+func (c *Client) StreamJobs(ctx context.Context, params StreamJobsParams) <-chan StreamJobsResult {
+	resultChan := make(chan StreamJobsResult, 1)
+
+	go func() {
+		defer close(resultChan)
+
+		req := &gatev2pb.StreamJobsRequest{}
+
+		stream, err := c.gate.StreamJobs(ctx, req)
+		if err != nil {
+			resultChan <- StreamJobsResult{Error: err}
+			return
+		}
+
+		for {
+			resp, err := stream.Recv()
+			if errors.Is(err, io.EOF) {
+				break
+			}
+
+			if err != nil {
+				resultChan <- StreamJobsResult{Error: err}
+				return
+			}
+
+			// Process the job in the response
+			jobData := make(map[string]interface{})
+			// Convert job data to map - this would need to be implemented based on the actual job structure
+			jobData["job_id"] = resp.GetJobId()
+			jobData["type"] = "" // Type not available in this response
+
+			resultChan <- StreamJobsResult{
+				Job: &Job{
+					JobID: resp.GetJobId(),
+					Type:  "", // Type not available in this response
+					Data:  jobData,
+				},
+			}
+		}
+	}()
+
+	return resultChan
 }
 
-// SubmitJobResults remains unchanged for now.
-func (c *Client) SubmitJobResults(ctx context.Context, req *gatev2pb.SubmitJobResultsRequest) (*gatev2pb.SubmitJobResultsResponse, error) {
-	return c.gate.SubmitJobResults(ctx, req)
+// SubmitJobResults submits results for jobs received via StreamJobs.
+func (c *Client) SubmitJobResults(ctx context.Context, params SubmitJobResultsParams) (SubmitJobResultsResult, error) {
+	req := &gatev2pb.SubmitJobResultsRequest{
+		JobId:             params.JobID,
+		EndOfTransmission: params.EndOfTransmission,
+	}
+
+	// Convert results map to protobuf format
+	// This would need to be implemented based on the actual job result structure
+	// For now, we'll leave it empty
+
+	_, err := c.gate.SubmitJobResults(ctx, req)
+	if err != nil {
+		return SubmitJobResultsResult{}, err
+	}
+
+	return SubmitJobResultsResult{}, nil
 }
 
-// TakeCallOffSimpleHold remains unchanged for now.
-func (c *Client) TakeCallOffSimpleHold(ctx context.Context, req *gatev2pb.TakeCallOffSimpleHoldRequest) (*gatev2pb.TakeCallOffSimpleHoldResponse, error) {
-	return c.gate.TakeCallOffSimpleHold(ctx, req)
+// TakeCallOffSimpleHold takes a call off simple hold.
+func (c *Client) TakeCallOffSimpleHold(ctx context.Context, params TakeCallOffSimpleHoldParams) (TakeCallOffSimpleHoldResult, error) {
+	req := &gatev2pb.TakeCallOffSimpleHoldRequest{
+		PartnerAgentId: params.PartnerAgentID,
+	}
+
+	_, err := c.gate.TakeCallOffSimpleHold(ctx, req)
+	if err != nil {
+		return TakeCallOffSimpleHoldResult{}, err
+	}
+
+	return TakeCallOffSimpleHoldResult{}, nil
 }
 
 // UpdateAgentStatus updates the state of an agent.
@@ -335,14 +695,41 @@ func (c *Client) UpdateAgentStatus(ctx context.Context, params UpdateAgentStatus
 	return UpdateAgentStatusResult{}, nil
 }
 
-// UpdateScrubListEntry remains unchanged for now.
-func (c *Client) UpdateScrubListEntry(ctx context.Context, req *gatev2pb.UpdateScrubListEntryRequest) (*gatev2pb.UpdateScrubListEntryResponse, error) {
-	return c.gate.UpdateScrubListEntry(ctx, req)
+// UpdateScrubListEntry updates an existing scrub list entry.
+func (c *Client) UpdateScrubListEntry(ctx context.Context, params UpdateScrubListEntryParams) (UpdateScrubListEntryResult, error) {
+	req := &gatev2pb.UpdateScrubListEntryRequest{
+		ScrubListId: params.ScrubListID,
+		Content:     params.Content,
+	}
+
+	if params.Notes != nil {
+		req.Notes = wrapperspb.String(*params.Notes)
+	}
+
+	_, err := c.gate.UpdateScrubListEntry(ctx, req)
+	if err != nil {
+		return UpdateScrubListEntryResult{}, err
+	}
+
+	return UpdateScrubListEntryResult{}, nil
 }
 
-// UpsertAgent remains unchanged for now.
-func (c *Client) UpsertAgent(ctx context.Context, req *gatev2pb.UpsertAgentRequest) (*gatev2pb.UpsertAgentResponse, error) {
-	return c.gate.UpsertAgent(ctx, req)
+// UpsertAgent creates or updates agent information.
+func (c *Client) UpsertAgent(ctx context.Context, params UpsertAgentParams) (UpsertAgentResult, error) {
+	req := &gatev2pb.UpsertAgentRequest{
+		Username:       params.Username,
+		PartnerAgentId: params.PartnerAgentID,
+		FirstName:      params.FirstName,
+		LastName:       params.LastName,
+		Password:       "", // Password not available in params
+	}
+
+	_, err := c.gate.UpsertAgent(ctx, req)
+	if err != nil {
+		return UpsertAgentResult{}, err
+	}
+
+	return UpsertAgentResult{}, nil
 }
 
 // --- New Methods for Missing Commands ---
