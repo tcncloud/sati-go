@@ -80,7 +80,7 @@ func AddAgentCallResponseCmd(configPath *string) *cobra.Command {
 				}
 				fmt.Println(string(data))
 			} else {
-				fmt.Printf("%+v\n", resp)
+				fmt.Println("Agent call response added successfully")
 			}
 
 			return nil
