@@ -929,9 +929,8 @@ func TestClient_StatusMethods(t *testing.T) {
 		if !mockService.startCallRecordingCalled {
 			t.Error("Expected underlying StartCallRecording to be called")
 		}
-		if resp == (StartCallRecordingResult{}) {
-			t.Error("StartCallRecording did not return expected response")
-		}
+		// StartCallRecordingResult is an empty struct, so we just check it was called successfully
+		_ = resp // Acknowledge the response
 	})
 
 	t.Run("StartCallRecordingError", func(t *testing.T) {
@@ -965,9 +964,8 @@ func TestClient_StatusMethods(t *testing.T) {
 		if !mockService.stopCallRecordingCalled {
 			t.Error("Expected underlying StopCallRecording to be called")
 		}
-		if resp == (StopCallRecordingResult{}) {
-			t.Error("StopCallRecording did not return expected response")
-		}
+		// StopCallRecordingResult is an empty struct, so we just check it was called successfully
+		_ = resp // Acknowledge the response
 	})
 
 	t.Run("StopCallRecordingError", func(t *testing.T) {
@@ -1001,9 +999,8 @@ func TestClient_StatusMethods(t *testing.T) {
 		if !mockService.takeCallOffSimpleHoldCalled {
 			t.Error("Expected underlying TakeCallOffSimpleHold to be called")
 		}
-		if resp == (TakeCallOffSimpleHoldResult{}) {
-			t.Error("TakeCallOffSimpleHold did not return expected response")
-		}
+		// TakeCallOffSimpleHoldResult is an empty struct, so we just check it was called successfully
+		_ = resp // Acknowledge the response
 	})
 
 	t.Run("TakeCallOffSimpleHoldError", func(t *testing.T) {
@@ -1225,9 +1222,8 @@ func TestClient_ScrubMethods(t *testing.T) {
 		if !mockService.removeScrubListEntriesCalled {
 			t.Error("Expected underlying RemoveScrubListEntries to be called")
 		}
-		if resp == (RemoveScrubListEntriesResult{}) {
-			t.Error("RemoveScrubListEntries did not return expected response")
-		}
+		// RemoveScrubListEntriesResult is an empty struct, so we just check it was called successfully
+		_ = resp // Acknowledge the response
 	})
 
 	t.Run("RemoveScrubListEntriesError", func(t *testing.T) {
@@ -1261,9 +1257,8 @@ func TestClient_ScrubMethods(t *testing.T) {
 		if !mockService.updateScrubListEntryCalled {
 			t.Error("Expected underlying UpdateScrubListEntry to be called")
 		}
-		if resp == (UpdateScrubListEntryResult{}) {
-			t.Error("UpdateScrubListEntry did not return expected response")
-		}
+		// UpdateScrubListEntryResult is an empty struct, so we just check it was called successfully
+		_ = resp // Acknowledge the response
 	})
 
 	t.Run("UpdateScrubListEntryError", func(t *testing.T) {
@@ -1302,9 +1297,8 @@ func TestClient_OtherMethods(t *testing.T) {
 		if !mockService.rotateCertificateCalled {
 			t.Error("Expected underlying RotateCertificate to be called")
 		}
-		if resp == (RotateCertificateResult{}) {
-			t.Error("RotateCertificate did not return expected response")
-		}
+		// RotateCertificateResult is an empty struct, so we just check it was called successfully
+		_ = resp // Acknowledge the response
 	})
 
 	t.Run("RotateCertificateError", func(t *testing.T) {
@@ -1338,9 +1332,8 @@ func TestClient_OtherMethods(t *testing.T) {
 		if !mockService.submitJobResultsCalled {
 			t.Error("Expected underlying SubmitJobResults to be called")
 		}
-		if resp == (SubmitJobResultsResult{}) {
-			t.Error("SubmitJobResults did not return expected response")
-		}
+		// SubmitJobResultsResult is an empty struct, so we just check it was called successfully
+		_ = resp // Acknowledge the response
 	})
 
 	t.Run("SubmitJobResultsError", func(t *testing.T) {
