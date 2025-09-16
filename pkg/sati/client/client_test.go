@@ -1806,6 +1806,10 @@ func TestClient_StreamJobs(t *testing.T) {
 		if mockStream.recvCalled != 3 { // 2 successful, 1 EOF
 			t.Errorf("Expected mock Recv() to be called 3 times, called %d times", mockStream.recvCalled)
 		}
+
+		if !mockService.streamJobsCalled {
+			t.Error("Expected underlying StreamJobs to be called")
+		}
 	})
 
 	// Add more tests for other methods...
