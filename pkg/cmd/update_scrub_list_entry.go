@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -45,7 +46,15 @@ func UpdateScrubListEntryCmd(configPath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Printf("%+v\n", resp)
+			if OutputFormat == OutputFormatJSON {
+				data, err := json.MarshalIndent(resp, "", "  ")
+				if err != nil {
+					return err
+				}
+				fmt.Println(string(data))
+			} else {
+				fmt.Println("Scrub list entry updated successfully")
+			}
 
 			return nil
 		},

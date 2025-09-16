@@ -69,7 +69,7 @@ func UpsertAgentCmd(configPath *string) *cobra.Command {
 				}
 				fmt.Println(string(data))
 			} else {
-				fmt.Printf("%+v\n", resp)
+				fmt.Println("Agent upserted successfully")
 			}
 
 			return nil

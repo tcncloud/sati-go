@@ -42,7 +42,16 @@ func RotateCertificateCmd(configPath *string) *cobra.Command {
 				}
 				fmt.Println(string(data))
 			} else {
-				fmt.Printf("%+v\n", resp)
+				fmt.Println("Certificate rotated successfully")
+				if resp.Certificate != "" {
+					fmt.Printf("New certificate: %s\n", resp.Certificate)
+				}
+				if resp.PrivateKey != "" {
+					fmt.Printf("New private key: %s\n", resp.PrivateKey)
+				}
+				if resp.CACertificate != "" {
+					fmt.Printf("New CA certificate: %s\n", resp.CACertificate)
+				}
 			}
 
 			return nil

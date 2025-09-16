@@ -67,7 +67,7 @@ func SubmitJobResultsCmd(configPath *string) *cobra.Command {
 				}
 				fmt.Println(string(data))
 			} else {
-				fmt.Printf("%+v\n", resp)
+				fmt.Println("Job results submitted successfully")
 			}
 
 			return nil
