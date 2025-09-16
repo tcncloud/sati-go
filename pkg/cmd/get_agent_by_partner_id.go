@@ -66,7 +66,17 @@ func GetAgentByPartnerIDCmd(configPath *string) *cobra.Command {
 				}
 				fmt.Println(string(data))
 			} else {
-				fmt.Printf("%+v\n", resp)
+				if resp.Agent != nil {
+					fmt.Printf("Agent found:\n")
+					fmt.Printf("  UserID: %s\n", resp.Agent.UserID)
+					fmt.Printf("  OrgID: %s\n", resp.Agent.OrgID)
+					fmt.Printf("  Username: %s\n", resp.Agent.Username)
+					fmt.Printf("  PartnerAgentID: %s\n", resp.Agent.PartnerAgentID)
+					fmt.Printf("  FirstName: %s\n", resp.Agent.FirstName)
+					fmt.Printf("  LastName: %s\n", resp.Agent.LastName)
+				} else {
+					fmt.Println("Agent not found")
+				}
 			}
 
 			return nil
