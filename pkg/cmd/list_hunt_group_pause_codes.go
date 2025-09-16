@@ -59,7 +59,22 @@ func ListHuntGroupPauseCodesCmd(configPath *string) *cobra.Command {
 				}
 				fmt.Println(string(data))
 			} else {
-				fmt.Printf("%+v\n", resp)
+				// Human-readable text output
+				fmt.Printf("Hunt Group Pause Codes:\n")
+				if len(resp.PauseCodes) == 0 {
+					fmt.Println("  No pause codes found")
+				} else {
+					for _, pauseCode := range resp.PauseCodes {
+						fmt.Printf("  - %s", pauseCode.Code)
+						if pauseCode.Description != "" {
+							fmt.Printf(": %s", pauseCode.Description)
+						}
+						if pauseCode.Duration > 0 {
+							fmt.Printf(" (Duration: %d minutes)", pauseCode.Duration)
+						}
+						fmt.Println()
+					}
+				}
 			}
 
 			return nil
