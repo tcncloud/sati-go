@@ -39,6 +39,9 @@ type Client struct {
 	gate gatev2pb.GateServiceClient
 }
 
+// Ensure Client implements the ClientInterface interface
+var _ ClientInterface = (*Client)(nil)
+
 // NewClient creates a new Sati API client.
 // It takes the configuration and sets up the gRPC connection and client stub.
 func NewClient(cfg *saticonfig.Config) (*Client, error) {

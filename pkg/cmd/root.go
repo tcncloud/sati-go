@@ -23,7 +23,6 @@ func Execute() {
 func init() {
 	var configPath string
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "Path to base64-encoded JSON config file")
-	markFlagRequired(rootCmd, "config")
 	rootCmd.PersistentFlags().StringVarP(&OutputFormat, "output", "o", "text", "Output format: json or text")
 
 	rootCmd.AddCommand(
@@ -62,4 +61,7 @@ func init() {
 		ListSearchableRecordingFieldsCmd(&configPath),
 		TransferCmd(&configPath),
 	)
+
+	// Mark config as required after all commands are added
+	markPersistentFlagRequired(rootCmd, "config")
 }

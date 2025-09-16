@@ -91,6 +91,13 @@ func markFlagRequired(cmd *cobra.Command, flagName string) {
 	}
 }
 
+// markPersistentFlagRequired marks a persistent flag as required with error handling.
+func markPersistentFlagRequired(cmd *cobra.Command, flagName string) {
+	if err := cmd.MarkPersistentFlagRequired(flagName); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: failed to mark persistent flag %s as required: %v\n", flagName, err)
+	}
+}
+
 // outputJSON outputs data in JSON format.
 func outputJSON(data interface{}) error {
 	jsonData, err := json.MarshalIndent(data, "", "  ")
