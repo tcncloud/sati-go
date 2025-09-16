@@ -44,7 +44,24 @@ func PollEventsCmd(configPath *string) *cobra.Command {
 				}
 				fmt.Println(string(data))
 			} else {
-				fmt.Printf("%+v\n", resp)
+				fmt.Printf("Events:\n")
+				if len(resp.Events) == 0 {
+					fmt.Println("  No events found")
+				} else {
+					for i, event := range resp.Events {
+						fmt.Printf("  Event %d:\n", i+1)
+						fmt.Printf("    Type: %s\n", event.Type)
+						if event.AgentCall != nil {
+							fmt.Printf("    Agent Call: %+v\n", event.AgentCall)
+						}
+						if event.Telephony != nil {
+							fmt.Printf("    Telephony: %+v\n", event.Telephony)
+						}
+						if event.AgentResponse != nil {
+							fmt.Printf("    Agent Response: %+v\n", event.AgentResponse)
+						}
+					}
+				}
 			}
 
 			return nil
