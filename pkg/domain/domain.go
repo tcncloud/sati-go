@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/rs/zerolog"
-	"github.com/tcncloud/sati-go/pkg/ports"
+	"github.com/tcncloud/sati-go/pkg/interfaces"
 )
 
 // Domain is the main domain object for the application.
@@ -12,7 +12,7 @@ import (
 // - ConfigWatcher, it instantiate a config watcher that notify the application when config file is present and/or updated.
 type Domain struct {
 	log           *zerolog.Logger
-	configWatcher ports.ConfigWatcher
+	configWatcher interfaces.ConfigWatcher
 }
 
 func NewDomain(log *zerolog.Logger) *Domain {
@@ -22,7 +22,7 @@ func NewDomain(log *zerolog.Logger) *Domain {
 }
 
 // SetConfigWatcher sets the configuration watcher for the domain.
-func (d *Domain) SetConfigWatcher(watcher ports.ConfigWatcher) {
+func (d *Domain) SetConfigWatcher(watcher interfaces.ConfigWatcher) {
 	d.configWatcher = watcher
 }
 

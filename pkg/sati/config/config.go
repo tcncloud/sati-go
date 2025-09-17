@@ -115,7 +115,7 @@ func NewConfigFromString(configString string) (*Config, error) {
 type ConfigLoaderFunc func(path string) error
 
 // ConfigWatcher manages file watching for configuration changes.
-// It implements the ports.ConfigWatcher interface.
+// It implements the interfaces.ConfigWatcher interface.
 type ConfigWatcher struct {
 	watcher     *fsnotify.Watcher
 	mu          sync.RWMutex

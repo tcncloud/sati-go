@@ -57,7 +57,7 @@ const (
 )
 
 // createClient creates a new client with proper error handling.
-func createClient(configPath *string) (*saticlient.Client, error) {
+func createClient(configPath *string) (saticlient.ClientInterface, error) {
 	cfg, err := saticonfig.LoadConfig(*configPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)
@@ -77,7 +77,7 @@ func createContext(timeout time.Duration) (context.Context, context.CancelFunc) 
 }
 
 // handleClientClose handles client.Close() with error checking.
-func handleClientClose(client *saticlient.Client) {
+func handleClientClose(client saticlient.ClientInterface) {
 	if err := client.Close(); err != nil {
 		// Log error but don't fail the command
 		fmt.Fprintf(os.Stderr, "Warning: failed to close client: %v\n", err)
@@ -111,7 +111,7 @@ func outputJSON(data interface{}) error {
 }
 
 // createSkillCommand creates a skill command with common setup.
-func createSkillCommand(use, short string, configPath *string, partnerAgentID, skillID *string, operation func(*saticlient.Client, context.Context, saticlient.AssignAgentSkillParams) error, successMsg string) *cobra.Command {
+func createSkillCommand(use, short string, configPath *string, partnerAgentID, skillID *string, operation func(saticlient.ClientInterface, context.Context, saticlient.AssignAgentSkillParams) error, successMsg string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   use,
 		Short: short,

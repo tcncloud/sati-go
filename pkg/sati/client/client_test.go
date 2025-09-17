@@ -500,7 +500,7 @@ func TestClient_Close(t *testing.T) {
 }
 
 // setupTestClient creates a test client with mock service.
-func setupTestClient() (*Client, *mockGateServiceClient) {
+func setupTestClient() (ClientInterface, *mockGateServiceClient) {
 	mockService := &mockGateServiceClient{}
 	client := &Client{
 		conn: (*grpc.ClientConn)(nil), // Connection not used in these tests

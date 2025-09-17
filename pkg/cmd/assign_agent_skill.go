@@ -31,7 +31,7 @@ func AssignAgentSkillCmd(configPath *string) *cobra.Command {
 		configPath,
 		&partnerAgentID,
 		&skillID,
-		func(client *saticlient.Client, ctx context.Context, params saticlient.AssignAgentSkillParams) error {
+		func(client saticlient.ClientInterface, ctx context.Context, params saticlient.AssignAgentSkillParams) error {
 			_, err := client.AssignAgentSkill(ctx, params)
 			if err != nil {
 				return fmt.Errorf("failed to assign skill: %w", err)

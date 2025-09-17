@@ -18,7 +18,7 @@ package domain
 import (
 	"context"
 
-	"github.com/tcncloud/sati-go/pkg/ports"
+	"github.com/tcncloud/sati-go/pkg/interfaces"
 	"go.uber.org/fx"
 )
 
@@ -48,7 +48,7 @@ var Module = fx.Module("domain",
 	}),
 
 	// Provide a function to set the config watcher
-	fx.Provide(func(d *Domain) func(ports.ConfigWatcher) {
+	fx.Provide(func(d *Domain) func(interfaces.ConfigWatcher) {
 		return d.SetConfigWatcher
 	}),
 

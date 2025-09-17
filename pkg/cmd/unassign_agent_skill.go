@@ -31,7 +31,7 @@ func UnassignAgentSkillCmd(configPath *string) *cobra.Command {
 		configPath,
 		&partnerAgentID,
 		&skillID,
-		func(client *saticlient.Client, ctx context.Context, params saticlient.AssignAgentSkillParams) error {
+		func(client saticlient.ClientInterface, ctx context.Context, params saticlient.AssignAgentSkillParams) error {
 			// Convert to UnassignAgentSkillParams
 			unassignParams := saticlient.UnassignAgentSkillParams(params)
 
