@@ -78,7 +78,17 @@ Domain → Ports ← Adapters
 
 ### Ports Module Structure
 ```go
-// pkg/ports/config.go
+// pkg/ports/interface.go - Client interface
+package ports
+
+type ClientInterface interface {
+    Close() error
+    AddAgentCallResponse(ctx context.Context, params AddAgentCallResponseParams) (AddAgentCallResponseResult, error)
+    GetAgentByID(ctx context.Context, params GetAgentByIDParams) (GetAgentByIDResult, error)
+    // ... other client methods
+}
+
+// pkg/ports/config.go - Configuration interfaces
 package ports
 
 type ConfigWatcher interface {
@@ -91,6 +101,19 @@ type ConfigLoader interface {
     LoadConfig(path string) (interface{}, error)
     LoadConfigFromString(configString string) (interface{}, error)
 }
+
+// pkg/ports/types.go - All custom types and parameters
+package ports
+
+type AddAgentCallResponseParams struct {
+    PartnerAgentID string
+    CallSid        int64
+    ResponseKey    string
+    ResponseValue  string
+    AgentSid       int64
+}
+
+type AddAgentCallResponseResult struct{}
 ```
 
 ### Domain Module Structure
@@ -115,7 +138,28 @@ func (d *Domain) SetConfigWatcher(watcher ports.ConfigWatcher) {
 
 ### Adapter Module Structure
 ```go
-// pkg/sati/config/config.go
+// pkg/sati/client/client.go - Client implementation
+package client
+
+import "github.com/tcncloud/sati-go/pkg/ports"
+
+type Client struct {
+    conn *grpc.ClientConn
+    gate gatev2pb.GateServiceClient
+}
+
+// Ensure interface compliance
+var _ ports.ClientInterface = (*Client)(nil)
+
+func NewClient(cfg *saticonfig.Config) (*Client, error) {
+    // implementation
+}
+
+func (c *Client) AddAgentCallResponse(ctx context.Context, params ports.AddAgentCallResponseParams) (ports.AddAgentCallResponseResult, error) {
+    // implementation
+}
+
+// pkg/sati/config/config.go - Config implementation
 package config
 
 import "github.com/tcncloud/sati-go/pkg/ports"
@@ -187,6 +231,27 @@ type ConfigManager interface {
 - Use error wrapping to maintain error chain
 - See [go-best-practices.mdc](mdc:.cursor/rules/go-best-practices.mdc) for detailed error handling patterns
 
+## Current Project Structure
+
+### Ports Package (`pkg/ports/`)
+- **`interface.go`**: Contains `ClientInterface` with all client method signatures
+- **`types.go`**: Contains all custom parameter and result types (`XxxParams`, `XxxResult`)
+- **`config.go`**: Contains `ConfigWatcher` and `ConfigLoader` interfaces
+- **`doc.go`**: Package documentation
+
+### Adapters Package (`pkg/sati/`)
+- **`client/`**: gRPC client implementation
+  - **`client.go`**: Concrete `Client` struct implementing `ports.ClientInterface`
+  - **`client_test.go`**: Unit tests for client methods
+- **`config/`**: Configuration management implementation
+  - **`config.go`**: Concrete implementations of config interfaces
+  - **`module.go`**: FX module definitions
+
+### Command Package (`pkg/cmd/`)
+- All CLI commands use `saticlient.NewClient(cfg)` to create clients
+- All commands use `ports.XxxParams` and `ports.XxxResult` for types
+- Commands depend on `ports.ClientInterface` for abstraction
+
 ## Best Practices
 
 ### Layer Responsibilities
@@ -205,6 +270,18 @@ type ConfigManager interface {
 - Avoid circular dependencies
 - Keep domain pure (no external dependencies)
 - Use interfaces for all external dependencies
+
+### Type Organization
+- All custom types go in `pkg/ports/types.go`
+- Use `XxxParams` for method parameters
+- Use `XxxResult` for method return values
+- Keep types focused and single-purpose
+
+### Client Implementation
+- Concrete client in `pkg/sati/client/`
+- Interface defined in `pkg/ports/interface.go`
+- All methods use ports types for parameters and results
+- Ensure interface compliance with `var _ ports.ClientInterface = (*Client)(nil)`
 
 ### Testing Strategy
 - Test domain with mocks

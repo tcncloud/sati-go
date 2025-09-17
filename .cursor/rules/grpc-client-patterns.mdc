@@ -96,10 +96,62 @@ for result := range resultsChan {
 ```
 
 ## Type Definitions
-- Custom parameter types in [types.go](mdc:pkg/sati/client/types.go)
+- Custom parameter types in [types.go](mdc:pkg/ports/types.go)
 - Use pointers for optional fields
 - Follow Go naming conventions (e.g., `GetAgentByID` not `GetAgentById`)
 - Use descriptive type names that clearly indicate their purpose
+- All types are in the `ports` package following clean architecture
+
+## Current Implementation Patterns
+
+### Client Interface Usage
+```go
+// Commands use ports.ClientInterface for abstraction
+func SomeCommand(configPath *string) *cobra.Command {
+    cmd := &cobra.Command{
+        RunE: func(cmd *cobra.Command, args []string) error {
+            // Create client using helper function
+            client, err := createClient(configPath)
+            if err != nil {
+                return err
+            }
+            defer handleClientClose(client)
+            
+            // Use ports types for parameters
+            params := ports.SomeParams{
+                Field1: value1,
+                Field2: value2,
+            }
+            
+            // Call client method
+            result, err := client.SomeMethod(ctx, params)
+            if err != nil {
+                return err
+            }
+            
+            // Handle result
+            return nil
+        },
+    }
+    return cmd
+}
+```
+
+### Type Usage
+- **Parameters**: Always use `ports.XxxParams` types
+- **Results**: Always use `ports.XxxResult` types
+- **Client Creation**: Use `saticlient.NewClient(cfg)` (concrete implementation)
+- **Interface**: Use `ports.ClientInterface` for abstraction
+
+### Import Structure
+```go
+import (
+    "github.com/spf13/cobra"
+    "github.com/tcncloud/sati-go/pkg/ports"           // For types and interfaces
+    saticlient "github.com/tcncloud/sati-go/pkg/sati/client"  // For concrete client
+    saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"   // For config
+)
+```
 
 ## Testing Patterns
 - Use `setupTestClient()` for consistent test setup

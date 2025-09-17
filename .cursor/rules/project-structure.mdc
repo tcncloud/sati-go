@@ -18,13 +18,14 @@ sati-go/
 │   ├── domain/               # Domain layer (business logic)
 │   │   ├── domain.go         # Main domain entity
 │   │   └── module.go         # FX module definition
-│   ├── ports/                # Port interfaces
+│   ├── ports/                # Port interfaces and types
+│   │   ├── interface.go      # Client interface definition
+│   │   ├── types.go          # All custom types and parameters
 │   │   ├── config.go         # Configuration interfaces
 │   │   └── doc.go            # Package documentation
 │   └── sati/                 # Infrastructure adapters
 │       ├── client/           # gRPC client wrapper
 │       │   ├── client.go     # Core client implementation
-│       │   ├── types.go      # Client-specific types
 │       │   └── client_test.go # Client tests
 │       └── config/           # Configuration management
 │           ├── config.go     # Configuration implementation
@@ -38,7 +39,8 @@ sati-go/
 - [root.go](mdc:pkg/cmd/root.go) - Cobra root command and subcommand registration
 - [common.go](mdc:pkg/cmd/common.go) - Shared utilities, constants, and helper functions
 - [client.go](mdc:pkg/sati/client/client.go) - Core gRPC client implementation
-- [types.go](mdc:pkg/sati/client/types.go) - Client-side type definitions
+- [interface.go](mdc:pkg/ports/interface.go) - Client interface definition
+- [types.go](mdc:pkg/ports/types.go) - All custom types and parameters
 
 ## Architecture Patterns
 
@@ -51,9 +53,13 @@ The project follows hexagonal architecture with clear separation of concerns:
 - **Files**: `domain.go` (main entity), `module.go` (FX module)
 
 #### Ports Layer (`pkg/ports/`)
-- **Purpose**: Define interfaces that the application depends on
+- **Purpose**: Define interfaces and types that the application depends on
 - **Pattern**: Pure interfaces with no implementation details
-- **Files**: `config.go` (configuration interfaces), `doc.go` (documentation)
+- **Files**: 
+  - `interface.go` (client interface definition)
+  - `types.go` (all custom types and parameters)
+  - `config.go` (configuration interfaces)
+  - `doc.go` (package documentation)
 
 #### Adapters Layer (`pkg/sati/`)
 - **Purpose**: Implements ports interfaces with concrete implementations
@@ -71,7 +77,8 @@ The project follows hexagonal architecture with clear separation of concerns:
 
 ### Client Layer
 - [client.go](mdc:pkg/sati/client/client.go) wraps the gRPC client with custom types
-- Custom parameter and result types defined in [types.go](mdc:pkg/sati/client/types.go)
+- Implements [ClientInterface](mdc:pkg/ports/interface.go) defined in ports package
+- Custom parameter and result types defined in [types.go](mdc:pkg/ports/types.go)
 - Error handling with static error constants
 - Proper connection management with `handleClientClose()`
 
@@ -79,6 +86,21 @@ The project follows hexagonal architecture with clear separation of concerns:
 - Configuration loaded from base64-encoded JSON files
 - TLS settings with minimum version requirements
 - mTLS authentication for gRPC connections
+
+## Current Implementation Status
+
+### ✅ Completed Refactoring
+- **Clean Architecture**: Successfully implemented with proper layer separation
+- **Type Organization**: All custom types moved to `pkg/ports/types.go`
+- **Interface Definition**: `ClientInterface` defined in `pkg/ports/interface.go`
+- **Command Updates**: All CLI commands updated to use ports types
+- **Build Status**: Project builds successfully with no errors
+
+### Architecture Benefits
+- **Testability**: Easy to mock `ClientInterface` for testing
+- **Maintainability**: Clear separation of concerns
+- **Flexibility**: Can swap implementations without changing business logic
+- **Type Safety**: All types centralized in ports package
 
 ## Code Organization Principles
 - **Dependency Inversion**: Dependencies point inward toward the domain
