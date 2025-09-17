@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -49,7 +50,7 @@ func GetVoiceRecordingDownloadLinkCmd(configPath *string) *cobra.Command {
 			defer cancel()
 
 			// Build the custom Params struct
-			params := saticlient.GetVoiceRecordingDownloadLinkParams{RecordingSid: recordingSid}
+			params := ports.GetVoiceRecordingDownloadLinkParams{RecordingSid: recordingSid}
 
 			// Call the client method with custom Params
 			resp, err := client.GetVoiceRecordingDownloadLink(ctx, params)

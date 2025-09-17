@@ -21,6 +21,7 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -61,7 +62,7 @@ func AddAgentCallResponseCmd(configPath *string) *cobra.Command {
 				return fmt.Errorf("invalid call SID: %w", err)
 			}
 
-			params := saticlient.AddAgentCallResponseParams{
+			params := ports.AddAgentCallResponseParams{
 				PartnerAgentID: partnerAgentID,
 				CallSid:        callSidInt,
 				ResponseKey:    key,

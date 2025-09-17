@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
@@ -54,7 +55,7 @@ func UpdateAgentStatusCmd(configPath *string) *cobra.Command {
 			defer cancel()
 
 			// Build the custom Params struct
-			params := saticlient.UpdateAgentStatusParams{
+			params := ports.UpdateAgentStatusParams{
 				PartnerAgentID: partnerAgentID,
 				NewState:       gatev2.AgentState(newStateEnum),
 			}

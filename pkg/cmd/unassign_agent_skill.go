@@ -19,7 +19,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
+	"github.com/tcncloud/sati-go/pkg/ports"
 )
 
 func UnassignAgentSkillCmd(configPath *string) *cobra.Command {
@@ -31,9 +31,9 @@ func UnassignAgentSkillCmd(configPath *string) *cobra.Command {
 		configPath,
 		&partnerAgentID,
 		&skillID,
-		func(client saticlient.ClientInterface, ctx context.Context, params saticlient.AssignAgentSkillParams) error {
+		func(client ports.ClientInterface, ctx context.Context, params ports.AssignAgentSkillParams) error {
 			// Convert to UnassignAgentSkillParams
-			unassignParams := saticlient.UnassignAgentSkillParams(params)
+			unassignParams := ports.UnassignAgentSkillParams(params)
 
 			_, err := client.UnassignAgentSkill(ctx, unassignParams)
 			if err != nil {

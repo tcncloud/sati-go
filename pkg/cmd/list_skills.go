@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
+	"github.com/tcncloud/sati-go/pkg/ports"
 )
 
 func ListSkillsCmd(configPath *string) *cobra.Command {
@@ -35,7 +35,7 @@ func ListSkillsCmd(configPath *string) *cobra.Command {
 			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			params := saticlient.ListSkillsParams{}
+			params := ports.ListSkillsParams{}
 			resp, err := client.ListSkills(ctx, params)
 			if err != nil {
 				return fmt.Errorf("failed to list skills: %w", err)

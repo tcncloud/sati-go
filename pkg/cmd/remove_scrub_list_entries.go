@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -41,7 +42,7 @@ func RemoveScrubListEntriesCmd(configPath *string) *cobra.Command {
 					}
 				}
 			}
-			params := saticlient.RemoveScrubListEntriesParams{
+			params := ports.RemoveScrubListEntriesParams{
 				ScrubListID: scrubListID,
 				EntryIDs:    entriesList,
 			}

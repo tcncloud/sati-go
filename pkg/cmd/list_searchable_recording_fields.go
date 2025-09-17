@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
+	"github.com/tcncloud/sati-go/pkg/ports"
 )
 
 func ListSearchableRecordingFieldsCmd(configPath *string) *cobra.Command {
@@ -35,7 +35,7 @@ func ListSearchableRecordingFieldsCmd(configPath *string) *cobra.Command {
 			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			params := saticlient.ListSearchableRecordingFieldsParams{}
+			params := ports.ListSearchableRecordingFieldsParams{}
 			resp, err := client.ListSearchableRecordingFields(ctx, params)
 			if err != nil {
 				return fmt.Errorf("failed to list searchable recording fields: %w", err)

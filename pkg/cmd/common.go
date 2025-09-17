@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -57,7 +58,7 @@ const (
 )
 
 // createClient creates a new client with proper error handling.
-func createClient(configPath *string) (saticlient.ClientInterface, error) {
+func createClient(configPath *string) (ports.ClientInterface, error) {
 	cfg, err := saticonfig.LoadConfig(*configPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)
@@ -77,7 +78,7 @@ func createContext(timeout time.Duration) (context.Context, context.CancelFunc) 
 }
 
 // handleClientClose handles client.Close() with error checking.
-func handleClientClose(client saticlient.ClientInterface) {
+func handleClientClose(client ports.ClientInterface) {
 	if err := client.Close(); err != nil {
 		// Log error but don't fail the command
 		fmt.Fprintf(os.Stderr, "Warning: failed to close client: %v\n", err)
@@ -111,7 +112,7 @@ func outputJSON(data interface{}) error {
 }
 
 // createSkillCommand creates a skill command with common setup.
-func createSkillCommand(use, short string, configPath *string, partnerAgentID, skillID *string, operation func(saticlient.ClientInterface, context.Context, saticlient.AssignAgentSkillParams) error, successMsg string) *cobra.Command {
+func createSkillCommand(use, short string, configPath *string, partnerAgentID, skillID *string, operation func(ports.ClientInterface, context.Context, ports.AssignAgentSkillParams) error, successMsg string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   use,
 		Short: short,
@@ -132,7 +133,7 @@ func createSkillCommand(use, short string, configPath *string, partnerAgentID, s
 			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			params := saticlient.AssignAgentSkillParams{
+			params := ports.AssignAgentSkillParams{
 				PartnerAgentID: *partnerAgentID,
 				SkillID:        *skillID,
 			}

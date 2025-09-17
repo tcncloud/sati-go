@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -45,12 +46,12 @@ func ListAgentsCmd(configPath *string) *cobra.Command {
 			defer cancel()
 
 			// Build the custom Params struct (empty)
-			params := saticlient.ListAgentsParams{}
+			params := ports.ListAgentsParams{}
 
 			// Call the client stream method - returns a channel
 			resultsChan := client.ListAgents(ctx, params)
 
-			var agents []*saticlient.Agent // Store results from channel
+			var agents []*ports.Agent // Store results from channel
 			for result := range resultsChan {
 				if result.Error != nil {
 					// Handle potential errors during streaming

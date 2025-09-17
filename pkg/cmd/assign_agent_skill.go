@@ -19,7 +19,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
+	"github.com/tcncloud/sati-go/pkg/ports"
 )
 
 func AssignAgentSkillCmd(configPath *string) *cobra.Command {
@@ -31,7 +31,7 @@ func AssignAgentSkillCmd(configPath *string) *cobra.Command {
 		configPath,
 		&partnerAgentID,
 		&skillID,
-		func(client saticlient.ClientInterface, ctx context.Context, params saticlient.AssignAgentSkillParams) error {
+		func(client ports.ClientInterface, ctx context.Context, params ports.AssignAgentSkillParams) error {
 			_, err := client.AssignAgentSkill(ctx, params)
 			if err != nil {
 				return fmt.Errorf("failed to assign skill: %w", err)

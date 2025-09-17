@@ -19,13 +19,14 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
 
 // buildSearchParams builds the search parameters from command flags.
-func buildSearchParams(startDate, endDate, agentID, callSid, recordingSid, searchQuery, pageToken string, pageSize int32, searchFields []string) saticlient.SearchVoiceRecordingsParams {
-	params := saticlient.SearchVoiceRecordingsParams{
+func buildSearchParams(startDate, endDate, agentID, callSid, recordingSid, searchQuery, pageToken string, pageSize int32, searchFields []string) ports.SearchVoiceRecordingsParams {
+	params := ports.SearchVoiceRecordingsParams{
 		SearchFields: searchFields,
 	}
 
@@ -65,7 +66,7 @@ func buildSearchParams(startDate, endDate, agentID, callSid, recordingSid, searc
 }
 
 // processSearchResults processes the search results and outputs them.
-func processSearchResults(recordings []*saticlient.VoiceRecording) error {
+func processSearchResults(recordings []*ports.VoiceRecording) error {
 	if OutputFormat == OutputFormatJSON {
 		data, err := json.MarshalIndent(recordings, "", "  ")
 		if err != nil {
@@ -118,7 +119,7 @@ func SearchVoiceRecordingsCmd(configPath *string) *cobra.Command {
 
 			resultsChan := client.SearchVoiceRecordings(ctx, params)
 
-			var recordings []*saticlient.VoiceRecording
+			var recordings []*ports.VoiceRecording
 			for result := range resultsChan {
 				if result.Error != nil {
 					return fmt.Errorf("error searching recordings: %w", result.Error)

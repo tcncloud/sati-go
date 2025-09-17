@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -32,7 +33,7 @@ func GetRecordingStatusCmd(configPath *string) *cobra.Command {
 			defer cancel()
 
 			// Build the params struct
-			params := saticlient.GetRecordingStatusParams{
+			params := ports.GetRecordingStatusParams{
 				PartnerAgentID: partnerAgentID,
 			}
 

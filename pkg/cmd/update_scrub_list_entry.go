@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -32,7 +33,7 @@ func UpdateScrubListEntryCmd(configPath *string) *cobra.Command {
 			defer cancel()
 
 			// Build the params struct
-			params := saticlient.UpdateScrubListEntryParams{
+			params := ports.UpdateScrubListEntryParams{
 				ScrubListID: scrubListID,
 				Content:     content,
 			}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -30,7 +31,7 @@ func PutCallOnSimpleHoldCmd(configPath *string) *cobra.Command {
 			ctx, cancel := createContext(DefaultTimeout)
 			defer cancel()
 
-			params := saticlient.PutCallOnSimpleHoldParams{
+			params := ports.PutCallOnSimpleHoldParams{
 				PartnerAgentID: partnerAgentID,
 			}
 			resp, err := client.PutCallOnSimpleHold(ctx, params)

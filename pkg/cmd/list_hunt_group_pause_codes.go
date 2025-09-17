@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -45,7 +46,7 @@ func ListHuntGroupPauseCodesCmd(configPath *string) *cobra.Command {
 			defer cancel()
 
 			// Build the params struct
-			params := saticlient.ListHuntGroupPauseCodesParams{}
+			params := ports.ListHuntGroupPauseCodesParams{}
 
 			// Call the client method
 			resp, err := client.ListHuntGroupPauseCodes(ctx, params)

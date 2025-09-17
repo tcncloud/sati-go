@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -30,7 +31,7 @@ func StartCallRecordingCmd(configPath *string) *cobra.Command {
 			defer cancel()
 
 			// Build the params struct
-			params := saticlient.StartCallRecordingParams{}
+			params := ports.StartCallRecordingParams{}
 
 			// Call the client method
 			resp, err := client.StartCallRecording(ctx, params)

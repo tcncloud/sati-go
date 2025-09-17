@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -45,7 +46,7 @@ func StreamJobsCmd(configPath *string) *cobra.Command {
 			defer cancel()
 
 			// Build the params struct
-			params := saticlient.StreamJobsParams{}
+			params := ports.StreamJobsParams{}
 
 			// Call the client stream method
 			jobChan := client.StreamJobs(ctx, params)

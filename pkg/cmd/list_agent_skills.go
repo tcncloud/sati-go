@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -49,7 +50,7 @@ func ListAgentSkillsCmd(configPath *string) *cobra.Command {
 			defer cancel()
 
 			// Build the custom Params struct
-			params := saticlient.ListAgentSkillsParams{PartnerAgentID: partnerAgentID}
+			params := ports.ListAgentSkillsParams{PartnerAgentID: partnerAgentID}
 
 			// Call the client method with custom Params
 			resp, err := client.ListAgentSkills(ctx, params)

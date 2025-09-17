@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -62,7 +63,7 @@ func TransferCmd(configPath *string) *cobra.Command {
 			defer cancel()
 
 			// Build the custom Params struct
-			params := saticlient.TransferParams{
+			params := ports.TransferParams{
 				CallSid: callSid,
 			}
 
@@ -71,7 +72,7 @@ func TransferCmd(configPath *string) *cobra.Command {
 			}
 
 			if outboundPhoneNumber != "" {
-				outbound := &saticlient.TransferOutbound{
+				outbound := &ports.TransferOutbound{
 					PhoneNumber: outboundPhoneNumber,
 				}
 				if outboundCallerID != "" {
@@ -87,7 +88,7 @@ func TransferCmd(configPath *string) *cobra.Command {
 			}
 
 			if queueID != "" {
-				params.Queue = &saticlient.TransferQueue{
+				params.Queue = &ports.TransferQueue{
 					QueueID: queueID,
 				}
 			}

@@ -28,7 +28,14 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/rs/zerolog/log"
+	"github.com/tcncloud/sati-go/pkg/ports"
 )
+
+// Ensure ConfigWatcher implements the ports.ConfigWatcher interface
+var _ ports.ConfigWatcher = (*ConfigWatcher)(nil)
+
+// Ensure configLoader implements the ports.ConfigLoader interface
+var _ ports.ConfigLoader = (*configLoader)(nil)
 
 // Error constants for configuration operations.
 var (
@@ -115,7 +122,7 @@ func NewConfigFromString(configString string) (*Config, error) {
 type ConfigLoaderFunc func(path string) error
 
 // ConfigWatcher manages file watching for configuration changes.
-// It implements the interfaces.ConfigWatcher interface.
+// It implements the ports.ConfigWatcher interface.
 type ConfigWatcher struct {
 	watcher     *fsnotify.Watcher
 	mu          sync.RWMutex

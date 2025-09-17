@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	gatev2 "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -500,7 +501,7 @@ func TestClient_Close(t *testing.T) {
 }
 
 // setupTestClient creates a test client with mock service.
-func setupTestClient() (ClientInterface, *mockGateServiceClient) {
+func setupTestClient() (ports.ClientInterface, *mockGateServiceClient) {
 	mockService := &mockGateServiceClient{}
 	client := &Client{
 		conn: (*grpc.ClientConn)(nil), // Connection not used in these tests
@@ -519,7 +520,7 @@ func TestClient_AgentMethods(t *testing.T) {
 		mockService.addAgentCallResponseCalled = false // Reset
 		mockService.addAgentCallResponseResp = &gatev2.AddAgentCallResponseResponse{}
 		mockService.addAgentCallResponseErr = nil
-		params := AddAgentCallResponseParams{
+		params := ports.AddAgentCallResponseParams{
 			PartnerAgentID: "agent1",
 			CallSid:        12345,
 			ResponseKey:    "key",
@@ -546,9 +547,9 @@ func TestClient_AgentMethods(t *testing.T) {
 		mockService.addScrubListEntriesResp = nil
 		mockService.addScrubListEntriesErr = errors.New("mock add scrub error")
 		// Use the custom Params struct
-		params := AddScrubListEntriesParams{
+		params := ports.AddScrubListEntriesParams{
 			ScrubListID: "list1",
-			Entries:     []ScrubListEntryInput{{Content: "c1"}}, // Need at least one entry
+			Entries:     []ports.ScrubListEntryInput{{Content: "c1"}}, // Need at least one entry
 		}
 
 		_, err := client.AddScrubListEntries(ctx, params)
@@ -568,7 +569,7 @@ func TestClient_AgentMethods(t *testing.T) {
 		mockService.getAgentByIDResp = &gatev2.GetAgentByIdResponse{Agent: &gatev2.Agent{UserId: "agent-xyz", FirstName: "Test"}}
 		mockService.getAgentByIDErr = nil
 		// Use the custom Params struct
-		params := GetAgentByIDParams{UserID: "agent-xyz"}
+		params := ports.GetAgentByIDParams{UserID: "agent-xyz"}
 
 		resp, err := client.GetAgentByID(ctx, params)
 		if err != nil {
@@ -589,7 +590,7 @@ func TestClient_AgentMethods(t *testing.T) {
 		mockService.getAgentByIDResp = nil
 		mockService.getAgentByIDErr = errors.New("agent not found")
 		// Use the custom Params struct
-		params := GetAgentByIDParams{UserID: "unknown"}
+		params := ports.GetAgentByIDParams{UserID: "unknown"}
 
 		_, err := client.GetAgentByID(ctx, params)
 		if err == nil {
@@ -612,7 +613,7 @@ func TestClient_DialMethods(t *testing.T) {
 		mockService.dialResp = &gatev2.DialResponse{CallSid: "CS123"}
 		mockService.dialErr = nil
 		// Use the custom Params struct
-		params := DialParams{PartnerAgentID: "ag1", PhoneNumber: "555-1212"}
+		params := ports.DialParams{PartnerAgentID: "ag1", PhoneNumber: "555-1212"}
 
 		resp, err := client.Dial(ctx, params)
 		if err != nil {
@@ -634,7 +635,7 @@ func TestClient_DialMethods(t *testing.T) {
 		mockService.getAgentByPartnerIDCalled = false // Reset
 		mockService.getAgentByPartnerIDResp = &gatev2.GetAgentByPartnerIdResponse{Agent: &gatev2.Agent{UserId: "agent-xyz", FirstName: "Test"}}
 		mockService.getAgentByPartnerIDErr = nil
-		params := GetAgentByPartnerIDParams{PartnerAgentID: "agent-xyz"}
+		params := ports.GetAgentByPartnerIDParams{PartnerAgentID: "agent-xyz"}
 
 		resp, err := client.GetAgentByPartnerID(ctx, params)
 		if err != nil {
@@ -653,7 +654,7 @@ func TestClient_DialMethods(t *testing.T) {
 		mockService.getAgentByPartnerIDCalled = false // Reset
 		mockService.getAgentByPartnerIDResp = nil
 		mockService.getAgentByPartnerIDErr = errors.New("agent not found")
-		params := GetAgentByPartnerIDParams{PartnerAgentID: "unknown"}
+		params := ports.GetAgentByPartnerIDParams{PartnerAgentID: "unknown"}
 
 		_, err := client.GetAgentByPartnerID(ctx, params)
 		if err == nil {
@@ -670,7 +671,7 @@ func TestClient_DialMethods(t *testing.T) {
 		mockService.getAgentStatusCalled = false // Reset
 		mockService.getAgentStatusResp = &gatev2.GetAgentStatusResponse{PartnerAgentId: "agent-xyz", AgentState: gatev2.AgentState_AGENT_STATE_READY}
 		mockService.getAgentStatusErr = nil
-		params := GetAgentStatusParams{PartnerAgentID: "agent-xyz"}
+		params := ports.GetAgentStatusParams{PartnerAgentID: "agent-xyz"}
 
 		resp, err := client.GetAgentStatus(ctx, params)
 		if err != nil {
@@ -688,7 +689,7 @@ func TestClient_DialMethods(t *testing.T) {
 		mockService.getAgentStatusCalled = false // Reset
 		mockService.getAgentStatusResp = nil
 		mockService.getAgentStatusErr = errors.New("agent not found")
-		params := GetAgentStatusParams{PartnerAgentID: "unknown"}
+		params := ports.GetAgentStatusParams{PartnerAgentID: "unknown"}
 
 		_, err := client.GetAgentStatus(ctx, params)
 		if err == nil {
@@ -711,7 +712,7 @@ func TestClient_ConfigurationMethods(t *testing.T) {
 		mockService.getClientConfigurationResp = &gatev2.GetClientConfigurationResponse{OrgId: "org1", ConfigName: "default"}
 		mockService.getClientConfigurationErr = nil
 		// Use the custom Params struct
-		params := GetClientConfigurationParams{}
+		params := ports.GetClientConfigurationParams{}
 
 		resp, err := client.GetClientConfiguration(ctx, params)
 		if err != nil {
@@ -732,7 +733,7 @@ func TestClient_ConfigurationMethods(t *testing.T) {
 		mockService.pollEventsCalled = false // Reset
 		mockService.pollEventsResp = &gatev2.PollEventsResponse{Events: []*gatev2.Event{{}}}
 		mockService.pollEventsErr = nil
-		params := PollEventsParams{}
+		params := ports.PollEventsParams{}
 
 		_, err := client.PollEvents(ctx, params)
 		if err != nil {
@@ -752,7 +753,7 @@ func TestClient_ConfigurationMethods(t *testing.T) {
 		mockService.getOrganizationInfoCalled = false // Reset
 		mockService.getOrganizationInfoResp = &gatev2.GetOrganizationInfoResponse{OrgId: "org123"}
 		mockService.getOrganizationInfoErr = nil
-		params := GetOrganizationInfoParams{}
+		params := ports.GetOrganizationInfoParams{}
 
 		resp, err := client.GetOrganizationInfo(ctx, params)
 		if err != nil {
@@ -770,7 +771,7 @@ func TestClient_ConfigurationMethods(t *testing.T) {
 		mockService.getOrganizationInfoCalled = false // Reset
 		mockService.getOrganizationInfoResp = nil
 		mockService.getOrganizationInfoErr = errors.New("org not found")
-		params := GetOrganizationInfoParams{}
+		params := ports.GetOrganizationInfoParams{}
 
 		_, err := client.GetOrganizationInfo(ctx, params)
 		if err == nil {
@@ -787,7 +788,7 @@ func TestClient_ConfigurationMethods(t *testing.T) {
 		mockService.getRecordingStatusCalled = false // Reset
 		mockService.getRecordingStatusResp = &gatev2.GetRecordingStatusResponse{IsRecording: true}
 		mockService.getRecordingStatusErr = nil
-		params := GetRecordingStatusParams{PartnerAgentID: "agent-xyz"}
+		params := ports.GetRecordingStatusParams{PartnerAgentID: "agent-xyz"}
 
 		resp, err := client.GetRecordingStatus(ctx, params)
 		if err != nil {
@@ -805,7 +806,7 @@ func TestClient_ConfigurationMethods(t *testing.T) {
 		mockService.getRecordingStatusCalled = false // Reset
 		mockService.getRecordingStatusResp = nil
 		mockService.getRecordingStatusErr = errors.New("recording not found")
-		params := GetRecordingStatusParams{PartnerAgentID: "unknown"}
+		params := ports.GetRecordingStatusParams{PartnerAgentID: "unknown"}
 
 		_, err := client.GetRecordingStatus(ctx, params)
 		if err == nil {
@@ -828,7 +829,7 @@ func TestClient_StatusMethods(t *testing.T) {
 		mockService.updateAgentStatusResp = &gatev2.UpdateAgentStatusResponse{}
 		mockService.updateAgentStatusErr = nil
 		// Use custom Params struct
-		params := UpdateAgentStatusParams{
+		params := ports.UpdateAgentStatusParams{
 			PartnerAgentID: "agent2",
 			NewState:       gatev2.AgentState_AGENT_STATE_READY,
 		}
@@ -849,7 +850,7 @@ func TestClient_StatusMethods(t *testing.T) {
 		mockService.logCalled = false // Reset
 		mockService.logResp = &gatev2.LogResponse{}
 		mockService.logErr = nil
-		params := LogParams{Message: "test message"}
+		params := ports.LogParams{Message: "test message"}
 
 		resp, err := client.Log(ctx, params)
 		if err != nil {
@@ -867,7 +868,7 @@ func TestClient_StatusMethods(t *testing.T) {
 		mockService.logCalled = false // Reset
 		mockService.logResp = nil
 		mockService.logErr = errors.New("log error")
-		params := LogParams{Message: "test message"}
+		params := ports.LogParams{Message: "test message"}
 
 		_, err := client.Log(ctx, params)
 		if err == nil {
@@ -884,7 +885,7 @@ func TestClient_StatusMethods(t *testing.T) {
 		mockService.putCallOnSimpleHoldCalled = false // Reset
 		mockService.putCallOnSimpleHoldResp = &gatev2.PutCallOnSimpleHoldResponse{}
 		mockService.putCallOnSimpleHoldErr = nil
-		params := PutCallOnSimpleHoldParams{PartnerAgentID: "agent123"}
+		params := ports.PutCallOnSimpleHoldParams{PartnerAgentID: "agent123"}
 
 		resp, err := client.PutCallOnSimpleHold(ctx, params)
 		if err != nil {
@@ -902,7 +903,7 @@ func TestClient_StatusMethods(t *testing.T) {
 		mockService.putCallOnSimpleHoldCalled = false // Reset
 		mockService.putCallOnSimpleHoldResp = nil
 		mockService.putCallOnSimpleHoldErr = errors.New("hold error")
-		params := PutCallOnSimpleHoldParams{PartnerAgentID: "agent123"}
+		params := ports.PutCallOnSimpleHoldParams{PartnerAgentID: "agent123"}
 
 		_, err := client.PutCallOnSimpleHold(ctx, params)
 		if err == nil {
@@ -919,7 +920,7 @@ func TestClient_StatusMethods(t *testing.T) {
 		mockService.startCallRecordingCalled = false // Reset
 		mockService.startCallRecordingResp = &gatev2.StartCallRecordingResponse{}
 		mockService.startCallRecordingErr = nil
-		params := StartCallRecordingParams{PartnerAgentID: "agent123"}
+		params := ports.StartCallRecordingParams{PartnerAgentID: "agent123"}
 
 		resp, err := client.StartCallRecording(ctx, params)
 		if err != nil {
@@ -937,7 +938,7 @@ func TestClient_StatusMethods(t *testing.T) {
 		mockService.startCallRecordingCalled = false // Reset
 		mockService.startCallRecordingResp = nil
 		mockService.startCallRecordingErr = errors.New("recording error")
-		params := StartCallRecordingParams{PartnerAgentID: "agent123"}
+		params := ports.StartCallRecordingParams{PartnerAgentID: "agent123"}
 
 		_, err := client.StartCallRecording(ctx, params)
 		if err == nil {
@@ -954,7 +955,7 @@ func TestClient_StatusMethods(t *testing.T) {
 		mockService.stopCallRecordingCalled = false // Reset
 		mockService.stopCallRecordingResp = &gatev2.StopCallRecordingResponse{}
 		mockService.stopCallRecordingErr = nil
-		params := StopCallRecordingParams{PartnerAgentID: "agent123"}
+		params := ports.StopCallRecordingParams{PartnerAgentID: "agent123"}
 
 		resp, err := client.StopCallRecording(ctx, params)
 		if err != nil {
@@ -972,7 +973,7 @@ func TestClient_StatusMethods(t *testing.T) {
 		mockService.stopCallRecordingCalled = false // Reset
 		mockService.stopCallRecordingResp = nil
 		mockService.stopCallRecordingErr = errors.New("recording error")
-		params := StopCallRecordingParams{PartnerAgentID: "agent123"}
+		params := ports.StopCallRecordingParams{PartnerAgentID: "agent123"}
 
 		_, err := client.StopCallRecording(ctx, params)
 		if err == nil {
@@ -989,7 +990,7 @@ func TestClient_StatusMethods(t *testing.T) {
 		mockService.takeCallOffSimpleHoldCalled = false // Reset
 		mockService.takeCallOffSimpleHoldResp = &gatev2.TakeCallOffSimpleHoldResponse{}
 		mockService.takeCallOffSimpleHoldErr = nil
-		params := TakeCallOffSimpleHoldParams{PartnerAgentID: "agent123"}
+		params := ports.TakeCallOffSimpleHoldParams{PartnerAgentID: "agent123"}
 
 		resp, err := client.TakeCallOffSimpleHold(ctx, params)
 		if err != nil {
@@ -1007,7 +1008,7 @@ func TestClient_StatusMethods(t *testing.T) {
 		mockService.takeCallOffSimpleHoldCalled = false // Reset
 		mockService.takeCallOffSimpleHoldResp = nil
 		mockService.takeCallOffSimpleHoldErr = errors.New("hold error")
-		params := TakeCallOffSimpleHoldParams{PartnerAgentID: "agent123"}
+		params := ports.TakeCallOffSimpleHoldParams{PartnerAgentID: "agent123"}
 
 		_, err := client.TakeCallOffSimpleHold(ctx, params)
 		if err == nil {
@@ -1029,7 +1030,7 @@ func TestClient_ListMethods(t *testing.T) {
 		mockService.listHuntGroupPauseCodesCalled = false // Reset
 		mockService.listHuntGroupPauseCodesResp = &gatev2.ListHuntGroupPauseCodesResponse{Name: "Test Group", PauseCodes: []string{"break", "lunch"}}
 		mockService.listHuntGroupPauseCodesErr = nil
-		params := ListHuntGroupPauseCodesParams{PartnerAgentID: "agent123"}
+		params := ports.ListHuntGroupPauseCodesParams{PartnerAgentID: "agent123"}
 
 		_, err := client.ListHuntGroupPauseCodes(ctx, params)
 		if err != nil {
@@ -1047,7 +1048,7 @@ func TestClient_ListMethods(t *testing.T) {
 		mockService.listHuntGroupPauseCodesCalled = false // Reset
 		mockService.listHuntGroupPauseCodesResp = nil
 		mockService.listHuntGroupPauseCodesErr = errors.New("list error")
-		params := ListHuntGroupPauseCodesParams{PartnerAgentID: "agent123"}
+		params := ports.ListHuntGroupPauseCodesParams{PartnerAgentID: "agent123"}
 
 		_, err := client.ListHuntGroupPauseCodes(ctx, params)
 		if err == nil {
@@ -1064,7 +1065,7 @@ func TestClient_ListMethods(t *testing.T) {
 		mockService.listScrubListsCalled = false // Reset
 		mockService.listScrubListsResp = &gatev2.ListScrubListsResponse{ScrubLists: []*gatev2.ScrubList{{ScrubListId: "list1"}}}
 		mockService.listScrubListsErr = nil
-		params := ListScrubListsParams{}
+		params := ports.ListScrubListsParams{}
 
 		_, err := client.ListScrubLists(ctx, params)
 		if err != nil {
@@ -1082,7 +1083,7 @@ func TestClient_ListMethods(t *testing.T) {
 		mockService.listScrubListsCalled = false // Reset
 		mockService.listScrubListsResp = nil
 		mockService.listScrubListsErr = errors.New("list error")
-		params := ListScrubListsParams{}
+		params := ports.ListScrubListsParams{}
 
 		_, err := client.ListScrubLists(ctx, params)
 		if err == nil {
@@ -1099,7 +1100,7 @@ func TestClient_ListMethods(t *testing.T) {
 		mockService.listNCLRulesetNamesCalled = false // Reset
 		mockService.listNCLRulesetNamesResp = &gatev2.ListNCLRulesetNamesResponse{RulesetNames: []string{"ruleset1"}}
 		mockService.listNCLRulesetNamesErr = nil
-		params := ListNCLRulesetNamesParams{}
+		params := ports.ListNCLRulesetNamesParams{}
 
 		resp, err := client.ListNCLRulesetNames(ctx, params)
 		if err != nil {
@@ -1118,7 +1119,7 @@ func TestClient_ListMethods(t *testing.T) {
 		mockService.listNCLRulesetNamesCalled = false // Reset
 		mockService.listNCLRulesetNamesResp = nil
 		mockService.listNCLRulesetNamesErr = errors.New("list error")
-		params := ListNCLRulesetNamesParams{}
+		params := ports.ListNCLRulesetNamesParams{}
 
 		_, err := client.ListNCLRulesetNames(ctx, params)
 		if err == nil {
@@ -1135,7 +1136,7 @@ func TestClient_ListMethods(t *testing.T) {
 		mockService.listSkillsCalled = false // Reset
 		mockService.listSkillsResp = &gatev2.ListSkillsResponse{Skills: []*gatev2.Skill{{SkillId: "skill1", Name: "Test Skill"}}}
 		mockService.listSkillsErr = nil
-		params := ListSkillsParams{}
+		params := ports.ListSkillsParams{}
 
 		resp, err := client.ListSkills(ctx, params)
 		if err != nil {
@@ -1154,7 +1155,7 @@ func TestClient_ListMethods(t *testing.T) {
 		mockService.listSkillsCalled = false // Reset
 		mockService.listSkillsResp = nil
 		mockService.listSkillsErr = errors.New("list error")
-		params := ListSkillsParams{}
+		params := ports.ListSkillsParams{}
 
 		_, err := client.ListSkills(ctx, params)
 		if err == nil {
@@ -1171,7 +1172,7 @@ func TestClient_ListMethods(t *testing.T) {
 		mockService.listAgentSkillsCalled = false // Reset
 		mockService.listAgentSkillsResp = &gatev2.ListAgentSkillsResponse{Skills: []*gatev2.Skill{{SkillId: "skill1", Name: "Test Skill"}}}
 		mockService.listAgentSkillsErr = nil
-		params := ListAgentSkillsParams{PartnerAgentID: "agent-xyz"}
+		params := ports.ListAgentSkillsParams{PartnerAgentID: "agent-xyz"}
 
 		resp, err := client.ListAgentSkills(ctx, params)
 		if err != nil {
@@ -1190,7 +1191,7 @@ func TestClient_ListMethods(t *testing.T) {
 		mockService.listAgentSkillsCalled = false // Reset
 		mockService.listAgentSkillsResp = nil
 		mockService.listAgentSkillsErr = errors.New("list error")
-		params := ListAgentSkillsParams{PartnerAgentID: "unknown"}
+		params := ports.ListAgentSkillsParams{PartnerAgentID: "unknown"}
 
 		_, err := client.ListAgentSkills(ctx, params)
 		if err == nil {
@@ -1212,7 +1213,7 @@ func TestClient_ScrubMethods(t *testing.T) {
 		mockService.removeScrubListEntriesCalled = false // Reset
 		mockService.removeScrubListEntriesResp = &gatev2.RemoveScrubListEntriesResponse{}
 		mockService.removeScrubListEntriesErr = nil
-		params := RemoveScrubListEntriesParams{ScrubListID: "list1", EntryIDs: []string{"entry1"}}
+		params := ports.RemoveScrubListEntriesParams{ScrubListID: "list1", EntryIDs: []string{"entry1"}}
 
 		resp, err := client.RemoveScrubListEntries(ctx, params)
 		if err != nil {
@@ -1230,7 +1231,7 @@ func TestClient_ScrubMethods(t *testing.T) {
 		mockService.removeScrubListEntriesCalled = false // Reset
 		mockService.removeScrubListEntriesResp = nil
 		mockService.removeScrubListEntriesErr = errors.New("remove error")
-		params := RemoveScrubListEntriesParams{ScrubListID: "list1", EntryIDs: []string{"entry1"}}
+		params := ports.RemoveScrubListEntriesParams{ScrubListID: "list1", EntryIDs: []string{"entry1"}}
 
 		_, err := client.RemoveScrubListEntries(ctx, params)
 		if err == nil {
@@ -1247,7 +1248,7 @@ func TestClient_ScrubMethods(t *testing.T) {
 		mockService.updateScrubListEntryCalled = false // Reset
 		mockService.updateScrubListEntryResp = &gatev2.UpdateScrubListEntryResponse{}
 		mockService.updateScrubListEntryErr = nil
-		params := UpdateScrubListEntryParams{ScrubListID: "list1", Content: "updated content"}
+		params := ports.UpdateScrubListEntryParams{ScrubListID: "list1", Content: "updated content"}
 
 		resp, err := client.UpdateScrubListEntry(ctx, params)
 		if err != nil {
@@ -1265,7 +1266,7 @@ func TestClient_ScrubMethods(t *testing.T) {
 		mockService.updateScrubListEntryCalled = false // Reset
 		mockService.updateScrubListEntryResp = nil
 		mockService.updateScrubListEntryErr = errors.New("update error")
-		params := UpdateScrubListEntryParams{ScrubListID: "list1", Content: "updated content"}
+		params := ports.UpdateScrubListEntryParams{ScrubListID: "list1", Content: "updated content"}
 
 		_, err := client.UpdateScrubListEntry(ctx, params)
 		if err == nil {
@@ -1287,7 +1288,7 @@ func TestClient_OtherMethods(t *testing.T) {
 		mockService.rotateCertificateCalled = false // Reset
 		mockService.rotateCertificateResp = &gatev2.RotateCertificateResponse{}
 		mockService.rotateCertificateErr = nil
-		params := RotateCertificateParams{}
+		params := ports.RotateCertificateParams{}
 
 		resp, err := client.RotateCertificate(ctx, params)
 		if err != nil {
@@ -1305,7 +1306,7 @@ func TestClient_OtherMethods(t *testing.T) {
 		mockService.rotateCertificateCalled = false // Reset
 		mockService.rotateCertificateResp = nil
 		mockService.rotateCertificateErr = errors.New("certificate error")
-		params := RotateCertificateParams{}
+		params := ports.RotateCertificateParams{}
 
 		_, err := client.RotateCertificate(ctx, params)
 		if err == nil {
@@ -1322,7 +1323,7 @@ func TestClient_OtherMethods(t *testing.T) {
 		mockService.submitJobResultsCalled = false // Reset
 		mockService.submitJobResultsResp = &gatev2.SubmitJobResultsResponse{}
 		mockService.submitJobResultsErr = nil
-		params := SubmitJobResultsParams{JobID: "job123"}
+		params := ports.SubmitJobResultsParams{JobID: "job123"}
 
 		resp, err := client.SubmitJobResults(ctx, params)
 		if err != nil {
@@ -1340,7 +1341,7 @@ func TestClient_OtherMethods(t *testing.T) {
 		mockService.submitJobResultsCalled = false // Reset
 		mockService.submitJobResultsResp = nil
 		mockService.submitJobResultsErr = errors.New("job error")
-		params := SubmitJobResultsParams{JobID: "job123"}
+		params := ports.SubmitJobResultsParams{JobID: "job123"}
 
 		_, err := client.SubmitJobResults(ctx, params)
 		if err == nil {
@@ -1357,7 +1358,7 @@ func TestClient_OtherMethods(t *testing.T) {
 		mockService.upsertAgentCalled = false // Reset
 		mockService.upsertAgentResp = &gatev2.UpsertAgentResponse{Agent: &gatev2.Agent{UserId: "agent123"}}
 		mockService.upsertAgentErr = nil
-		params := UpsertAgentParams{Username: "agent123", FirstName: "Test", LastName: "User"}
+		params := ports.UpsertAgentParams{Username: "agent123", FirstName: "Test", LastName: "User"}
 
 		resp, err := client.UpsertAgent(ctx, params)
 		if err != nil {
@@ -1375,7 +1376,7 @@ func TestClient_OtherMethods(t *testing.T) {
 		mockService.upsertAgentCalled = false // Reset
 		mockService.upsertAgentResp = nil
 		mockService.upsertAgentErr = errors.New("agent error")
-		params := UpsertAgentParams{Username: "agent123", FirstName: "Test", LastName: "User"}
+		params := ports.UpsertAgentParams{Username: "agent123", FirstName: "Test", LastName: "User"}
 
 		_, err := client.UpsertAgent(ctx, params)
 		if err == nil {
@@ -1397,7 +1398,7 @@ func TestClient_SkillMethods(t *testing.T) {
 		mockService.assignAgentSkillCalled = false // Reset
 		mockService.assignAgentSkillResp = &gatev2.AssignAgentSkillResponse{}
 		mockService.assignAgentSkillErr = nil
-		params := AssignAgentSkillParams{PartnerAgentID: "agent123", SkillID: "skill123"}
+		params := ports.AssignAgentSkillParams{PartnerAgentID: "agent123", SkillID: "skill123"}
 
 		resp, err := client.AssignAgentSkill(ctx, params)
 		if err != nil {
@@ -1415,7 +1416,7 @@ func TestClient_SkillMethods(t *testing.T) {
 		mockService.assignAgentSkillCalled = false // Reset
 		mockService.assignAgentSkillResp = nil
 		mockService.assignAgentSkillErr = errors.New("assign error")
-		params := AssignAgentSkillParams{PartnerAgentID: "agent123", SkillID: "skill123"}
+		params := ports.AssignAgentSkillParams{PartnerAgentID: "agent123", SkillID: "skill123"}
 
 		_, err := client.AssignAgentSkill(ctx, params)
 		if err == nil {
@@ -1432,7 +1433,7 @@ func TestClient_SkillMethods(t *testing.T) {
 		mockService.unassignAgentSkillCalled = false // Reset
 		mockService.unassignAgentSkillResp = &gatev2.UnassignAgentSkillResponse{}
 		mockService.unassignAgentSkillErr = nil
-		params := UnassignAgentSkillParams{PartnerAgentID: "agent123", SkillID: "skill123"}
+		params := ports.UnassignAgentSkillParams{PartnerAgentID: "agent123", SkillID: "skill123"}
 
 		resp, err := client.UnassignAgentSkill(ctx, params)
 		if err != nil {
@@ -1450,7 +1451,7 @@ func TestClient_SkillMethods(t *testing.T) {
 		mockService.unassignAgentSkillCalled = false // Reset
 		mockService.unassignAgentSkillResp = nil
 		mockService.unassignAgentSkillErr = errors.New("unassign error")
-		params := UnassignAgentSkillParams{PartnerAgentID: "agent123", SkillID: "skill123"}
+		params := ports.UnassignAgentSkillParams{PartnerAgentID: "agent123", SkillID: "skill123"}
 
 		_, err := client.UnassignAgentSkill(ctx, params)
 		if err == nil {
@@ -1478,7 +1479,7 @@ func TestClient_VoiceMethods(t *testing.T) {
 		mockService.searchVoiceRecordingsCalled = false // Reset
 		mockService.searchVoiceRecordingsStream = mockStream
 		mockService.searchVoiceRecordingsErr = nil
-		params := SearchVoiceRecordingsParams{}
+		params := ports.SearchVoiceRecordingsParams{}
 
 		resultsChan := client.SearchVoiceRecordings(ctx, params)
 
@@ -1502,7 +1503,7 @@ func TestClient_VoiceMethods(t *testing.T) {
 		mockService.searchVoiceRecordingsCalled = false // Reset
 		mockService.searchVoiceRecordingsStream = nil
 		mockService.searchVoiceRecordingsErr = errors.New("search error")
-		params := SearchVoiceRecordingsParams{}
+		params := ports.SearchVoiceRecordingsParams{}
 
 		resultsChan := client.SearchVoiceRecordings(ctx, params)
 
@@ -1526,7 +1527,7 @@ func TestClient_VoiceMethods(t *testing.T) {
 		mockService.getVoiceRecordingDownloadLinkCalled = false // Reset
 		mockService.getVoiceRecordingDownloadLinkResp = &gatev2.GetVoiceRecordingDownloadLinkResponse{DownloadLink: "https://example.com/recording.mp3"}
 		mockService.getVoiceRecordingDownloadLinkErr = nil
-		params := GetVoiceRecordingDownloadLinkParams{RecordingSid: "rec123"}
+		params := ports.GetVoiceRecordingDownloadLinkParams{RecordingSid: "rec123"}
 
 		resp, err := client.GetVoiceRecordingDownloadLink(ctx, params)
 		if err != nil {
@@ -1544,7 +1545,7 @@ func TestClient_VoiceMethods(t *testing.T) {
 		mockService.getVoiceRecordingDownloadLinkCalled = false // Reset
 		mockService.getVoiceRecordingDownloadLinkResp = nil
 		mockService.getVoiceRecordingDownloadLinkErr = errors.New("download error")
-		params := GetVoiceRecordingDownloadLinkParams{RecordingSid: "rec123"}
+		params := ports.GetVoiceRecordingDownloadLinkParams{RecordingSid: "rec123"}
 
 		_, err := client.GetVoiceRecordingDownloadLink(ctx, params)
 		if err == nil {
@@ -1561,7 +1562,7 @@ func TestClient_VoiceMethods(t *testing.T) {
 		mockService.listSearchableRecordingFieldsCalled = false // Reset
 		mockService.listSearchableRecordingFieldsResp = &gatev2.ListSearchableRecordingFieldsResponse{Fields: []string{"agent_id", "call_sid"}}
 		mockService.listSearchableRecordingFieldsErr = nil
-		params := ListSearchableRecordingFieldsParams{}
+		params := ports.ListSearchableRecordingFieldsParams{}
 
 		resp, err := client.ListSearchableRecordingFields(ctx, params)
 		if err != nil {
@@ -1579,7 +1580,7 @@ func TestClient_VoiceMethods(t *testing.T) {
 		mockService.listSearchableRecordingFieldsCalled = false // Reset
 		mockService.listSearchableRecordingFieldsResp = nil
 		mockService.listSearchableRecordingFieldsErr = errors.New("fields error")
-		params := ListSearchableRecordingFieldsParams{}
+		params := ports.ListSearchableRecordingFieldsParams{}
 
 		_, err := client.ListSearchableRecordingFields(ctx, params)
 		if err == nil {
@@ -1596,7 +1597,7 @@ func TestClient_VoiceMethods(t *testing.T) {
 		mockService.transferCalled = false // Reset
 		mockService.transferResp = &gatev2.TransferResponse{}
 		mockService.transferErr = nil
-		params := TransferParams{CallSid: "CS123", ReceivingPartnerAgentID: stringPtr("agent456")}
+		params := ports.TransferParams{CallSid: "CS123", ReceivingPartnerAgentID: stringPtr("agent456")}
 
 		resp, err := client.Transfer(ctx, params)
 		if err != nil {
@@ -1614,9 +1615,9 @@ func TestClient_VoiceMethods(t *testing.T) {
 		mockService.transferCalled = false // Reset
 		mockService.transferResp = &gatev2.TransferResponse{}
 		mockService.transferErr = nil
-		params := TransferParams{
+		params := ports.TransferParams{
 			CallSid: "CS123",
-			Outbound: &TransferOutbound{
+			Outbound: &ports.TransferOutbound{
 				PhoneNumber: "555-1234",
 				CallerID:    stringPtr("555-5678"),
 			},
@@ -1637,9 +1638,9 @@ func TestClient_VoiceMethods(t *testing.T) {
 		mockService.transferCalled = false // Reset
 		mockService.transferResp = &gatev2.TransferResponse{}
 		mockService.transferErr = nil
-		params := TransferParams{
+		params := ports.TransferParams{
 			CallSid: "CS123",
-			Outbound: &TransferOutbound{
+			Outbound: &ports.TransferOutbound{
 				PhoneNumber: "555-1234",
 				CallerID:    nil,
 			},
@@ -1660,9 +1661,9 @@ func TestClient_VoiceMethods(t *testing.T) {
 		mockService.transferCalled = false // Reset
 		mockService.transferResp = &gatev2.TransferResponse{}
 		mockService.transferErr = nil
-		params := TransferParams{
+		params := ports.TransferParams{
 			CallSid: "CS123",
-			Queue:   &TransferQueue{QueueID: "queue123"},
+			Queue:   &ports.TransferQueue{QueueID: "queue123"},
 		}
 
 		resp, err := client.Transfer(ctx, params)
@@ -1680,7 +1681,7 @@ func TestClient_VoiceMethods(t *testing.T) {
 		mockService.transferCalled = false // Reset
 		mockService.transferResp = nil
 		mockService.transferErr = errors.New("transfer error")
-		params := TransferParams{CallSid: "CS123", ReceivingPartnerAgentID: stringPtr("agent456")}
+		params := ports.TransferParams{CallSid: "CS123", ReceivingPartnerAgentID: stringPtr("agent456")}
 
 		_, err := client.Transfer(ctx, params)
 		if err == nil {
@@ -1715,7 +1716,7 @@ func TestClient_ListAgents(t *testing.T) {
 		mockService.listAgentsStream = mockStream
 		mockService.listAgentsErr = nil
 		// Use custom Params struct
-		params := ListAgentsParams{}
+		params := ports.ListAgentsParams{}
 
 		resultsChan := client.ListAgents(ctx, params) // Returns channel
 
@@ -1775,7 +1776,7 @@ func TestClient_StreamJobs(t *testing.T) {
 		mockService.streamJobsCalled = false // Reset
 		mockService.streamJobsStream = mockStream
 		mockService.streamJobsErr = nil
-		params := StreamJobsParams{}
+		params := ports.StreamJobsParams{}
 
 		stream := client.StreamJobs(ctx, params)
 

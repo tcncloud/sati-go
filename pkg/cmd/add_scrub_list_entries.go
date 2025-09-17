@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	saticlient "github.com/tcncloud/sati-go/pkg/sati/client"
 	saticonfig "github.com/tcncloud/sati-go/pkg/sati/config"
 )
@@ -38,9 +39,9 @@ func AddScrubListEntriesCmd(configPath *string) *cobra.Command {
 				return fmt.Errorf("invalid entries JSON: %w", err)
 			}
 			// Build custom Params struct
-			customEntries := make([]saticlient.ScrubListEntryInput, 0, len(entriesInput))
+			customEntries := make([]ports.ScrubListEntryInput, 0, len(entriesInput))
 			for _, e := range entriesInput {
-				entry := saticlient.ScrubListEntryInput{Content: e.Content}
+				entry := ports.ScrubListEntryInput{Content: e.Content}
 				if e.Notes != "" {
 					notesCopy := e.Notes // Create copy for pointer
 					entry.Notes = &notesCopy
@@ -48,7 +49,7 @@ func AddScrubListEntriesCmd(configPath *string) *cobra.Command {
 				customEntries = append(customEntries, entry)
 			}
 
-			params := saticlient.AddScrubListEntriesParams{
+			params := ports.AddScrubListEntriesParams{
 				ScrubListID: scrubListID,
 				Entries:     customEntries,
 			}

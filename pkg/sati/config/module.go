@@ -16,7 +16,7 @@
 package config
 
 import (
-	"github.com/tcncloud/sati-go/pkg/interfaces"
+	"github.com/tcncloud/sati-go/pkg/ports"
 	"go.uber.org/fx"
 )
 
@@ -36,8 +36,8 @@ import (
 //	  }),
 //	)
 var Module = fx.Module("config",
-	// Provide the ConfigLoader as an implementation of interfaces.ConfigLoader
-	fx.Provide(func() interfaces.ConfigLoader {
+	// Provide the ConfigLoader as an implementation of ports.ConfigLoader
+	fx.Provide(func() ports.ConfigLoader {
 		return &configLoader{}
 	}),
 
@@ -48,14 +48,14 @@ var Module = fx.Module("config",
 	fx.Provide(LoadAndValidateConfigFromString),
 
 	// Provide a factory for creating ConfigWatcher instances
-	fx.Provide(func() func([]string, ConfigLoaderFunc) (interfaces.ConfigWatcher, error) {
-		return func(configPaths []string, loader ConfigLoaderFunc) (interfaces.ConfigWatcher, error) {
+	fx.Provide(func() func([]string, ConfigLoaderFunc) (ports.ConfigWatcher, error) {
+		return func(configPaths []string, loader ConfigLoaderFunc) (ports.ConfigWatcher, error) {
 			return NewConfigWatcher(configPaths, loader)
 		}
 	}),
 )
 
-// configLoader implements the interfaces.ConfigLoader interface
+// configLoader implements the ports.ConfigLoader interface
 type configLoader struct{}
 
 // LoadConfig loads configuration from a file path.

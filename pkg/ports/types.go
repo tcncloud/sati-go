@@ -1,4 +1,4 @@
-package client
+package ports
 
 import (
 	gatev2pb "github.com/tcncloud/sati-go/internal/genproto/tcnapi/exile/gate/v2"
