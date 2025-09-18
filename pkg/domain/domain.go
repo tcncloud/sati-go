@@ -258,5 +258,99 @@ func (d *Domain) IsRunning() bool {
 	return d.isRunning
 }
 
+// ClientConfigurationChanged is called when the client configuration changes.
+func (d *Domain) ClientConfigurationChanged(oldConfig, newConfig *ports.GetClientConfigurationResult) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	d.log.Info().Msg("Client configuration changed, restarting processes")
+
+	// Stop existing processes
+	if d.hostPluginProcess != nil {
+		d.hostPluginProcess.stop()
+		d.hostPluginProcess = nil
+	}
+
+	if d.streamJobsProcess != nil {
+		d.streamJobsProcess.stop()
+		d.streamJobsProcess = nil
+	}
+
+	if d.pollEventsProcess != nil {
+		d.pollEventsProcess.stop()
+		d.pollEventsProcess = nil
+	}
+
+	// Restart processes with new configuration
+	if err := d.startPollEvents(); err != nil {
+		d.log.Error().Err(err).Msg("Failed to restart poll events process")
+		return err
+	}
+
+	if err := d.startStreamJobs(); err != nil {
+		d.log.Error().Err(err).Msg("Failed to restart stream jobs process")
+		return err
+	}
+
+	if err := d.startHostPlugin(); err != nil {
+		d.log.Error().Err(err).Msg("Failed to restart host plugin process")
+		return err
+	}
+
+	d.log.Info().Msg("All processes restarted with new configuration")
+
+	return nil
+}
+
+// startPollEvents starts the poll events process (internal helper).
+func (d *Domain) startPollEvents() error {
+	if d.client == nil {
+		return nil
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	process := &PollEventsProcess{
+		domain: d,
+		cancel: cancel,
+	}
+
+	d.pollEventsProcess = process
+	go process.run(ctx)
+
+	return nil
+}
+
+// startStreamJobs starts the stream jobs process (internal helper).
+func (d *Domain) startStreamJobs() error {
+	if d.client == nil {
+		return nil
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	process := &StreamJobsProcess{
+		domain: d,
+		cancel: cancel,
+	}
+
+	d.streamJobsProcess = process
+	go process.run(ctx)
+
+	return nil
+}
+
+// startHostPlugin starts the host plugin process (internal helper).
+func (d *Domain) startHostPlugin() error {
+	ctx, cancel := context.WithCancel(context.Background())
+	process := &HostPluginProcess{
+		domain: d,
+		cancel: cancel,
+	}
+
+	d.hostPluginProcess = process
+	go process.run(ctx)
+
+	return nil
+}
+
 // Ensure Domain implements DomainService interface.
 var _ ports.DomainService = (*Domain)(nil)
