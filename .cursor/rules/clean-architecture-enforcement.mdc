@@ -1,0 +1,319 @@
+---
+alwaysApply: true
+description: Clean architecture enforcement and dependency direction rules
+---
+
+# Clean Architecture Enforcement
+
+## Core Principles
+
+### Dependency Direction Rule
+**Dependencies must point inward toward the domain layer. The domain layer must not depend on infrastructure or external concerns.**
+
+```
+Interfaces → Application → Domain ← Infrastructure
+```
+
+### Layer Responsibilities
+
+#### Domain Layer (`pkg/domain/`)
+- **Purpose**: Core business logic and domain entities
+- **Dependencies**: Only `pkg/ports/` and standard library
+- **Contains**: Concrete implementations, business rules, domain services
+- **Forbidden**: Direct imports from adapters, external libraries (except ports)
+
+#### Ports Layer (`pkg/ports/`)
+- **Purpose**: Define contracts and interfaces
+- **Dependencies**: Only standard library
+- **Contains**: Interfaces, types, contracts
+- **Forbidden**: Concrete implementations, external library imports
+
+#### Adapters Layer (`pkg/sati/`)
+- **Purpose**: Implement ports interfaces with concrete implementations
+- **Dependencies**: Can import domain, ports, and external libraries
+- **Contains**: Infrastructure implementations, external service integrations
+- **Required**: Implements all ports interfaces
+
+## Dependency Rules
+
+### ✅ Allowed Dependencies
+
+#### Domain Package
+```go
+// ✅ Allowed: Standard library
+import (
+    "context"
+    "sync"
+    "time"
+)
+
+// ✅ Allowed: Third-party packages (minimal)
+import (
+    "github.com/rs/zerolog"
+)
+
+// ✅ Allowed: Ports package only
+import (
+    "github.com/tcncloud/sati-go/pkg/ports"
+)
+```
+
+#### Ports Package
+```go
+// ✅ Allowed: Standard library only
+import (
+    "context"
+    "time"
+)
+```
+
+#### Adapters Package
+```go
+// ✅ Allowed: All dependencies
+import (
+    "context"
+    "github.com/rs/zerolog"
+    "github.com/tcncloud/sati-go/pkg/ports"
+    "github.com/tcncloud/sati-go/pkg/domain"
+    "google.golang.org/grpc"
+)
+```
+
+### ❌ Forbidden Dependencies
+
+#### Domain Package
+```go
+// ❌ Forbidden: Direct adapter imports
+import "github.com/tcncloud/sati-go/pkg/sati/client"
+
+// ❌ Forbidden: External service imports
+import "google.golang.org/grpc"
+
+// ❌ Forbidden: Infrastructure imports
+import "github.com/tcncloud/sati-go/internal/infrastructure"
+```
+
+#### Ports Package
+```go
+// ❌ Forbidden: Any internal package imports
+import "github.com/tcncloud/sati-go/pkg/domain"
+
+// ❌ Forbidden: External service imports
+import "google.golang.org/grpc"
+```
+
+## Interface Implementation Patterns
+
+### Domain Service Implementation
+```go
+// pkg/domain/domain.go
+type Domain struct {
+    log           *zerolog.Logger
+    configWatcher ports.ConfigWatcher  // Interface from ports
+    client        ports.ClientInterface // Interface from ports
+}
+
+// Implement ports interface
+func (d *Domain) StartConfigWatcher(ctx context.Context) error {
+    // Direct implementation without abstraction
+    return d.configWatcher.Start(ctx)
+}
+
+// Ensure interface compliance
+var _ ports.DomainService = (*Domain)(nil)
+```
+
+### Adapter Implementation
+```go
+// pkg/sati/client/client.go
+type Client struct {
+    conn *grpc.ClientConn
+    gate gatev2pb.GateServiceClient
+}
+
+// Implement ports interface
+func (c *Client) GetAgentByID(ctx context.Context, params ports.GetAgentByIDParams) (ports.GetAgentByIDResult, error) {
+    // Concrete implementation
+    resp, err := c.gate.GetAgentByID(ctx, &gatev2pb.GetAgentByIDRequest{
+        AgentId: params.AgentID,
+    })
+    if err != nil {
+        return ports.GetAgentByIDResult{}, err
+    }
+    
+    return ports.GetAgentByIDResult{
+        AgentID: resp.AgentId,
+        Name:    resp.Name,
+        Status:  resp.Status,
+    }, nil
+}
+
+// Ensure interface compliance
+var _ ports.ClientInterface = (*Client)(nil)
+```
+
+## Testing Patterns
+
+### Domain Testing
+```go
+// pkg/domain/domain_test.go
+type MockConfigWatcher struct {
+    startError  error
+    stopError   error
+    watching    bool
+    startCalled bool
+    stopCalled  bool
+}
+
+func (m *MockConfigWatcher) Start(ctx context.Context) error {
+    m.startCalled = true
+    return m.startError
+}
+
+func TestDomain_StartConfigWatcher(t *testing.T) {
+    domain, mockWatcher, _ := setupTestDomain()
+    ctx := context.Background()
+    
+    err := domain.StartConfigWatcher(ctx)
+    
+    if err != nil {
+        t.Errorf("Expected no error, got: %v", err)
+    }
+    
+    if !mockWatcher.startCalled {
+        t.Error("Expected config watcher start to be called")
+    }
+}
+```
+
+### Adapter Testing
+```go
+// pkg/sati/client/client_test.go
+func TestClient_GetAgentByID(t *testing.T) {
+    // Test with real gRPC server or mock
+    client := setupTestClient()
+    ctx := context.Background()
+    
+    params := ports.GetAgentByIDParams{AgentID: 123}
+    result, err := client.GetAgentByID(ctx, params)
+    
+    if err != nil {
+        t.Errorf("Expected no error, got: %v", err)
+    }
+    
+    if result.AgentID != 123 {
+        t.Errorf("Expected AgentID 123, got %d", result.AgentID)
+    }
+}
+```
+
+## Module Organization
+
+### Domain Module
+```go
+// pkg/domain/module.go
+var Module = fx.Module("domain",
+    // Provide concrete implementations
+    fx.Provide(NewDomain),
+    
+    // Provide interface implementations
+    fx.Provide(func(domain *Domain) ports.DomainService {
+        return domain
+    }),
+    
+    // Provide service methods
+    fx.Provide(func(d *Domain) func(context.Context) error {
+        return d.StartConfigWatcher
+    }),
+)
+```
+
+### Adapter Module
+```go
+// pkg/sati/client/module.go
+var Module = fx.Module("client",
+    // Provide concrete client
+    fx.Provide(NewClient),
+    
+    // Provide interface implementation
+    fx.Provide(func(client *Client) ports.ClientInterface {
+        return client
+    }),
+)
+```
+
+## Validation Checklist
+
+### Domain Package
+- [ ] Only imports `pkg/ports/` and standard library
+- [ ] No direct adapter imports
+- [ ] No external service imports
+- [ ] Implements ports interfaces
+- [ ] No interface definitions
+- [ ] Direct method calls without abstraction
+
+### Ports Package
+- [ ] Only standard library imports
+- [ ] No internal package imports
+- [ ] Contains only interfaces and types
+- [ ] No concrete implementations
+- [ ] Well-documented interfaces
+
+### Adapters Package
+- [ ] Implements all required ports interfaces
+- [ ] Can import domain and ports
+- [ ] Handles external service integration
+- [ ] Provides concrete implementations
+- [ ] Proper error handling and logging
+
+## Common Violations
+
+### ❌ Domain Importing Adapters
+```go
+// ❌ Wrong: Domain importing adapter
+import "github.com/tcncloud/sati-go/pkg/sati/client"
+
+func (d *Domain) SomeMethod() {
+    client := client.NewClient() // Violation!
+}
+```
+
+### ❌ Interface in Domain Package
+```go
+// ❌ Wrong: Interface in domain package
+// pkg/domain/interfaces.go
+type DomainService interface {
+    StartConfigWatcher(ctx context.Context) error
+}
+```
+
+### ❌ Direct External Dependencies in Domain
+```go
+// ❌ Wrong: Direct gRPC import in domain
+import "google.golang.org/grpc"
+
+func (d *Domain) SomeMethod() {
+    conn, _ := grpc.Dial("...") // Violation!
+}
+```
+
+### ❌ Abstraction Layers
+```go
+// ❌ Wrong: Unnecessary abstraction
+type DomainServiceWrapper struct {
+    service ports.DomainService
+}
+
+func (w *DomainServiceWrapper) StartConfigWatcher(ctx context.Context) error {
+    return w.service.StartConfigWatcher(ctx) // Unnecessary!
+}
+```
+
+## Benefits of Clean Architecture
+
+1. **Testability**: Easy to mock dependencies
+2. **Maintainability**: Clear separation of concerns
+3. **Flexibility**: Easy to swap implementations
+4. **Independence**: Domain logic independent of external concerns
+5. **Clarity**: Clear dependency direction
+6. **Reusability**: Domain logic can be reused in different contexts

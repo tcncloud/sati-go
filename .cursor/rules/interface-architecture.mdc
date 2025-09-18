@@ -1,0 +1,153 @@
+---
+alwaysApply: true
+description: Interface architecture and clean separation principles
+---
+
+# Interface Architecture Rule
+
+## Core Principle
+**Within a single Go package, we should not define interfaces and the calls should be made directly without any abstraction layers. Interfaces, if they are needed, must be defined in the `@ports/` package.**
+
+## Package Responsibilities
+
+### Ports Package (`pkg/ports/`)
+- **Purpose**: Define all interfaces and contracts
+- **Contains**: 
+  - All interface definitions
+  - All custom types and parameters
+  - All result types
+  - Contract specifications
+- **Files**:
+  - `client.go` - Client interface definitions
+  - `config.go` - Configuration interfaces
+  - `domain.go` - Domain service interfaces
+  - `types.go` - All custom types and parameters
+
+### Domain Package (`pkg/domain/`)
+- **Purpose**: Concrete implementations only
+- **Contains**:
+  - Concrete struct implementations
+  - Business logic
+  - Process management
+  - Service providers
+- **Forbidden**: Interface definitions
+- **Required**: Direct calls without abstraction layers
+
+### Adapters Package (`pkg/sati/`)
+- **Purpose**: Implement ports interfaces
+- **Contains**:
+  - Concrete implementations of ports interfaces
+  - External system integrations
+  - Infrastructure concerns
+
+## Implementation Guidelines
+
+### Interface Definition
+```go
+// ✅ Correct: Define interfaces in ports package
+// pkg/ports/domain.go
+type DomainService interface {
+    StartConfigWatcher(ctx context.Context) error
+    StartExileClientConfiguration() error
+    // ... other methods
+}
+```
+
+### Concrete Implementation
+```go
+// ✅ Correct: Implement interfaces in domain package
+// pkg/domain/domain.go
+type Domain struct {
+    // fields
+}
+
+func (d *Domain) StartConfigWatcher(ctx context.Context) error {
+    // direct implementation without abstraction
+    return d.configWatcher.Start(ctx)
+}
+
+// Ensure interface compliance
+var _ ports.DomainService = (*Domain)(nil)
+```
+
+### Dependency Injection
+```go
+// ✅ Correct: Use ports interfaces in FX modules
+fx.Provide(func(domain *Domain) ports.DomainService {
+    return domain
+}),
+```
+
+## Anti-Patterns to Avoid
+
+### ❌ Don't Define Interfaces in Domain Package
+```go
+// ❌ Wrong: Interface in domain package
+// pkg/domain/interfaces.go
+type DomainService interface {
+    StartConfigWatcher(ctx context.Context) error
+}
+```
+
+### ❌ Don't Create Abstraction Layers
+```go
+// ❌ Wrong: Unnecessary abstraction
+type DomainServiceWrapper struct {
+    service DomainService
+}
+
+func (w *DomainServiceWrapper) StartConfigWatcher(ctx context.Context) error {
+    return w.service.StartConfigWatcher(ctx)
+}
+```
+
+### ❌ Don't Duplicate Interfaces
+```go
+// ❌ Wrong: Same interface in multiple packages
+// pkg/domain/interfaces.go
+type DomainService interface { ... }
+
+// pkg/ports/domain.go  
+type DomainService interface { ... }
+```
+
+## Benefits
+
+1. **Clear Separation**: Interfaces centralized in ports package
+2. **Easy Discovery**: All contracts in one place
+3. **No Abstraction Layers**: Direct calls for better performance
+4. **Single Responsibility**: Each package has one clear purpose
+5. **Better Maintainability**: Changes to interfaces are centralized
+6. **Easier Testing**: Mock implementations use ports interfaces
+
+## File Organization
+
+### Ports Package Structure
+```
+pkg/ports/
+├── client.go      # Client interface definitions
+├── config.go      # Configuration interfaces  
+├── domain.go      # Domain service interfaces
+├── types.go       # All custom types and parameters
+└── doc.go         # Package documentation
+```
+
+### Domain Package Structure
+```
+pkg/domain/
+├── domain.go           # Main Domain struct
+├── processes.go        # Process implementations
+├── service_provider.go # Service provider
+├── constants.go        # Constants
+├── module.go          # FX module
+└── *_test.go          # Test files
+```
+
+## Verification Checklist
+
+- [ ] No interfaces defined in domain package
+- [ ] All interfaces defined in ports package
+- [ ] Domain package makes direct calls
+- [ ] No unnecessary abstraction layers
+- [ ] Interface compliance verified with `var _ ports.Interface = (*Implementation)(nil)`
+- [ ] Dependencies flow correctly: Domain → Ports ← Adapters

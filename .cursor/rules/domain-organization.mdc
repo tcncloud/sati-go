@@ -1,0 +1,246 @@
+---
+globs: pkg/domain/**/*.go
+description: Domain package organization and structure patterns
+---
+
+# Domain Package Organization
+
+## File Structure Principles
+
+### Single Responsibility Files
+Each file should have one clear purpose and responsibility:
+
+- **`domain.go`** - Main Domain struct and core business logic
+- **`processes.go`** - Process types and their implementations  
+- **`service_provider.go`** - Service provider for dependency injection
+- **`constants.go`** - Timeout and interval constants
+- **`module.go`** - Uber FX module definition
+- **`*_test.go`** - Test files organized by functionality
+
+### File Size Guidelines
+- **Target**: 50-300 lines per file
+- **Maximum**: 500 lines per file
+- **Split large files** into focused, single-purpose files
+
+## Code Organization Patterns
+
+### Domain Struct Pattern
+```go
+// pkg/domain/domain.go
+type Domain struct {
+    log           *zerolog.Logger
+    configWatcher ports.ConfigWatcher
+    client        ports.ClientInterface
+    
+    // Process state
+    mu                 sync.RWMutex
+    exileConfigProcess *ExileClientConfigurationProcess
+    pollEventsProcess  *PollEventsProcess
+    streamJobsProcess  *StreamJobsProcess
+    hostPluginProcess  *HostPluginProcess
+    isRunning          bool
+    shutdownChan       chan struct{}
+}
+
+// Constructor
+func NewDomain(log *zerolog.Logger) *Domain {
+    return &Domain{
+        log:          log,
+        shutdownChan: make(chan struct{}),
+    }
+}
+
+// Ensure interface compliance
+var _ ports.DomainService = (*Domain)(nil)
+```
+
+### Process Implementation Pattern
+```go
+// pkg/domain/processes.go
+type ExileClientConfigurationProcess struct {
+    domain     *Domain
+    cancel     context.CancelFunc
+    ticker     *time.Ticker
+    lastConfig *ports.GetClientConfigurationResult
+    mu         sync.RWMutex
+}
+
+func (p *ExileClientConfigurationProcess) run(ctx context.Context) {
+    defer p.ticker.Stop()
+    
+    for {
+        select {
+        case <-ctx.Done():
+            return
+        case <-p.ticker.C:
+            if err := p.checkConfiguration(); err != nil {
+                p.domain.log.Error().Err(err).Msg("Failed to check client configuration")
+            }
+        }
+    }
+}
+```
+
+### Service Provider Pattern
+```go
+// pkg/domain/service_provider.go
+type DomainServiceProvider struct {
+    domain *Domain
+}
+
+func NewDomainServiceProvider(domain *Domain) *DomainServiceProvider {
+    return &DomainServiceProvider{domain: domain}
+}
+
+func (dsp *DomainServiceProvider) GetConfigWatcherStarter() func(context.Context) error {
+    return dsp.domain.StartConfigWatcher
+}
+```
+
+### Constants Organization
+```go
+// pkg/domain/constants.go
+const (
+    // ConfigCheckInterval is the interval for checking client configuration changes.
+    ConfigCheckInterval = 60 * time.Second
+    // DefaultTimeout is the default timeout for API calls.
+    DefaultTimeout = 30 * time.Second
+    // RetryDelay is the delay between retries for failed operations.
+    RetryDelay = 5 * time.Second
+)
+```
+
+## Testing Organization
+
+### Test File Structure
+- **`domain_test.go`** - Core domain functionality tests
+- **`processes_test.go`** - Process-specific tests
+- **`service_provider_test.go`** - Service provider tests
+
+### Test Patterns
+```go
+// Mock implementations for testing
+type MockConfigWatcher struct {
+    startError  error
+    stopError   error
+    watching    bool
+    startCalled bool
+    stopCalled  bool
+}
+
+func (m *MockConfigWatcher) Start(ctx context.Context) error {
+    m.startCalled = true
+    return m.startError
+}
+
+// Test setup helper
+func setupTestDomain() (*Domain, *MockConfigWatcher, *MockClientInterface) {
+    logger := zerolog.Nop()
+    mockWatcher := &MockConfigWatcher{}
+    mockClient := &MockClientInterface{}
+    
+    domain := NewDomain(&logger)
+    domain.SetConfigWatcher(mockWatcher)
+    domain.SetClient(mockClient)
+    
+    return domain, mockWatcher, mockClient
+}
+```
+
+## Import Organization
+
+### Standard Import Order
+```go
+import (
+    // Standard library
+    "context"
+    "sync"
+    "time"
+    
+    // Third-party packages
+    "github.com/rs/zerolog"
+    
+    // Internal packages (ports only)
+    "github.com/tcncloud/sati-go/pkg/ports"
+)
+```
+
+### Import Guidelines
+- **Only import `pkg/ports`** from domain package
+- **No direct imports** from adapters or other domain packages
+- **Use absolute imports** for internal packages
+- **Group imports** by type (standard, third-party, internal)
+
+## Documentation Standards
+
+### Package Documentation
+```go
+// Package domain provides the core business logic and domain services.
+// It implements the following services:
+// - ConfigWatcherHandler for configuration change handling
+// - ExileClientConfiguration process for client configuration management
+// - PollEventsProcess for event polling
+// - StreamJobsProcess for job streaming
+// - HostPluginProcess for plugin hosting
+package domain
+```
+
+### Function Documentation
+```go
+// StartConfigWatcher starts the configuration watcher.
+// It checks if a config watcher is configured and starts it if available.
+// Returns an error if the watcher fails to start.
+func (d *Domain) StartConfigWatcher(ctx context.Context) error {
+    // implementation
+}
+```
+
+## Best Practices
+
+### Error Handling
+- Use structured logging with context
+- Wrap errors with meaningful context
+- Handle nil dependencies gracefully
+- Log all significant operations
+
+### Concurrency
+- Use `sync.RWMutex` for read/write operations
+- Use `context.Context` for cancellable operations
+- Implement proper cleanup in `stop()` methods
+- Use channels for communication between goroutines
+
+### Lifecycle Management
+- Implement proper startup sequence
+- Implement proper shutdown sequence
+- Handle graceful shutdown
+- Clean up resources properly
+
+### Testing
+- Test with and without dependencies
+- Use mocks for external dependencies
+- Test error conditions
+- Test process lifecycle methods
+- Maintain high test coverage (target: 80%+)
+
+## Anti-Patterns to Avoid
+
+### ❌ Large Files
+- Don't put everything in one file
+- Split files by responsibility
+- Keep files focused and manageable
+
+### ❌ Interface Definitions
+- Don't define interfaces in domain package
+- Use interfaces from ports package only
+- Don't create unnecessary abstractions
+
+### ❌ Direct Adapter Dependencies
+- Don't import adapters directly
+- Use ports interfaces for external dependencies
+- Maintain clean architecture boundaries
+
+### ❌ Poor Test Organization
+- Don't put all tests in one file
+- Organize tests by functionality
+- Use descriptive test names
+- Group related tests together

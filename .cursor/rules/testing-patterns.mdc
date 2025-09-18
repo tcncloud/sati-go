@@ -1,0 +1,437 @@
+---
+globs: **/*_test.go
+description: Testing patterns and best practices for the sati-go project
+---
+
+# Testing Patterns and Best Practices
+
+## Test Organization
+
+### File Structure
+- **One test file per source file**: `domain.go` → `domain_test.go`
+- **Grouped by functionality**: `processes_test.go`, `service_provider_test.go`
+- **Descriptive test names**: `TestDomain_StartConfigWatcher_Success`
+- **Focused test functions**: Each test should test one specific behavior
+
+### Test File Naming
+```
+pkg/domain/
+├── domain_test.go           # Tests for domain.go
+├── processes_test.go        # Tests for processes.go
+├── service_provider_test.go # Tests for service_provider.go
+└── constants_test.go        # Tests for constants.go (if needed)
+```
+
+## Mock Implementation Patterns
+
+### Complete Interface Mock
+```go
+// MockConfigWatcher implements ports.ConfigWatcher
+type MockConfigWatcher struct {
+    startError  error
+    stopError   error
+    watching    bool
+    startCalled bool
+    stopCalled  bool
+}
+
+func (m *MockConfigWatcher) Start(ctx context.Context) error {
+    m.startCalled = true
+    return m.startError
+}
+
+func (m *MockConfigWatcher) Stop() error {
+    m.stopCalled = true
+    return m.stopError
+}
+
+func (m *MockConfigWatcher) IsWatching() bool {
+    return m.watching
+}
+```
+
+### Comprehensive Client Mock
+```go
+// MockClientInterface implements all ports.ClientInterface methods
+type MockClientInterface struct {
+    getClientConfigResult ports.GetClientConfigurationResult
+    getClientConfigError  error
+    pollEventsResult      ports.PollEventsResult
+    pollEventsError       error
+    streamJobsChan        <-chan ports.StreamJobsResult
+    closeError            error
+}
+
+// Implement all required methods with default implementations
+func (m *MockClientInterface) Close() error {
+    return m.closeError
+}
+
+func (m *MockClientInterface) GetClientConfiguration(ctx context.Context, params ports.GetClientConfigurationParams) (ports.GetClientConfigurationResult, error) {
+    return m.getClientConfigResult, m.getClientConfigError
+}
+
+// ... implement all other required methods
+```
+
+## Test Setup Patterns
+
+### Test Helper Functions
+```go
+// setupTestDomain creates a test domain with mocked dependencies
+func setupTestDomain() (*Domain, *MockConfigWatcher, *MockClientInterface) {
+    logger := zerolog.Nop()
+    mockWatcher := &MockConfigWatcher{}
+    mockClient := &MockClientInterface{}
+    
+    domain := NewDomain(&logger)
+    domain.SetConfigWatcher(mockWatcher)
+    domain.SetClient(mockClient)
+    
+    return domain, mockWatcher, mockClient
+}
+
+// setupTestClient creates a test client with mocked dependencies
+func setupTestClient() (*Client, *MockGateService) {
+    mockGate := &MockGateService{}
+    client := &Client{
+        gate: mockGate,
+    }
+    return client, mockGate
+}
+```
+
+### Test Data Builders
+```go
+// Test data builders for complex types
+func buildGetClientConfigurationResult() ports.GetClientConfigurationResult {
+    return ports.GetClientConfigurationResult{
+        OrgID:         "test-org",
+        OrgName:       "Test Organization",
+        ConfigName:    "test-config",
+        ConfigPayload: "test-payload",
+    }
+}
+
+func buildEventList() []ports.Event {
+    return []ports.Event{
+        {Type: "test-event-1"},
+        {Type: "test-event-2"},
+    }
+}
+```
+
+## Test Function Patterns
+
+### Standard Test Structure
+```go
+func TestDomain_MethodName(t *testing.T) {
+    domain, mockWatcher, mockClient := setupTestDomain()
+    ctx := context.Background()
+    
+    t.Run("Success", func(t *testing.T) {
+        // Setup
+        mockWatcher.startError = nil
+        mockWatcher.startCalled = false
+        
+        // Execute
+        err := domain.StartConfigWatcher(ctx)
+        
+        // Verify
+        if err != nil {
+            t.Errorf("Expected no error, got: %v", err)
+        }
+        if !mockWatcher.startCalled {
+            t.Error("Expected config watcher start to be called")
+        }
+    })
+    
+    t.Run("Error", func(t *testing.T) {
+        // Setup
+        mockWatcher.startError = errors.New("start failed")
+        mockWatcher.startCalled = false
+        
+        // Execute
+        err := domain.StartConfigWatcher(ctx)
+        
+        // Verify
+        if err == nil {
+            t.Error("Expected error but got none")
+        }
+        if !mockWatcher.startCalled {
+            t.Error("Expected config watcher start to be called")
+        }
+    })
+}
+```
+
+### Error Case Testing
+```go
+func TestDomain_StartConfigWatcher_Error(t *testing.T) {
+    domain, mockWatcher, _ := setupTestDomain()
+    ctx := context.Background()
+    
+    // Setup error condition
+    mockWatcher.startError = errors.New("start failed")
+    mockWatcher.startCalled = false
+    
+    // Execute
+    err := domain.StartConfigWatcher(ctx)
+    
+    // Verify error handling
+    if err == nil {
+        t.Error("Expected error but got none")
+    }
+    if !mockWatcher.startCalled {
+        t.Error("Expected config watcher start to be called")
+    }
+    if !strings.Contains(err.Error(), "start failed") {
+        t.Errorf("Expected error to contain 'start failed', got: %v", err)
+    }
+}
+```
+
+### Interface Compliance Testing
+```go
+func TestDomain_ImplementsDomainService(t *testing.T) {
+    domain, _, _ := setupTestDomain()
+    
+    // Test that Domain implements ports.DomainService interface
+    var _ ports.DomainService = domain
+}
+```
+
+### Concurrency Testing
+```go
+func TestDomain_ConcurrentAccess(t *testing.T) {
+    domain, _, _ := setupTestDomain()
+    ctx := context.Background()
+    
+    var wg sync.WaitGroup
+    numGoroutines := 10
+    
+    // Start multiple goroutines
+    for i := 0; i < numGoroutines; i++ {
+        wg.Add(1)
+        go func() {
+            defer wg.Done()
+            _ = domain.StartConfigWatcher(ctx)
+        }()
+    }
+    
+    wg.Wait()
+    
+    // Verify no race conditions occurred
+    // (This would be caught by go test -race)
+}
+```
+
+## Test Quality Standards
+
+### Test Coverage
+- **Target**: 80%+ code coverage
+- **Critical paths**: 100% coverage for business logic
+- **Error paths**: Test all error conditions
+- **Edge cases**: Test boundary conditions
+
+### Test Naming
+```go
+// ✅ Good: Descriptive test names
+func TestDomain_StartConfigWatcher_Success(t *testing.T)
+func TestDomain_StartConfigWatcher_Error(t *testing.T)
+func TestDomain_StartConfigWatcher_NoConfigWatcher(t *testing.T)
+
+// ❌ Bad: Vague test names
+func TestDomain_StartConfigWatcher(t *testing.T)
+func TestStartConfigWatcher(t *testing.T)
+func Test1(t *testing.T)
+```
+
+### Test Organization
+```go
+// ✅ Good: Grouped by functionality
+func TestDomain_ConfigWatcher(t *testing.T) {
+    t.Run("Start", func(t *testing.T) { ... })
+    t.Run("Stop", func(t *testing.T) { ... })
+    t.Run("IsWatching", func(t *testing.T) { ... })
+}
+
+// ✅ Good: Separate test functions for different behaviors
+func TestDomain_StartConfigWatcher_Success(t *testing.T) { ... }
+func TestDomain_StartConfigWatcher_Error(t *testing.T) { ... }
+func TestDomain_StartConfigWatcher_NoConfigWatcher(t *testing.T) { ... }
+```
+
+### Assertion Patterns
+```go
+// ✅ Good: Clear assertions with descriptive messages
+if err != nil {
+    t.Errorf("Expected no error, got: %v", err)
+}
+
+if !mockWatcher.startCalled {
+    t.Error("Expected config watcher start to be called")
+}
+
+if result.AgentID != expectedID {
+    t.Errorf("Expected AgentID %d, got %d", expectedID, result.AgentID)
+}
+
+// ❌ Bad: Unclear assertions
+if err != nil {
+    t.Error(err)
+}
+
+if !mockWatcher.startCalled {
+    t.Error("Failed")
+}
+```
+
+## Test Data Management
+
+### Mock State Management
+```go
+// Reset mock state between tests
+func resetMockWatcher(m *MockConfigWatcher) {
+    m.startError = nil
+    m.stopError = nil
+    m.watching = false
+    m.startCalled = false
+    m.stopCalled = false
+}
+
+func TestDomain_MultipleTests(t *testing.T) {
+    domain, mockWatcher, _ := setupTestDomain()
+    
+    t.Run("Test1", func(t *testing.T) {
+        resetMockWatcher(mockWatcher)
+        // Test implementation
+    })
+    
+    t.Run("Test2", func(t *testing.T) {
+        resetMockWatcher(mockWatcher)
+        // Test implementation
+    })
+}
+```
+
+### Test Isolation
+```go
+// Each test should be independent
+func TestDomain_Isolation(t *testing.T) {
+    // Don't rely on state from other tests
+    domain := NewDomain(zerolog.Nop())
+    
+    // Test specific behavior
+    if domain.IsRunning() {
+        t.Error("Expected domain to not be running initially")
+    }
+}
+```
+
+## Performance Testing
+
+### Benchmark Tests
+```go
+func BenchmarkDomain_StartConfigWatcher(b *testing.B) {
+    domain, _, _ := setupTestDomain()
+    ctx := context.Background()
+    
+    b.ResetTimer()
+    for i := 0; i < b.N; i++ {
+        _ = domain.StartConfigWatcher(ctx)
+    }
+}
+```
+
+### Memory Testing
+```go
+func TestDomain_MemoryLeaks(t *testing.T) {
+    domain, _, _ := setupTestDomain()
+    
+    // Perform operations that might leak memory
+    for i := 0; i < 1000; i++ {
+        _ = domain.StartConfigWatcher(context.Background())
+    }
+    
+    // Verify no memory leaks
+    // (Use runtime.GC() and runtime.ReadMemStats() if needed)
+}
+```
+
+## Test Utilities
+
+### Test Helpers
+```go
+// Common test utilities
+func assertNoError(t *testing.T, err error) {
+    t.Helper()
+    if err != nil {
+        t.Errorf("Expected no error, got: %v", err)
+    }
+}
+
+func assertError(t *testing.T, err error, expectedMsg string) {
+    t.Helper()
+    if err == nil {
+        t.Error("Expected error but got none")
+        return
+    }
+    if !strings.Contains(err.Error(), expectedMsg) {
+        t.Errorf("Expected error to contain '%s', got: %v", expectedMsg, err)
+    }
+}
+
+func assertTrue(t *testing.T, condition bool, message string) {
+    t.Helper()
+    if !condition {
+        t.Error(message)
+    }
+}
+```
+
+### Test Data Factories
+```go
+// Factory functions for test data
+func NewTestDomain() *Domain {
+    logger := zerolog.Nop()
+    return NewDomain(&logger)
+}
+
+func NewTestConfigWatcher() *MockConfigWatcher {
+    return &MockConfigWatcher{}
+}
+
+func NewTestClient() *MockClientInterface {
+    return &MockClientInterface{}
+}
+```
+
+## Best Practices
+
+### Test Structure
+1. **Arrange**: Set up test data and mocks
+2. **Act**: Execute the code under test
+3. **Assert**: Verify the results
+
+### Test Naming
+- Use descriptive names that explain what is being tested
+- Include the expected outcome in the name
+- Group related tests using subtests
+
+### Error Testing
+- Test all error conditions
+- Verify error messages are meaningful
+- Test error handling and recovery
+
+### Mock Usage
+- Use mocks for external dependencies
+- Verify mock interactions
+- Reset mock state between tests
+- Use descriptive mock names
+
+### Coverage
+- Aim for high test coverage
+- Focus on critical business logic
+- Test edge cases and error conditions
+- Use `go test -cover` to verify coverage

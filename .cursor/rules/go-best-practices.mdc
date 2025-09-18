@@ -6,45 +6,406 @@ description: Go best practices and coding standards for the sati-go project
 # Go Best Practices and Coding Standards
 
 ## Code Quality Standards
-- Always handle errors explicitly - never ignore `err` returns
-- Use `defer handleClientClose(client)` instead of `defer client.Close()` for proper error handling
-- Pre-allocate slices when size is known: `make([]Type, 0, len(input))`
-- Use constants for repeated string literals (e.g., `OutputFormatJSON` instead of `"json"`)
-- Use named constants for magic numbers (e.g., `DefaultTimeout`, `LongTimeout`)
 
-## Error Handling
-- Define static error constants in [common.go](mdc:pkg/cmd/common.go) and [client.go](mdc:pkg/sati/client/client.go)
-- Use `errors.New()` for static error creation, not dynamic strings
-- Always check and handle `client.Close()` errors using the `handleClientClose()` helper
-- Use error wrapping to maintain context: `fmt.Errorf("operation failed: %w", err)`
-- Never ignore error returns - always handle them explicitly
-- Use structured logging for error context: `log.Error().Err(err).Msg("operation failed")`
+### Error Handling
+- **Always handle errors explicitly** - never ignore `err` returns
+- **Use `defer handleClientClose(client)`** instead of `defer client.Close()` for proper error handling
+- **Pre-allocate slices** when size is known: `make([]Type, 0, len(input))`
+- **Use constants** for repeated string literals (e.g., `OutputFormatJSON` instead of `"json"`)
+- **Use named constants** for magic numbers (e.g., `DefaultTimeout`, `LongTimeout`)
+
+### Error Handling Patterns
+```go
+// ✅ Good: Explicit error handling
+func (d *Domain) StartConfigWatcher(ctx context.Context) error {
+    if d.configWatcher == nil {
+        d.log.Warn().Msg("Config watcher not configured, skipping startup")
+        return nil
+    }
+    
+    if err := d.configWatcher.Start(ctx); err != nil {
+        d.log.Error().Err(err).Msg("Failed to start config watcher")
+        return fmt.Errorf("failed to start config watcher: %w", err)
+    }
+    
+    d.log.Info().Msg("Config watcher started successfully")
+    return nil
+}
+
+// ❌ Bad: Ignoring errors
+func (d *Domain) BadMethod() {
+    d.configWatcher.Start(ctx) // Error ignored!
+}
+```
+
+### Error Wrapping and Context
+```go
+// ✅ Good: Error wrapping with context
+if err := d.configWatcher.Start(ctx); err != nil {
+    d.log.Error().Err(err).Msg("Failed to start config watcher")
+    return fmt.Errorf("failed to start config watcher: %w", err)
+}
+
+// ✅ Good: Structured logging for errors
+d.log.Error().
+    Err(err).
+    Str("operation", "start_config_watcher").
+    Msg("Operation failed")
+```
 
 ## Naming Conventions
-- Use `GetAgentByID` (capital ID) for Go naming conventions
-- Interface methods may have different naming (e.g., `GetAgentById` with capital B) - use `//nolint:revive` when required
-- Use descriptive variable names and avoid abbreviations
-- Follow Go naming conventions consistently across the codebase
+
+### Go Naming Standards
+- **Use `GetAgentByID`** (capital ID) for Go naming conventions
+- **Interface methods** may have different naming (e.g., `GetAgentById` with capital B) - use `//nolint:revive` when required
+- **Use descriptive variable names** and avoid abbreviations
+- **Follow Go naming conventions** consistently across the codebase
+
+### Variable and Function Naming
+```go
+// ✅ Good: Descriptive names
+func GetAgentByID(ctx context.Context, params GetAgentByIDParams) (GetAgentByIDResult, error)
+func StartConfigWatcher(ctx context.Context) error
+func IsProcessRunning(name string) bool
+
+// ❌ Bad: Abbreviated or unclear names
+func GetAgent(id int64) (Agent, error)
+func Start(ctx context.Context) error
+func IsRunning(name string) bool
+```
+
+### Interface Naming
+```go
+// ✅ Good: Clear interface names
+type ConfigWatcher interface {
+    Start(ctx context.Context) error
+    Stop() error
+    IsWatching() bool
+}
+
+type EventDispatcher interface {
+    DispatchEvents(events []Event)
+    DispatchJob(job *Job)
+}
+```
 
 ## Code Organization
-- Break down complex functions (>30 cognitive complexity) into smaller, focused functions
-- Use helper functions in [common.go](mdc:pkg/cmd/common.go) to reduce duplication
-- Group related functionality into separate test functions
 
-## Security
-- Set minimum TLS version: `MinVersion: tls.VersionTLS12`
-- Use `//nolint:gosec` with explanation for controlled file operations
-- Validate input parameters before use
-- See [security-standards.mdc](mdc:.cursor/rules/security-standards.mdc) for comprehensive security guidelines
+### Function Size and Complexity
+- **Keep functions under 50 lines** when possible
+- **Break down complex functions** into smaller, focused functions
+- **Use helper functions** in [common.go](mdc:pkg/cmd/common.go) to reduce duplication
+- **Group related functionality** into separate test functions
 
-## Testing
-- Use `setupTestClient()` helper for consistent test setup
-- Break large test functions into focused test groups
-- Mock method names must exactly match interface method names
-- Use descriptive test names and group related tests
-- See [testing-guidelines.mdc](mdc:.cursor/rules/testing-guidelines.mdc) for comprehensive testing patterns
+### Function Organization
+```go
+// ✅ Good: Small, focused function
+func (d *Domain) StartConfigWatcher(ctx context.Context) error {
+    if d.configWatcher == nil {
+        d.log.Warn().Msg("Config watcher not configured, skipping startup")
+        return nil
+    }
+    
+    return d.startConfigWatcherInternal(ctx)
+}
+
+func (d *Domain) startConfigWatcherInternal(ctx context.Context) error {
+    if err := d.configWatcher.Start(ctx); err != nil {
+        d.log.Error().Err(err).Msg("Failed to start config watcher")
+        return fmt.Errorf("failed to start config watcher: %w", err)
+    }
+    
+    d.log.Info().Msg("Config watcher started successfully")
+    return nil
+}
+```
+
+### Import Organization
+```go
+import (
+    // Standard library
+    "context"
+    "fmt"
+    "sync"
+    "time"
+    
+    // Third-party packages
+    "github.com/rs/zerolog"
+    
+    // Internal packages (ordered by layer)
+    "github.com/tcncloud/sati-go/pkg/ports"
+)
+```
+
+## Security Best Practices
+
+### TLS Configuration
+```go
+// ✅ Good: Secure TLS configuration
+creds := credentials.NewTLS(&tls.Config{
+    Certificates: []tls.Certificate{cert},
+    RootCAs:      caCertPool,
+    MinVersion:   tls.VersionTLS12, // Minimum TLS 1.2
+})
+```
+
+### File Operations
+```go
+// ✅ Good: Controlled file operations with explanation
+//nolint:gosec // Configuration file path is controlled, not user input
+data, err := os.ReadFile(path)
+if err != nil {
+    return fmt.Errorf("failed to read config file: %w", err)
+}
+```
+
+### Input Validation
+```go
+// ✅ Good: Validate input parameters
+func (d *Domain) StartProcess(name string) error {
+    if name == "" {
+        return errors.New("process name cannot be empty")
+    }
+    
+    // Process implementation
+    return nil
+}
+```
+
+## Concurrency Patterns
+
+### Context Usage
+```go
+// ✅ Good: Context-aware operations
+func (d *Domain) StartConfigWatcher(ctx context.Context) error {
+    if err := d.configWatcher.Start(ctx); err != nil {
+        return fmt.Errorf("failed to start config watcher: %w", err)
+    }
+    return nil
+}
+
+// ✅ Good: Context with timeout
+func (d *Domain) checkConfiguration() error {
+    ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
+    defer cancel()
+    
+    result, err := d.client.GetClientConfiguration(ctx, params)
+    if err != nil {
+        return err
+    }
+    
+    // Process result
+    return nil
+}
+```
+
+### Mutex Usage
+```go
+// ✅ Good: Proper mutex usage
+func (d *Domain) SetConfigWatcher(watcher ports.ConfigWatcher) {
+    d.mu.Lock()
+    defer d.mu.Unlock()
+    
+    d.configWatcher = watcher
+}
+
+func (d *Domain) IsRunning() bool {
+    d.mu.RLock()
+    defer d.mu.RUnlock()
+    
+    return d.isRunning
+}
+```
+
+### Goroutine Management
+```go
+// ✅ Good: Proper goroutine lifecycle management
+func (d *Domain) StartExileClientConfiguration() error {
+    ctx, cancel := context.WithCancel(context.Background())
+    process := &ExileClientConfigurationProcess{
+        domain: d,
+        cancel: cancel,
+        ticker: time.NewTicker(ConfigCheckInterval),
+    }
+    
+    d.exileConfigProcess = process
+    go process.run(ctx)
+    
+    return nil
+}
+```
+
+## Performance Considerations
+
+### Memory Management
+```go
+// ✅ Good: Pre-allocate slices when size is known
+func processEvents(events []Event) []ProcessedEvent {
+    results := make([]ProcessedEvent, 0, len(events))
+    
+    for _, event := range events {
+        if event.IsValid() {
+            results = append(results, ProcessedEvent{Event: event})
+        }
+    }
+    
+    return results
+}
+
+// ❌ Bad: Growing slice without pre-allocation
+func processEvents(events []Event) []ProcessedEvent {
+    var results []ProcessedEvent // Will grow dynamically
+    
+    for _, event := range events {
+        if event.IsValid() {
+            results = append(results, ProcessedEvent{Event: event})
+        }
+    }
+    
+    return results
+}
+```
+
+### Timeout Management
+```go
+// ✅ Good: Appropriate timeouts for different operations
+const (
+    ConfigCheckInterval = 60 * time.Second
+    DefaultTimeout      = 30 * time.Second
+    RetryDelay          = 5 * time.Second
+)
+
+func (d *Domain) checkConfiguration() error {
+    ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
+    defer cancel()
+    
+    // API call with timeout
+    return d.client.GetClientConfiguration(ctx, params)
+}
+```
+
+## Documentation Standards
+
+### Package Documentation
+```go
+// Package domain provides the core business logic and domain services.
+// It implements the following services:
+// - ConfigWatcherHandler for configuration change handling
+// - ExileClientConfiguration process for client configuration management
+// - PollEventsProcess for event polling
+// - StreamJobsProcess for job streaming
+// - HostPluginProcess for plugin hosting
+package domain
+```
+
+### Function Documentation
+```go
+// StartConfigWatcher starts the configuration watcher.
+// It checks if a config watcher is configured and starts it if available.
+// Returns an error if the watcher fails to start.
+func (d *Domain) StartConfigWatcher(ctx context.Context) error {
+    // implementation
+}
+```
+
+### Type Documentation
+```go
+// Domain is the main domain object for the application.
+// It implements the following services:
+// - ConfigWatcherHandler that will be called by the config watcher service
+// - ExileClientConfiguration process for fetching client configuration
+// - PollEventsProcess for polling events from the exile client
+// - StreamJobsProcess for streaming jobs from the exile client
+// - HostPluginProcess for hosting the plugin and dispatching events
+type Domain struct {
+    // fields
+}
+```
 
 ## Linting Compliance
-- Maintain zero linting issues
-- Use appropriate `//nolint` directives with explanations when necessary
-- Follow all golangci-lint rules and recommendations
+
+### Linter Directives
+```go
+// Use appropriate linter directives with explanations
+//nolint:revive // Method name must match interface exactly
+func (m *MockClient) GetAgentById(ctx context.Context, params GetAgentByIDParams) (GetAgentByIDResult, error) {
+    return m.getAgentByID(ctx, params)
+}
+
+//nolint:gosec // Configuration file path is controlled, not user input
+data, err := os.ReadFile(configPath)
+```
+
+### Common Linting Issues
+- **errcheck**: Always check error returns
+- **goconst**: Use constants for repeated string literals
+- **mnd**: Use named constants for magic numbers
+- **gocognit**: Keep function complexity under 30
+- **revive**: Follow Go naming conventions
+- **gosec**: Address security issues appropriately
+
+## Testing Standards
+
+### Test Structure
+```go
+func TestDomain_StartConfigWatcher(t *testing.T) {
+    domain, mockWatcher, _ := setupTestDomain()
+    ctx := context.Background()
+    
+    t.Run("Success", func(t *testing.T) {
+        // Setup
+        mockWatcher.startError = nil
+        mockWatcher.startCalled = false
+        
+        // Execute
+        err := domain.StartConfigWatcher(ctx)
+        
+        // Verify
+        if err != nil {
+            t.Errorf("Expected no error, got: %v", err)
+        }
+        if !mockWatcher.startCalled {
+            t.Error("Expected config watcher start to be called")
+        }
+    })
+}
+```
+
+### Mock Implementation
+```go
+// Mock implementations must implement all interface methods
+type MockConfigWatcher struct {
+    startError  error
+    stopError   error
+    watching    bool
+    startCalled bool
+    stopCalled  bool
+}
+
+func (m *MockConfigWatcher) Start(ctx context.Context) error {
+    m.startCalled = true
+    return m.startError
+}
+
+func (m *MockConfigWatcher) Stop() error {
+    m.stopCalled = true
+    return m.stopError
+}
+
+func (m *MockConfigWatcher) IsWatching() bool {
+    return m.watching
+}
+```
+
+## Best Practices Summary
+
+1. **Error Handling**: Always handle errors explicitly with proper context
+2. **Naming**: Use descriptive names following Go conventions
+3. **Organization**: Keep functions small and focused
+4. **Security**: Use secure configurations and validate inputs
+5. **Concurrency**: Use context and proper synchronization
+6. **Performance**: Pre-allocate slices and use appropriate timeouts
+7. **Documentation**: Document all public APIs clearly
+8. **Testing**: Write comprehensive tests with good coverage
+9. **Linting**: Maintain zero linting issues
+10. **Consistency**: Follow established patterns throughout the codebase
