@@ -52,26 +52,46 @@ var Module = fx.Module("domain",
 		return d.SetConfigWatcher
 	}),
 
-	// Provide other domain service methods
-	fx.Provide(func(d *Domain) func() {
-		return d.StartGateClient
+	// Provide a function to set the client
+	fx.Provide(func(d *Domain) func(ports.ClientInterface) {
+		return d.SetClient
 	}),
 
-	fx.Provide(func(d *Domain) func() {
+	// Provide domain service methods
+	fx.Provide(func(d *Domain) func() error {
+		return d.StartExileClientConfiguration
+	}),
+
+	fx.Provide(func(d *Domain) func() error {
 		return d.StartPollEvents
 	}),
 
-	fx.Provide(func(d *Domain) func() {
+	fx.Provide(func(d *Domain) func() error {
 		return d.StartStreamJobs
+	}),
+
+	fx.Provide(func(d *Domain) func() error {
+		return d.StartHostPlugin
+	}),
+
+	fx.Provide(func(d *Domain) func() error {
+		return d.StopAllProcesses
+	}),
+
+	fx.Provide(func(d *Domain) func() bool {
+		return d.IsRunning
 	}),
 )
 
 // DomainService defines the interface for domain services.
 type DomainService interface {
 	StartConfigWatcher(ctx context.Context) error
-	StartGateClient()
-	StartPollEvents()
-	StartStreamJobs()
+	StartExileClientConfiguration() error
+	StartPollEvents() error
+	StartStreamJobs() error
+	StartHostPlugin() error
+	StopAllProcesses() error
+	IsRunning() bool
 }
 
 // Ensure Domain implements DomainService interface.
@@ -94,17 +114,32 @@ func (dsp *DomainServiceProvider) GetConfigWatcherStarter() func(context.Context
 	return dsp.domain.StartConfigWatcher
 }
 
-// GetGateClientStarter returns the gate client starter function.
-func (dsp *DomainServiceProvider) GetGateClientStarter() func() {
-	return dsp.domain.StartGateClient
+// GetExileClientConfigurationStarter returns the exile client configuration starter function.
+func (dsp *DomainServiceProvider) GetExileClientConfigurationStarter() func() error {
+	return dsp.domain.StartExileClientConfiguration
 }
 
 // GetPollEventsStarter returns the poll events starter function.
-func (dsp *DomainServiceProvider) GetPollEventsStarter() func() {
+func (dsp *DomainServiceProvider) GetPollEventsStarter() func() error {
 	return dsp.domain.StartPollEvents
 }
 
 // GetStreamJobsStarter returns the stream jobs starter function.
-func (dsp *DomainServiceProvider) GetStreamJobsStarter() func() {
+func (dsp *DomainServiceProvider) GetStreamJobsStarter() func() error {
 	return dsp.domain.StartStreamJobs
+}
+
+// GetHostPluginStarter returns the host plugin starter function.
+func (dsp *DomainServiceProvider) GetHostPluginStarter() func() error {
+	return dsp.domain.StartHostPlugin
+}
+
+// GetStopAllProcessesStopper returns the stop all processes function.
+func (dsp *DomainServiceProvider) GetStopAllProcessesStopper() func() error {
+	return dsp.domain.StopAllProcesses
+}
+
+// GetIsRunningChecker returns the is running checker function.
+func (dsp *DomainServiceProvider) GetIsRunningChecker() func() bool {
+	return dsp.domain.IsRunning
 }
