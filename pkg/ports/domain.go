@@ -24,6 +24,9 @@ type DomainService interface {
 
 	// IsRunning returns true if the domain is currently running.
 	IsRunning() bool
+
+	// ClientConfigurationChanged is called when the client configuration changes.
+	ClientConfigurationChanged(oldConfig, newConfig *GetClientConfigurationResult) error
 }
 
 // ProcessManager defines the interface for managing domain processes.
