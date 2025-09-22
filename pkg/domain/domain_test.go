@@ -32,6 +32,35 @@ func (m *MockConfigWatcher) IsWatching() bool {
 	return m.watching
 }
 
+// MockHostPluginProcess is a mock implementation of ports.HostPluginProcess
+type MockHostPluginProcess struct {
+	runCalled            bool
+	stopCalled           bool
+	dispatchEventsCalled bool
+	dispatchJobCalled    bool
+	eventsDispatched     []ports.Event
+	jobDispatched        *ports.Job
+}
+
+func (m *MockHostPluginProcess) Run(ctx context.Context) {
+	m.runCalled = true
+	<-ctx.Done()
+}
+
+func (m *MockHostPluginProcess) Stop() {
+	m.stopCalled = true
+}
+
+func (m *MockHostPluginProcess) DispatchEvents(events []ports.Event) {
+	m.dispatchEventsCalled = true
+	m.eventsDispatched = events
+}
+
+func (m *MockHostPluginProcess) DispatchJob(job *ports.Job) {
+	m.dispatchJobCalled = true
+	m.jobDispatched = job
+}
+
 // MockClientInterface is a mock implementation of ports.ClientInterface
 type MockClientInterface struct {
 	getClientConfigResult ports.GetClientConfigurationResult
@@ -188,10 +217,12 @@ func setupTestDomain() (*Domain, *MockConfigWatcher, *MockClientInterface) {
 	logger := zerolog.Nop()
 	mockWatcher := &MockConfigWatcher{}
 	mockClient := &MockClientInterface{}
+	mockHostPlugin := &MockHostPluginProcess{}
 
 	domain := NewDomain(&logger)
 	domain.SetConfigWatcher(mockWatcher)
 	domain.SetClient(mockClient)
+	domain.SetHostPluginProcess(mockHostPlugin)
 
 	return domain, mockWatcher, mockClient
 }
@@ -412,19 +443,19 @@ func TestDomain_StartHostPlugin(t *testing.T) {
 		}
 
 		if domain.hostPluginProcess == nil {
-			t.Error("Expected host plugin process to be created")
+			t.Error("Expected host plugin process to be set")
 		}
 	})
 
-	t.Run("AlreadyRunning", func(t *testing.T) {
-		// Start it once
-		_ = domain.StartHostPlugin()
+	t.Run("NoHostPluginProcess", func(t *testing.T) {
+		domainNoHostPlugin := NewDomain(domain.log)
+		domainNoHostPlugin.SetConfigWatcher(domain.configWatcher)
+		domainNoHostPlugin.SetClient(domain.client)
 
-		// Try to start again
-		err := domain.StartHostPlugin()
+		err := domainNoHostPlugin.StartHostPlugin()
 
 		if err != nil {
-			t.Errorf("Expected no error when already running, got: %v", err)
+			t.Errorf("Expected no error when no host plugin process, got: %v", err)
 		}
 	})
 }

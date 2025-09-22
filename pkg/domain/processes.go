@@ -29,11 +29,8 @@ type StreamJobsProcess struct {
 	cancel context.CancelFunc
 }
 
-// HostPluginProcess manages the plugin hosting and event/job dispatching.
-type HostPluginProcess struct {
-	domain *Domain
-	cancel context.CancelFunc
-}
+// HostPluginProcess is now an interface defined in ports package
+// The concrete implementation should be in the adapters package
 
 // ExileClientConfigurationProcess methods
 
@@ -98,7 +95,7 @@ func (p *ExileClientConfigurationProcess) restartProcesses() {
 	}
 
 	if p.domain.hostPluginProcess != nil {
-		p.domain.hostPluginProcess.stop()
+		p.domain.hostPluginProcess.Stop()
 		p.domain.hostPluginProcess = nil
 	}
 
@@ -154,7 +151,7 @@ func (p *PollEventsProcess) pollEvents() error {
 
 	// Dispatch events to host plugin process
 	if p.domain.hostPluginProcess != nil {
-		p.domain.hostPluginProcess.dispatchEvents(result.Events)
+		p.domain.hostPluginProcess.DispatchEvents(result.Events)
 	}
 
 	return nil
@@ -197,7 +194,7 @@ func (p *StreamJobsProcess) streamJobs() error {
 
 		// Dispatch job to host plugin process
 		if p.domain.hostPluginProcess != nil {
-			p.domain.hostPluginProcess.dispatchJob(result.Job)
+			p.domain.hostPluginProcess.DispatchJob(result.Job)
 		}
 	}
 
@@ -210,30 +207,5 @@ func (p *StreamJobsProcess) stop() {
 	}
 }
 
-// HostPluginProcess methods
-
-func (p *HostPluginProcess) run(ctx context.Context) {
-	// This is where the plugin hosting logic would go
-	// For now, it's a placeholder that handles events and jobs
-	p.domain.log.Info().Msg("Host plugin process running")
-
-	<-ctx.Done()
-}
-
-func (p *HostPluginProcess) dispatchEvents(events []ports.Event) {
-	// Dispatch events to the plugin
-	p.domain.log.Debug().Int("count", len(events)).Msg("Dispatching events to plugin")
-	// Plugin dispatch logic would go here
-}
-
-func (p *HostPluginProcess) dispatchJob(job *ports.Job) {
-	// Dispatch job to the plugin
-	p.domain.log.Debug().Str("job_id", job.JobID).Str("type", job.Type).Msg("Dispatching job to plugin")
-	// Plugin dispatch logic would go here
-}
-
-func (p *HostPluginProcess) stop() {
-	if p.cancel != nil {
-		p.cancel()
-	}
-}
+// HostPluginProcess methods are now in the concrete implementation
+// in the adapters package

@@ -214,51 +214,8 @@ func TestStreamJobsProcess_run(t *testing.T) {
 	<-ctx.Done()
 }
 
-func TestHostPluginProcess_dispatchEvents(t *testing.T) {
-	domain, _, _ := setupTestDomain()
-	process := &HostPluginProcess{
-		domain: domain,
-	}
-
-	events := []ports.Event{
-		{Type: "test"},
-		{Type: "test"},
-	}
-
-	// This should not panic
-	process.dispatchEvents(events)
-}
-
-func TestHostPluginProcess_dispatchJob(t *testing.T) {
-	domain, _, _ := setupTestDomain()
-	process := &HostPluginProcess{
-		domain: domain,
-	}
-
-	job := &ports.Job{
-		JobID: "job1",
-		Type:  "test",
-	}
-
-	// This should not panic
-	process.dispatchJob(job)
-}
-
-func TestHostPluginProcess_run(t *testing.T) {
-	domain, _, _ := setupTestDomain()
-	process := &HostPluginProcess{
-		domain: domain,
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
-	defer cancel()
-
-	// Run the process
-	go process.run(ctx)
-
-	// Wait for context to be done
-	<-ctx.Done()
-}
+// HostPluginProcess tests are now in the adapters package
+// since HostPluginProcess is now an interface
 
 func TestProcessStopMethods(t *testing.T) {
 	domain, _, _ := setupTestDomain()
@@ -284,10 +241,5 @@ func TestProcessStopMethods(t *testing.T) {
 	}
 	streamProcess.stop() // Should not panic
 
-	// Test HostPluginProcess stop
-	hostProcess := &HostPluginProcess{
-		domain: domain,
-		cancel: func() {}, // Mock cancel function
-	}
-	hostProcess.stop() // Should not panic
+	// HostPluginProcess stop test removed since it's now an interface
 }

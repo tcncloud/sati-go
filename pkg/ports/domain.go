@@ -64,3 +64,18 @@ type EventDispatcher interface {
 	// DispatchJob dispatches a job to the plugin.
 	DispatchJob(job *Job)
 }
+
+// HostPluginProcess defines the interface for hosting plugins and managing their lifecycle.
+type HostPluginProcess interface {
+	// Run starts the host plugin process.
+	Run(ctx context.Context)
+
+	// Stop stops the host plugin process.
+	Stop()
+
+	// DispatchEvents dispatches events to the plugin.
+	DispatchEvents(events []Event)
+
+	// DispatchJob dispatches a job to the plugin.
+	DispatchJob(job *Job)
+}

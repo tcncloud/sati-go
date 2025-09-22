@@ -36,7 +36,7 @@ type Domain struct {
 	exileConfigProcess *ExileClientConfigurationProcess
 	pollEventsProcess  *PollEventsProcess
 	streamJobsProcess  *StreamJobsProcess
-	hostPluginProcess  *HostPluginProcess
+	hostPluginProcess  ports.HostPluginProcess
 	isRunning          bool
 	shutdownChan       chan struct{}
 }
@@ -63,6 +63,14 @@ func (d *Domain) SetClient(client ports.ClientInterface) {
 	defer d.mu.Unlock()
 
 	d.client = client
+}
+
+// SetHostPluginProcess sets the host plugin process for the domain.
+func (d *Domain) SetHostPluginProcess(process ports.HostPluginProcess) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	d.hostPluginProcess = process
 }
 
 // StartConfigWatcher starts the configuration watcher.
@@ -186,20 +194,18 @@ func (d *Domain) StartHostPlugin() error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	if d.hostPluginProcess != nil {
-		d.log.Info().Msg("Host plugin process already running")
+	if d.hostPluginProcess == nil {
+		d.log.Warn().Msg("Host plugin process not configured, skipping startup")
 
 		return nil
 	}
 
+	process := d.hostPluginProcess
 	ctx, cancel := context.WithCancel(context.Background())
-	process := &HostPluginProcess{
-		domain: d,
-		cancel: cancel,
-	}
-
-	d.hostPluginProcess = process
-	go process.run(ctx)
+	go func() {
+		defer cancel()
+		process.Run(ctx)
+	}()
 
 	d.log.Info().Msg("Host plugin process started")
 
@@ -215,7 +221,7 @@ func (d *Domain) StopAllProcesses() error {
 
 	// Stop processes in reverse order
 	if d.hostPluginProcess != nil {
-		d.hostPluginProcess.stop()
+		d.hostPluginProcess.Stop()
 		d.hostPluginProcess = nil
 	}
 
@@ -267,7 +273,7 @@ func (d *Domain) ClientConfigurationChanged(oldConfig, newConfig *ports.GetClien
 
 	// Stop existing processes
 	if d.hostPluginProcess != nil {
-		d.hostPluginProcess.stop()
+		d.hostPluginProcess.Stop()
 		d.hostPluginProcess = nil
 	}
 
@@ -340,14 +346,16 @@ func (d *Domain) startStreamJobs() error {
 
 // startHostPlugin starts the host plugin process (internal helper).
 func (d *Domain) startHostPlugin() error {
-	ctx, cancel := context.WithCancel(context.Background())
-	process := &HostPluginProcess{
-		domain: d,
-		cancel: cancel,
+	if d.hostPluginProcess == nil {
+		return nil
 	}
 
-	d.hostPluginProcess = process
-	go process.run(ctx)
+	process := d.hostPluginProcess
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		defer cancel()
+		process.Run(ctx)
+	}()
 
 	return nil
 }
